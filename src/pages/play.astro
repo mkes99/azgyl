@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionIntro from '../components/SectionIntro.astro';
+import TeamCard from '../components/TeamCard.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Play | AZGYL" pathname="/play">
+  <PageHero eyebrow="Play" title="How AZGYL works" intro="This league is designed to make rec lacrosse cleaner to enter and cleaner to run. Teams manage their own team business. The league coordinates the structure that keeps the season fair, safe, and understandable." image="/assets/heroes/play-hero.svg" pills={['Rec structure', 'Grades K-8', 'Team placement', 'Season scheduling']} />
+
+  <section>
+    <div class="container two-col split-balanced">
+      <div class="copy stack-lg">
+        <div class="section-kicker">League role</div>
+        <h2 class="section-heading">The board runs the system, not your team.</h2>
+        <p>AZGYL coordinates scheduling, referees, and the league framework. Teams still handle their own finances, day-to-day team business, and local support.</p>
+        <p>The goal is simple: better communication, cleaner expectations, fewer placement fights, and a season that feels organized from opening practice through the last game.</p>
+      </div>
+      <div class="feature-visual"><img src="/assets/visuals/stick-flight.svg" alt="Stylized lacrosse stick graphic" /></div>
+    </div>
+  </section>
+
+  <section class="section-alt">
+    <div class="container metrics-grid">
+      <article class="metric"><div class="section-kicker">Divisions</div><h3>8U · 10U · 12U · 14U</h3><p>One division ladder across the league keeps expectations cleaner and development easier to explain to families.</p></article>
+      <article class="metric"><div class="section-kicker">Practices</div><h3>1 to 4 per week</h3><p>Weekly practice load varies by age group, coach plan, and field access.</p></article>
+      <article class="metric"><div class="section-kicker">Season flow</div><h3>Flexible dates, stable structure</h3><p>Season timing can change year to year while the core experience stays stable: placement, registration, rosters, games, and parent guidance.</p></article>
+    </div>
+  </section>
+
+  <section>
+    <div class="container directory-head">
+      <SectionIntro eyebrow="Active programs" title="Play where a team already exists. Grow where one does not." intro="The directory is team-first by design. Regions matter only when they connect to actual team opportunities." />
+      <a class="button button-outline directory-cta" href="/teams">View full directory</a>
+    </div>
+    <div class="container team-grid">
+      {site.teams.slice(0, 6).map((team) => <TeamCard team={team} compact />)}
+    </div>
+  </section>
+</BaseLayout>

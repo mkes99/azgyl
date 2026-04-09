@@ -1,0 +1,31 @@
+---
+interface Props {
+  team: {
+    name: string;
+    notes: string;
+    city: string;
+    district: string;
+    area?: string;
+    divisions: string[];
+    href: string;
+    logo?: string;
+    color?: string;
+  };
+  compact?: boolean;
+}
+const { team, compact = false } = Astro.props;
+---
+<article class:list={['team-card', compact && 'compact']} style={`--team-color:${team.color || '#6e58ff'}`} data-team-card data-name={team.name} data-area={team.area || ''} data-city={team.city} data-district={team.district} data-zips={team.zipcode?.join(',') || ''} data-divisions={team.divisions.join(',')}>
+  <div class="team-brandline">
+    {team.logo && <img class="team-logo" src={team.logo} alt="" loading="lazy" />}
+    <div>
+      <h3>{team.name}</h3>
+      <div class="team-meta">{team.city} · {team.district}</div>
+    </div>
+  </div>
+  <p>{team.notes}</p>
+  {!compact && <div class="team-meta soft">{team.divisions.join(' · ')}</div>}
+  <div class="team-actions">
+    <a class="button button-outline button-sm" href={team.href} target="_blank" rel="noreferrer">View program</a>
+  </div>
+</article>

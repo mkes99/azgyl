@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+
+const rows = [
+  { grade: 'K–2', division: '8U', note: 'Best on-ramp for first-year players and youngest starters.' },
+  { grade: '3–4', division: '10U', note: 'Adds more structure, spacing, and team concepts.' },
+  { grade: '5–6', division: '12U', note: 'Builds field awareness, pace, and game understanding.' },
+  { grade: '7–8', division: '14U', note: 'Top rec youth division before the high-school path begins.' },
+];
+---
+
+<BaseLayout title="Age Chart | AZGYL" pathname="/resources">
+  <PageHero eyebrow="Age chart" title="Use grade first. Keep placement simple." intro="AZGYL uses 8U, 10U, 12U, and 14U divisions to keep competition and development age-appropriate. Use the chart as the parent-friendly starting point, then confirm final placement through the team and boundary rules." image="/assets/heroes/resources-hero.svg" titleMax="12ch" overlayStrength="strong" />
+  <section>
+    <div class="container two-col split-balanced">
+      <div class="copy age-chart-summary stack-lg">
+        <div class="section-kicker">Quick guide</div>
+        <h2 class="section-heading section-heading--plain">Recommended division by grade band</h2>
+        <p>Use the downloadable chart as the fast parent version. Final placement can still depend on school affiliation, roster needs, and league policy. The page summary below mirrors the same structure for quick reference.</p>
+        <div class="actions"><a class="button button-primary" href="/assets/docs/azgyl-age-chart-2026.pdf" target="_blank" rel="noreferrer">Download styled PDF</a></div>
+      </div>
+      <div class="rule-table age-table">
+        {rows.map((row) => (
+          <div class="rule-row">
+            <strong>{row.grade}</strong>
+            <span><strong>{row.division}</strong> · {row.note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

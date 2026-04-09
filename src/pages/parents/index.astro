@@ -1,0 +1,113 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import SectionIntro from '../../components/SectionIntro.astro';
+import FaqAccordion from '../../components/FaqAccordion.astro';
+import TeamFinder from '../../components/TeamFinder.astro';
+import { site } from '../../data/site';
+---
+
+<BaseLayout title="Parent Resources | AZGYL" pathname="/parents">
+  <PageHero eyebrow="Parents" title="Everything a parent should need before the first game." intro="Use this page as the decision engine: find the right age group, find the nearest team, buy the right gear, understand placement, and get answers without hunting through multiple websites." image="/assets/heroes/parents-hero.svg" />
+
+  <section>
+    <div class="container stack-lg">
+      <SectionIntro eyebrow="Start here" title="Parent hub" intro="Start with the team directory, confirm the age group, get the right gear, and use these pages for the questions families ask every season." />
+      <nav class="subpage-links" aria-label="Parent quick links">
+        <a href="/teams">Find your club</a>
+        <a href="#equipment">Equipment</a>
+        <a href="#faq">FAQ</a>
+        <a href="/parents/parent-role">Parent expectations</a>
+      </nav>
+      <div class="metrics-grid">
+        <article class="metric"><div class="section-kicker">Step 1</div><h3>Find the closest current team.</h3><p>Use city, district, or zip code to find the best current fit. Once boundaries are finalized, this can switch to official placement logic.</p></article>
+        <article class="metric"><div class="section-kicker">Step 2</div><h3>Register and complete membership.</h3><p>Sign up through the local program, complete USA Lacrosse membership, and confirm where communication for your team will live.</p></article>
+        <article class="metric"><div class="section-kicker">Step 3</div><h3>Gear up and show up ready.</h3><p>Buy the required basics, arrive early, and let the coaches handle the learning curve from there.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-alt">
+    <div class="container finder-grid finder-grid-parents">
+      <div class="finder-inline stack-lg">
+        <div class="copy stack-md">
+          <div class="section-kicker">Age groups</div>
+          <h2 class="section-heading section-heading--plain">Find your player’s division in seconds.</h2>
+          <p class="section-sidecopy">Use the grade selector for the fastest answer. This is a rec guide rail, not a compliance trap.</p>
+        </div>
+        <div class="choice-row" data-grade-buttons>
+          <button type="button" data-grade="2">K–2</button>
+          <button type="button" data-grade="4">3–4</button>
+          <button type="button" data-grade="6">5–6</button>
+          <button type="button" data-grade="8">7–8</button>
+        </div>
+        <div class="result-shell" data-age-result>
+          <div class="note">Recommended division</div>
+          <strong>Choose a grade band</strong>
+          <p>We will show the best starting division and link you to the full age chart PDF.</p>
+          <div class="actions"><a class="button button-outline button-sm" href="/resources/age-chart">Open age chart</a></div>
+        </div>
+      </div>
+
+      <TeamFinder teams={site.teams} variant="compact" title="Find your club" intro="Search by city, district, or zip. Results are broad-match suggestions until official boundaries are finalized." actionLabel="Open full directory" directoryHref="/teams" />
+    </div>
+  </section>
+
+  <section id="equipment">
+    <div class="container section-block stack-lg">
+      <SectionIntro eyebrow="Equipment" title="Buy the required basics first." intro="For most girls field players, the must-have list is short: stick, mouthguard, protective eyewear, and practical cleats or field shoes. Keep the first purchase simple and skip the panic spending spiral." />
+      <div class="metrics-grid">
+        <article class="metric"><h3>Stick</h3><p>Start with a legal girls stick that feels manageable in the player’s hands. Fancy is not the point in season one.</p></article>
+        <article class="metric"><h3>Protective eyewear</h3><p>Required for girls field players and worth fitting correctly the first time so it stays comfortable.</p></article>
+        <article class="metric"><h3>Mouthguard</h3><p>Mandatory. Buy two so one lives in the bag and one stays at home.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-alt" id="first-practice">
+    <div class="container two-col split-balanced">
+      <div class="copy stack-md">
+        <div class="section-kicker">First practice checklist</div>
+        <h2 class="section-heading">What to have ready before you leave the house.</h2>
+        <ul class="checklist">
+          <li>Stick, mouthguard, eyewear, and cleats packed the night before</li>
+          <li>Water bottle filled and labeled</li>
+          <li>Practice location confirmed with arrival 10–15 minutes early</li>
+          <li>Coach or team-manager contact saved in your phone</li>
+        </ul>
+      </div>
+      <div class="copy stack-md">
+        <div class="section-kicker">What to expect</div>
+        <h2 class="section-heading">What the first week usually feels like for new families.</h2>
+        <ul class="checklist">
+          <li>1–4 practices per week depending on age group and field access</li>
+          <li>Basic stick work, movement, spacing, and team expectations</li>
+          <li>A lot of new vocabulary and zero need to already know it all</li>
+          <li>A season structure that gets clearer once schedules are finalized</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="container stack-lg">
+      <SectionIntro eyebrow="Questions parents ask every season" title="Get the common answers in one place." intro="Use the FAQ for start-up questions. Use the rules and code-of-conduct pages when the answer affects placement, eligibility, or behavior." />
+      <FaqAccordion items={site.parentFaqs} />
+    </div>
+  </section>
+
+  <script is:inline>
+    const result = document.querySelector('[data-age-result]');
+    document.querySelectorAll('[data-grade-buttons] button').forEach((button) => {
+      button.addEventListener('click', () => {
+        const grade = Number(button.dataset.grade || 0);
+        let division = '8U';
+        if (grade <= 2) division = '8U';
+        else if (grade <= 4) division = '10U';
+        else if (grade <= 6) division = '12U';
+        else division = '14U';
+        result.innerHTML = `<div class="note">Recommended division</div><strong>${division}</strong><p>This is the best starting point for most players in this grade band. Final placement can still depend on school affiliation and roster needs.</p><div class="actions"><a class="button button-outline button-sm" href="/resources/age-chart">Open age chart</a></div>`;
+      });
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+
+const board = [
+  { name: 'TBD', role: 'President', email: 'president@azgyl.com', body: 'League direction, final decisions, and board leadership.' },
+  { name: 'TBD', role: 'Vice President', email: 'vicepresident@azgyl.com', body: 'Operational support, committee coordination, and execution support.' },
+  { name: 'TBD', role: 'Treasurer', email: 'treasurer@azgyl.com', body: 'League fees, financial controls, reporting, and payment tracking.' },
+  { name: 'TBD', role: 'Secretary', email: 'secretary@azgyl.com', body: 'Meeting records, governance documentation, and administrative support.' },
+];
+
+const committees = [
+  { title: 'Scheduling Committee', body: 'Builds the season framework and keeps home-away balance, field logistics, and reschedule requests from turning into chaos.', links:[['League calendar','/contact'],['Game changes','/contact'],['Field coordination','/contact']] },
+  { title: 'Eligibility & Boundaries', body: 'Owns school-based placement, future boundary implementation, hardship requests, and exception workflows.', links:[['Placement review','/boundaries'],['Transfers','/rules'],['Hardships','/contact']] },
+  { title: 'Rules & Discipline', body: 'Applies the code of conduct, card consequences, and league discipline standards consistently.', links:[['Conduct','/resources/code-of-conduct'],['League rules','/rules']] },
+  { title: 'Officials & Game Operations', body: 'Supports referee assignments, game-day standards, score reporting, and safety-sheet consistency.', links:[['Officials','/contact'],['Safety','/rules'],['Reports','/contact']] },
+  { title: 'Communications & Growth', body: 'Owns public updates, parent guidance, resource publishing, and future market growth into new Arizona communities.', links:[['Website','/resources'],['Parent support','/parents'],['Expansion','/teams']] },
+];
+---
+
+<BaseLayout title="Leadership | AZGYL" pathname="/leadership">
+  <PageHero eyebrow="Leadership" title="Board leadership and committees should be easy to understand." intro="Keep leadership visible, practical, and parent-readable. These sections should explain who owns what without turning into internal jargon." image="/assets/heroes/resources-hero.svg" />
+
+  <section>
+    <div class="container stack-lg">
+      <div class="section-header-clean">
+        <div>
+          <div class="section-kicker">Executive board</div>
+          <h2>Executive Board</h2>
+        </div>
+        <p>Replace placeholders with real names as soon as leadership is finalized. The layout already supports any number of board members.</p>
+      </div>
+      <div class="leadership-grid">
+        {board.map((member) => (
+          <article class="leadership-card">
+            <div class="leadership-role">{member.role}</div>
+            <h3>{member.name}</h3>
+            <a class="leadership-email" href={`mailto:${member.email}`}>{member.email}</a>
+            <p>{member.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-alt">
+    <div class="container stack-lg">
+      <div class="section-header-clean">
+        <div>
+          <div class="section-kicker">Committees</div>
+          <h2>League Committees</h2>
+        </div>
+        <p>Committees should map to actual league work. Each card can support direct links and contact details as the structure gets finalized.</p>
+      </div>
+      <div class="leadership-grid">
+        {committees.map((committee) => (
+          <article class="leadership-card">
+            <h3>{committee.title}</h3>
+            <p>{committee.body}</p>
+            <div class="inline-link-list">
+              {committee.links.map(([label, href]) => <a href={href}>{label}</a>)}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

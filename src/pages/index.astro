@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionIntro from '../components/SectionIntro.astro';
+import TeamCard from '../components/TeamCard.astro';
+import { site } from '../data/site';
+
+const featuredTeams = site.teams.slice(0, 6);
+---
+
+<BaseLayout title="Arizona Girls Youth Lacrosse | AZGYL" description={site.description} pathname="/">
+  <section class="hero-home">
+    <img class="hero-bg" src="/assets/heroes/home-hero.svg" alt="" loading="eager" />
+    <div class="container hero-home-inner">
+      <div class="hero-copy stack-xl">
+        <div class="eyebrow">Arizona Girls Youth Lacrosse · azgyl.com</div>
+        <h1 class="display">Rec girls lacrosse for <em>all of Arizona</em>.</h1>
+        <p class="lead">AZGYL is the statewide rec front door for girls in grades K–8 — clear on how to start, clear on where to play, and clear on how the league works.</p>
+        <div class="actions">
+          <a class="button button-primary" href="/teams">Find My Team</a>
+          <a class="button button-outline" href="/parents">Parent Resources</a>
+          <a class="button button-dark" href="/rules">League Rules</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container metrics-grid">
+      {site.seasonHighlights.map((item) => (
+        <article class="metric">
+          <div class="section-kicker">League highlight</div>
+          <h3>{item.title}</h3>
+          <p>{item.body}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section-alt">
+    <div class="container two-col split-balanced">
+      <div class="copy stack-md">
+        <div class="section-kicker">Start here</div>
+        <h2 class="section-heading">Useful beats generic.</h2>
+        <p>Parents need one clear place to understand the sport, find the right team, figure out equipment, and know what to do next.</p>
+        <div class="actions"><a class="button button-primary" href="/parents">Open parent hub</a></div>
+      </div>
+      <div class="copy stack-md">
+        <div class="section-kicker">League resources</div>
+        <h2 class="section-heading">Own the Arizona layer here.</h2>
+        <p>Use AZGYL for teams, rules, boundaries, age groups, and conduct pages. Link to USA Lacrosse only for the official national standards.</p>
+        <div class="actions"><a class="button button-outline" href="/resources">Open resources</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container directory-head">
+      <SectionIntro eyebrow="Current programs" title="Start with a team that already exists." intro="Show the current directory cleanly. Regions matter when they connect to a real team option — not as filler navigation." />
+      <a class="button button-outline directory-cta" href="/teams">View full directory</a>
+    </div>
+    <div class="container team-grid">
+      {featuredTeams.map((team) => <TeamCard team={team} compact />)}
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import SectionIntro from '../../components/SectionIntro.astro';
+---
+
+<BaseLayout title="Resources | AZGYL" pathname="/resources">
+  <PageHero eyebrow="Resources" title="Rules, boundaries, and the practical league tools that should live in one place." intro="AZGYL should own the Arizona layer clearly: team directory, eligibility, boundaries, age groups, conduct, and the pages parents and coaches reach for repeatedly." image="/assets/heroes/resources-hero.svg" />
+
+  <section>
+    <div class="container stack-lg">
+      <SectionIntro eyebrow="Start with the pages families actually use" title="Keep the Arizona league layer in one clean resource hub." intro="Use the directory, rules, boundaries, age chart, and conduct pages here instead of scattering families across multiple sites." />
+      <div class="resources-cards">
+        <a class="resource-card" href="/teams"><strong>Teams directory</strong><span>Find current programs, search by city or zip, and start with the nearest real option.</span></a>
+        <a class="resource-card" href="/rules"><strong>League rules</strong><span>USA Lacrosse foundation plus the AZGYL operating layer for eligibility, scheduling, and game-day standards.</span></a>
+        <a class="resource-card" href="/boundaries"><strong>Boundaries</strong><span>Draft map and service-area list until school-based boundaries are finalized.</span></a>
+        <a class="resource-card" href="/resources/age-chart"><strong>Age chart</strong><span>Quick division reference plus a downloadable 2026 PDF.</span></a>
+        <a class="resource-card" href="/resources/code-of-conduct"><strong>Code of conduct</strong><span>Player, parent, and coach expectations written clearly for girls rec lacrosse.</span></a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

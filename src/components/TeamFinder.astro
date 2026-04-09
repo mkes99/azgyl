@@ -1,0 +1,173 @@
+---
+interface Team {
+  name: string;
+  notes: string;
+  city: string;
+  district: string;
+  area?: string;
+  divisions: string[];
+  zipcode: string[];
+  href: string;
+}
+interface Props {
+  teams: Team[];
+  title?: string;
+  intro?: string;
+  variant?: 'section' | 'compact' | 'inline';
+  actionLabel?: string;
+  submitLabel?: string;
+  resetLabel?: string;
+  directoryHref?: string;
+  collapsible?: boolean;
+}
+const {
+  teams,
+  title = 'Search by city, district, or zip.',
+  intro = 'Use the current directory first. This finder can harden into formal boundary logic once boundaries are ratified.',
+  variant = 'section',
+  actionLabel = 'View full directory',
+  submitLabel = 'Show matches',
+  resetLabel = 'Reset',
+  directoryHref = '/teams',
+  collapsible = false,
+} = Astro.props;
+const teamData = JSON.stringify(teams);
+const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class:list={['team-finder', variant === 'compact' && 'team-finder-compact', variant === 'inline' && 'team-finder-inline']} data-team-finder-shell>
+  {!collapsible && <div class="section-kicker">Find my team</div>}
+  {!collapsible && (
+    <div class="team-finder-head stack-md">
+      <h2 class="team-finder-title">{title}</h2>
+      <p class="team-finder-intro">{intro}</p>
+    </div>
+  )}
+
+  {collapsible ? (
+    <details class="finder-accordion">
+      <summary>
+        <span>Filter current programs</span>
+      </summary>
+      <form class="team-finder-form stack-md" data-team-finder={finderId} data-team-source={teamData}>
+        <div class="form-grid">
+          <label>
+            City / area / district
+            <input type="text" name="query" placeholder="Phoenix, Chandler, Oro Valley..." />
+          </label>
+          <label>
+            Zip code
+            <input type="text" name="zip" placeholder="85048" />
+          </label>
+        </div>
+        <label>
+          Division
+          <select name="division">
+            <option value="">Any division</option>
+            <option value="8U">8U</option>
+            <option value="10U">10U</option>
+            <option value="12U">12U</option>
+            <option value="14U">14U</option>
+          </select>
+        </label>
+        <div class="actions team-finder-actions">
+          <button class="button button-primary" type="submit">{submitLabel}</button>
+          <button class="button button-ghost" type="button" data-reset-finder={finderId}>{resetLabel}</button>
+        </div>
+      </form>
+    </details>
+  ) : (
+    <form class="team-finder-form stack-md" data-team-finder={finderId} data-team-source={teamData}>
+      <div class="form-grid">
+        <label>
+          City / area / district
+          <input type="text" name="query" placeholder="Phoenix, Chandler, Oro Valley..." />
+        </label>
+        <label>
+          Zip code
+          <input type="text" name="zip" placeholder="85048" />
+        </label>
+      </div>
+      <label>
+        Division
+        <select name="division">
+          <option value="">Any division</option>
+          <option value="8U">8U</option>
+          <option value="10U">10U</option>
+          <option value="12U">12U</option>
+          <option value="14U">14U</option>
+        </select>
+      </label>
+      <div class="actions team-finder-actions">
+        <button class="button button-primary" type="submit">{submitLabel}</button>
+        <a class="button button-outline" href={directoryHref}>{actionLabel}</a>
+        {variant === 'section' && <button class="button button-ghost" type="button" data-reset-finder={finderId}>{resetLabel}</button>}
+      </div>
+    </form>
+  )}
+
+  {variant !== 'inline' && (
+    <div class="finder-results" data-team-results={finderId}>
+      <div class="finder-empty">
+        <strong>Need a starting point?</strong>
+        <p>Try your city first. If no current program appears, AZGYL can still log demand and guide you toward the nearest active option.</p>
+      </div>
+    </div>
+  )}
+</div>
+
+<script is:inline>
+  (() => {
+    const form = document.querySelector(`[data-team-finder="${finderId}"]`);
+    const results = document.querySelector(`[data-team-results="${finderId}"]`);
+    const reset = document.querySelector(`[data-reset-finder="${finderId}"]`);
+    const root = form?.closest('[data-directory-root]');
+    const cards = root ? Array.from(root.querySelectorAll('[data-team-card]')) : [];
+    const teams = JSON.parse(form?.dataset.teamSource || '[]');
+    if (!form) return;
+
+    const emptyMarkup = results?.innerHTML || '';
+    const renderResults = (items) => {
+      if (cards.length) {
+        const keep = new Set(items.map((t) => t.name));
+        cards.forEach((card) => {
+          const name = card.getAttribute('data-name') || '';
+          card.style.display = keep.has(name) ? '' : 'none';
+        });
+      }
+      if (!results) return;
+      if (!items.length) {
+        results.innerHTML = `<div class="finder-empty"><strong>No exact match yet.</strong><p>That usually means an adjacent team is the best current option or this area should be tracked as a growth market.</p></div>`;
+        return;
+      }
+      results.innerHTML = items.slice(0, 3).map((team) => `
+        <article class="finder-match">
+          <strong>${team.name}</strong>
+          <div class="team-meta">${team.city} · ${team.district}</div>
+          <p>${team.notes}</p>
+        </article>`).join('');
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const query = String(data.get('query') || '').toLowerCase().trim();
+      const zip = String(data.get('zip') || '').trim();
+      const division = String(data.get('division') || '');
+      const matches = teams.filter((team) => {
+        const haystack = [team.name, team.area, team.city, team.district].join(' ').toLowerCase();
+        const queryOk = !query || haystack.includes(query);
+        const zipOk = !zip || team.zipcode.some((code) => code.startsWith(zip) || zip.startsWith(code));
+        const divisionOk = !division || team.divisions.includes(division);
+        return queryOk && zipOk && divisionOk;
+      });
+      renderResults(matches.length ? matches : teams.filter((team) => !division || team.divisions.includes(division)));
+    });
+
+    reset?.addEventListener('click', () => {
+      form.reset();
+      if (cards.length) cards.forEach((card) => { card.style.display = ''; });
+      if (results) results.innerHTML = emptyMarkup;
+    });
+  })();
+</script>

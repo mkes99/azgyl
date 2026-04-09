@@ -1,0 +1,68 @@
+---
+import { site } from '../data/site';
+const { pathname = '/' } = Astro.props;
+const isActive = (href: string) => href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+const parentLinks = [
+  { label: 'Parent Hub', href: '/parents' },
+  { label: 'Find Your Club', href: '/teams' },
+  { label: 'Parent Role', href: '/parents/parent-role' },
+];
+const resourceLinks = [
+  { label: 'Resources Home', href: '/resources' },
+  { label: 'Teams', href: '/teams' },
+  { label: 'Rules', href: '/rules' },
+  { label: 'Boundaries', href: '/boundaries' },
+  { label: 'Age Chart', href: '/resources/age-chart' },
+  { label: 'Code of Conduct', href: '/resources/code-of-conduct' },
+];
+---
+<header class="site-header" data-header>
+  <div class="container header-inner">
+    <a class="brand" href="/" aria-label="Arizona Girls Youth Lacrosse home">
+      <img src="/assets/brand/logo-transparent.png" alt="Arizona Girls Youth Lacrosse logo" />
+    </a>
+
+    <nav class="desktop-nav" aria-label="Primary">
+      <a href="/" class:list={{active: isActive('/')}}>Home</a>
+      <details class="nav-group" open={false}>
+        <summary class:list={{active: isActive('/parents') || isActive('/teams')}}>Parents</summary>
+        <div class="nav-dropdown">
+          {parentLinks.map((item) => <a href={item.href}>{item.label}</a>)}
+        </div>
+      </details>
+      <a href="/leadership" class:list={{active: isActive('/leadership')}}>Leadership</a>
+      <details class="nav-group" open={false}>
+        <summary class:list={{active: isActive('/resources') || isActive('/rules') || isActive('/boundaries')}}>Resources</summary>
+        <div class="nav-dropdown">
+          {resourceLinks.map((item) => <a href={item.href}>{item.label}</a>)}
+        </div>
+      </details>
+      <a href="/contact" class:list={{active: isActive('/contact')}}>Contact</a>
+    </nav>
+
+    <div class="header-actions">
+      <a class="button button-primary button-sm" href="/teams">Find My Team</a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span></span><span></span><span></span>
+        <span class="sr-only">Open menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu" data-mobile-menu hidden>
+    <div class="container mobile-menu-inner">
+      <a href="/">Home</a>
+      <details class="mobile-group">
+        <summary>Parents</summary>
+        <div class="mobile-subnav">{parentLinks.map((item) => <a href={item.href}>{item.label}</a>)}</div>
+      </details>
+      <a href="/leadership">Leadership</a>
+      <details class="mobile-group">
+        <summary>Resources</summary>
+        <div class="mobile-subnav">{resourceLinks.map((item) => <a href={item.href}>{item.label}</a>)}</div>
+      </details>
+      <a href="/contact">Contact</a>
+      <a class="button button-primary mobile-cta" href="/teams">Find My Team</a>
+    </div>
+  </div>
+</header>

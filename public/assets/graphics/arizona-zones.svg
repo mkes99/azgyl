@@ -1,0 +1,48 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1200" fill="#07121D"/>
+  <defs>
+    <linearGradient id="g1" x1="255" y1="130" x2="1240" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5DE1F6"/>
+      <stop offset="0.48" stop-color="#75B9FF"/>
+      <stop offset="1" stop-color="#6B4BE6"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1200" y2="1200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F1E2D"/>
+      <stop offset="1" stop-color="#1E153F"/>
+    </linearGradient>
+  </defs>
+  <circle cx="1340" cy="180" r="260" fill="#5DE1F6" fill-opacity="0.12"/>
+  <circle cx="210" cy="920" r="300" fill="#7B6DFF" fill-opacity="0.16"/>
+  <path d="M547 157L732 128L760 173L813 166L855 220L832 254L875 308L837 363L877 427L811 488L796 544L859 611L815 693L829 792L793 850L691 910L578 965L507 1039L424 1004L353 1010L315 936L225 880L270 782L246 736L310 669L292 566L354 500L389 430L433 354L457 252L523 228L547 157Z" fill="url(#g2)" stroke="url(#g1)" stroke-width="12"/>
+  <path d="M423 355L595 336L677 399L630 552L522 561L388 432L423 355Z" fill="#2A2457" stroke="#5DE1F6" stroke-opacity="0.55" stroke-width="6"/>
+  <path d="M522 561L630 552L720 640L669 837L511 918L380 836L392 683L522 561Z" fill="#163346" stroke="#5DE1F6" stroke-opacity="0.55" stroke-width="6"/>
+  <path d="M595 336L724 290L813 363L720 640L630 552L677 399L595 336Z" fill="#4C32B5" stroke="#90E8FF" stroke-opacity="0.65" stroke-width="6"/>
+  <path d="M669 837L793 850L691 910L578 965L507 1039L424 1004L511 918L669 837Z" fill="#422981" stroke="#90E8FF" stroke-opacity="0.65" stroke-width="6"/>
+  <path d="M353 1010L315 936L225 880L270 782L380 836L511 918L424 1004L353 1010Z" fill="#0F5B6B" stroke="#90E8FF" stroke-opacity="0.65" stroke-width="6"/>
+  <path d="M724 290L813 166L855 220L832 254L875 308L837 363L813 363L724 290Z" fill="#0E485E" stroke="#90E8FF" stroke-opacity="0.65" stroke-width="6"/>
+  <g fill="white" font-family="Inter, Arial, sans-serif">
+    <text x="970" y="190" font-size="74" font-weight="800">Draft AZGYL Boundary Mock</text>
+    <text x="970" y="256" font-size="30" fill-opacity="0.78">Placeholder service zones only — replace with ratified school-district boundaries later.</text>
+
+    <text x="1050" y="428" font-size="28" font-weight="700">North / Foothills</text>
+    <text x="1050" y="468" font-size="24" fill-opacity="0.75">Cave Creek · North Phoenix</text>
+    <line x1="964" y1="444" x2="816" y2="350" stroke="#90E8FF" stroke-width="4"/>
+
+    <text x="960" y="610" font-size="28" font-weight="700">Central / Scottsdale</text>
+    <text x="960" y="650" font-size="24" fill-opacity="0.75">Desert Stix Central</text>
+    <line x1="906" y1="626" x2="671" y2="468" stroke="#90E8FF" stroke-width="4"/>
+
+    <text x="940" y="784" font-size="28" font-weight="700">East Valley</text>
+    <text x="940" y="824" font-size="24" fill-opacity="0.75">Chandler · East Valley Bulls</text>
+    <line x1="902" y1="798" x2="706" y2="688" stroke="#90E8FF" stroke-width="4"/>
+
+    <text x="920" y="975" font-size="28" font-weight="700">South / Tucson Corridor</text>
+    <text x="920" y="1015" font-size="24" fill-opacity="0.75">Tukee · Sol Sisters · Oro Valley · Marana</text>
+    <line x1="885" y1="990" x2="650" y2="920" stroke="#90E8FF" stroke-width="4"/>
+
+    <text x="90" y="130" font-size="28" font-weight="700">How to use this now</text>
+    <text x="90" y="174" font-size="24" fill-opacity="0.76">1. Show current team service zones.</text>
+    <text x="90" y="212" font-size="24" fill-opacity="0.76">2. Label them draft until approved.</text>
+    <text x="90" y="250" font-size="24" fill-opacity="0.76">3. Swap to official boundaries later.</text>
+  </g>
+</svg>

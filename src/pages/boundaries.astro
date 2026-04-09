@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Boundaries | AZGYL" pathname="/boundaries">
+  <PageHero eyebrow="Boundaries" title="Draft boundaries should be visible before they are final." intro="AZGYL will publish school-based and district-based placement rules here once boundaries are ratified. Until then, show the draft model clearly and route families through the current team directory." image="/assets/heroes/regions-hero.svg" pills={['Draft map', 'School-based placement', 'Growth markets', 'Boundary policy']} />
+
+  <section>
+    <div class="container two-col">
+      <div class="copy stack-md">
+        <div class="section-kicker">Current approach</div>
+        <h2 class="section-heading">Use team-first placement now. Publish formal boundaries here next.</h2>
+        <p>Until the final school-district map is approved, AZGYL should show draft service areas, explain that they are preliminary, and point families to the nearest current team option.</p>
+        <div class="inline-chips">{site.expansionAreas.map((item) => <span class="inline-chip">{item.name}</span>)}</div>
+      </div>
+      <div>
+        <img class="boundary-map" src="/assets/graphics/arizona-zones.svg" alt="Draft Arizona service area placeholder map" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

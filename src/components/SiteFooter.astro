@@ -1,0 +1,41 @@
+---
+import { site } from '../data/site';
+---
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand-block">
+      <a class="footer-brand" href="/">
+        <img src="/assets/brand/logo-transparent.png" alt="Arizona Girls Youth Lacrosse logo" />
+      </a>
+      <p>{site.tagline}</p>
+      <p>AZGYL is building the statewide rec home for girls lacrosse in Arizona — clear for parents, structured for teams, and ready to grow.</p>
+    </div>
+    <div>
+      <div class="footer-title">Parents</div>
+      <div class="footer-links">
+        <a href="/parents">Parent hub</a>
+        <a href="/parents/parent-role">Parent role</a>
+        <a href="/teams">Find your club</a>
+        <a href="/resources/age-chart">Age chart</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-title">Resources</div>
+      <div class="footer-links">
+        <a href="/teams">Teams directory</a>
+        <a href="/rules">League rules</a>
+        <a href="/boundaries">Boundaries</a>
+        <a href="/resources/code-of-conduct">Code of conduct</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-title">Official standards</div>
+      <div class="footer-links">
+        {site.officialLinks.slice(0, 3).map((item) => (
+          <a href={item.href} target="_blank" rel="noreferrer">{item.title}</a>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div class="container footer-legal">© 2026 Arizona Girls Youth Lacrosse. All rights reserved.</div>
+</footer>

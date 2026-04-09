@@ -1,0 +1,23 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="110" y1="56" x2="1008" y2="791" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#31006F"/>
+      <stop offset="1" stop-color="#160033"/>
+    </linearGradient>
+    <linearGradient id="aqua" x1="203" y1="176" x2="879" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#69E5F3"/>
+      <stop offset="1" stop-color="#47CADD"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" rx="40" fill="url(#bg)"/>
+  <path d="M-9 658C118 597 238 555 350 532C533 495 662 452 760 371C859 289 934 188 983 66L1200 66V900H-9V658Z" fill="white" fill-opacity="0.06"/>
+  <path d="M104 721C191 644 290 571 401 503C512 436 623 374 734 319L777 380C672 455 569 526 469 594C369 663 276 740 191 826L104 721Z" fill="url(#aqua)"/>
+  <circle cx="278" cy="286" r="104" fill="#69E5F3" fill-opacity="0.17"/>
+  <circle cx="866" cy="177" r="69" fill="#69E5F3" fill-opacity="0.16"/>
+  <path d="M651 156C668 177 678 204 678 233C678 300 623 355 556 355C488 355 434 300 434 233C434 204 444 177 462 156" stroke="white" stroke-width="14"/>
+  <path d="M415 537C415 456 480 391 561 391C642 391 707 456 707 537V655H415V537Z" stroke="white" stroke-width="14"/>
+  <path d="M254 282L1002 282" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M254 352L1002 352" stroke="white" stroke-opacity="0.07" stroke-width="2"/>
+  <path d="M254 422L1002 422" stroke="white" stroke-opacity="0.07" stroke-width="2"/>
+  <rect x="53" y="53" width="1094" height="794" rx="28" stroke="white" stroke-opacity="0.08" stroke-width="2"/>
+</svg>

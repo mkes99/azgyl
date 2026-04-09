@@ -1,0 +1,44 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  pathname?: string;
+}
+
+const { title, description = site.description, pathname = '/' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#08111b" />
+    <link rel="icon" href="/assets/brand/logo-cropped.png" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <SiteHeader pathname={pathname} />
+    <main id="content">
+      <slot />
+    </main>
+    <SiteFooter />
+    <script is:inline>
+      const toggle = document.querySelector('[data-menu-toggle]');
+      const menu = document.querySelector('[data-mobile-menu]');
+      toggle?.addEventListener('click', () => {
+        const open = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!open));
+        if (menu) menu.hidden = open;
+        document.body.classList.toggle('menu-open', !open);
+      });
+    </script>
+  </body>
+</html>
