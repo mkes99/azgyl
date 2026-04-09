@@ -1,0 +1,18 @@
+---
+import { departments } from '@/data/departments';
+interface Props { selectedTopic?: string; selectedTeam?: string; }
+const { selectedTopic = 'General Questions', selectedTeam = '' } = Astro.props;
+---
+<form data-contact-form class="stack-md">
+  <div class="form-grid">
+    <label>Name<input name="name" type="text" placeholder="Parent or team contact" required /></label>
+    <label>Email<input name="email" type="email" placeholder="you@example.com" required /></label>
+  </div>
+  <div class="form-grid">
+    <label>Department<select name="department">{departments.map((item) => <option value={item} selected={item === selectedTopic}>{item}</option>)}</select></label>
+    <label>Team or area<input name="team" type="text" value={selectedTeam} placeholder="Optional" /></label>
+  </div>
+  <label>Message<textarea name="message" placeholder="What do you need help with?" required></textarea></label>
+  <div class="actions form-actions"><button class="button button-primary" type="submit">Submit</button></div>
+  <div class="note">This static build prepares a pre-addressed email draft. When final inboxes are ready, wire this form to Cloudflare Pages Functions or your preferred form handler.</div>
+</form>

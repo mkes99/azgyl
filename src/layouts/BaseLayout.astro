@@ -1,8 +1,7 @@
 ---
-import '../styles/global.css';
-import { site } from '../data/site';
-import SiteHeader from '../components/SiteHeader.astro';
-import SiteFooter from '../components/SiteFooter.astro';
+import { siteMeta } from '@/data/site-meta';
+import SiteHeader from '@/components/SiteHeader.astro';
+import SiteFooter from '@/components/SiteFooter.astro';
 
 interface Props {
   title: string;
@@ -10,7 +9,7 @@ interface Props {
   pathname?: string;
 }
 
-const { title, description = site.description, pathname = '/' } = Astro.props;
+const { title, description = siteMeta.description, pathname = '/' } = Astro.props;
 ---
 
 <!doctype html>
@@ -22,6 +21,7 @@ const { title, description = site.description, pathname = '/' } = Astro.props;
     <meta name="description" content={description} />
     <meta name="theme-color" content="#08111b" />
     <link rel="icon" href="/assets/brand/logo-cropped.png" />
+    <link rel="stylesheet" href="/assets/css/global.css" />
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>

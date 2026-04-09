@@ -1,0 +1,16 @@
+---
+import { committees } from '@/data/committees';
+---
+<div class="leadership-grid committees-grid">
+  {committees.map((committee) => (
+    <article class="leadership-card">
+      <h3>{committee.title}</h3>
+      <p>{committee.body}</p>
+      {committee.links?.length ? (
+        <div class="inline-link-list">
+          {committee.links.map(([label, href]) => <a href={href}>{label}</a>)}
+        </div>
+      ) : null}
+    </article>
+  ))}
+</div>

@@ -1,36 +1,23 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHero from '../components/PageHero.astro';
-import { site } from '../data/site';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import ContactForm from '@/components/ContactForm.astro';
 
 const params = Astro.url.searchParams;
 const selectedTopic = params.get('topic') || 'General Questions';
 const selectedTeam = params.get('team') || '';
 ---
-
 <BaseLayout title="Contact | AZGYL" pathname="/contact">
-  <PageHero eyebrow="Contact" title="Route the question to the right place the first time." intro="Use one contact path, but organize it by department so parents, teams, and growth markets are not all shouting into the same inbox." image="/assets/heroes/contact-hero.svg" pills={['Department routing', 'Team questions', 'League support']} />
+  <PageHero eyebrow="Contact" title="Route the question to the right place the first time." intro="Use one contact path, but organize it by department so parents, teams, and growth markets are not all shouting into the same inbox." image="/assets/heroes/contact-hero.svg" />
 
   <section>
     <div class="container contact-layout">
       <article class="stack-lg">
         <div class="copy stack-md">
           <div class="section-kicker">League contact form</div>
-          <h2 class="section-heading">Use one form. Route by department.</h2>
+          <h2 class="section-heading">Contact AZGYL</h2>
         </div>
-        <form data-contact-form class="stack-md">
-          <div class="form-grid">
-            <label>Name<input name="name" type="text" placeholder="Parent or team contact" required /></label>
-            <label>Email<input name="email" type="email" placeholder="you@example.com" required /></label>
-          </div>
-          <div class="form-grid">
-            <label>Department<select name="department">{site.departments.map((item) => <option value={item} selected={item === selectedTopic}>{item}</option>)}</select></label>
-            <label>Team or area<input name="team" type="text" value={selectedTeam} placeholder="Optional" /></label>
-          </div>
-          <label>Message<textarea name="message" placeholder="What do you need help with?" required></textarea></label>
-          <div class="actions form-actions"><button class="button button-primary" type="submit">Submit</button></div>
-          <div class="note">This static build prepares a pre-addressed email draft. When final inboxes are ready, wire this form to Cloudflare Pages Functions or your preferred form handler.</div>
-        </form>
+        <ContactForm selectedTopic={selectedTopic} selectedTeam={selectedTeam} />
       </article>
       <aside class="contact-aside copy stack-md">
         <div class="section-kicker">Routing guide</div>
@@ -55,7 +42,8 @@ const selectedTeam = params.get('team') || '';
         team ? `Team/Area: ${team}` : '',
         '',
         String(data.get('message') || ''),
-      ].filter(Boolean).join('\n');
+      ].filter(Boolean).join('
+');
       window.location.href = `mailto:info@azgyl.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
   </script>

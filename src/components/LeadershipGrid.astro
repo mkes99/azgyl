@@ -1,0 +1,13 @@
+---
+import { board } from '@/data/board';
+---
+<div class="leadership-grid">
+  {board.map((member) => (
+    <article class="leadership-card">
+      <div class="leadership-role">{member.role}</div>
+      <h3>{member.name}</h3>
+      <a class="leadership-email" href={`mailto:${member.email}`}>{member.email}</a>
+      <p>{member.body}</p>
+    </article>
+  ))}
+</div>

@@ -1,11 +1,11 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHero from '../../components/PageHero.astro';
-import TeamCard from '../../components/TeamCard.astro';
-import TeamFinder from '../../components/TeamFinder.astro';
-import { site } from '../../data/site';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import TeamCard from '@/components/TeamCard.astro';
+import TeamFinder from '@/components/TeamFinder.astro';
+import { teams } from '@/data/teams';
+import { expansionAreas } from '@/data/expansion-areas';
 ---
-
 <BaseLayout title="Teams | AZGYL" pathname="/teams">
   <PageHero eyebrow="Teams" title="Current teams and the easiest current path into girls rec lacrosse." intro="Start with a real current team. Use the directory first, then use boundaries and growth-market pages only when the right local option does not exist yet." image="/assets/heroes/regions-hero.svg" />
 
@@ -21,9 +21,9 @@ import { site } from '../../data/site';
         </div>
       </div>
       <div class="team-directory-inline">
-        <TeamFinder teams={site.teams} title="Filter the live directory" intro="Start broad, then narrow by city, district, zip, or division only when you need to." variant="inline" collapsible={true} />
+        <TeamFinder teams={teams} title="Filter the live directory" intro="Start broad, then narrow by city, district, zip, or division only when you need to." variant="inline" collapsible={true} />
         <div class="team-grid">
-          {site.teams.map((team) => <TeamCard team={team} />)}
+          {teams.map((team) => <TeamCard team={team} />)}
         </div>
       </div>
     </div>
@@ -36,10 +36,9 @@ import { site } from '../../data/site';
           <div class="section-kicker">Growth markets</div>
           <h2>Areas building toward future teams</h2>
         </div>
-        <p>Keep expansion visible without pretending the team already exists. These are signals of demand, not active programs.</p>
-        <a class="button button-primary button-sm" href="/contact?topic=Registration%20%26%20Team%20Signup">Join interest list</a>
+        <div class="section-header-copy"><p>Keep expansion visible without pretending the team already exists. These are signals of demand, not active programs.</p></div>
       </div>
-      <div class="inline-chips">{site.expansionAreas.map((item) => <span class="inline-chip">{item.name}</span>)}</div>
+      <div class="inline-chips">{expansionAreas.map((item) => <span class="inline-chip">{item.name}</span>)}</div>
     </div>
   </section>
 </BaseLayout>

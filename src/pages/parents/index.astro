@@ -1,23 +1,30 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHero from '../../components/PageHero.astro';
-import SectionIntro from '../../components/SectionIntro.astro';
-import FaqAccordion from '../../components/FaqAccordion.astro';
-import TeamFinder from '../../components/TeamFinder.astro';
-import { site } from '../../data/site';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import FaqAccordion from '@/components/FaqAccordion.astro';
+import TeamFinder from '@/components/TeamFinder.astro';
+import { teams } from '@/data/teams';
+import { parentFaqs } from '@/data/parent-faqs';
 ---
-
 <BaseLayout title="Parent Resources | AZGYL" pathname="/parents">
   <PageHero eyebrow="Parents" title="Everything a parent should need before the first game." intro="Use this page as the decision engine: find the right age group, find the nearest team, buy the right gear, understand placement, and get answers without hunting through multiple websites." image="/assets/heroes/parents-hero.svg" />
 
   <section>
     <div class="container stack-lg">
-      <SectionIntro eyebrow="Start here" title="Parent hub" intro="Start with the team directory, confirm the age group, get the right gear, and use these pages for the questions families ask every season." />
+      <div class="section-header-clean section-header-clean--action">
+        <div>
+          <div class="section-kicker">Start here</div>
+          <h2>Parent hub</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>Start with the team directory, confirm the age group, get the right gear, and use these pages for the questions families ask every season.</p>
+        </div>
+      </div>
       <nav class="subpage-links" aria-label="Parent quick links">
         <a href="/teams">Find your club</a>
         <a href="#equipment">Equipment</a>
         <a href="#faq">FAQ</a>
-        <a href="/parents/parent-role">Parent expectations</a>
+        <a href="/parents/role">Parent expectations</a>
       </nav>
       <div class="metrics-grid">
         <article class="metric"><div class="section-kicker">Step 1</div><h3>Find the closest current team.</h3><p>Use city, district, or zip code to find the best current fit. Once boundaries are finalized, this can switch to official placement logic.</p></article>
@@ -49,13 +56,19 @@ import { site } from '../../data/site';
         </div>
       </div>
 
-      <TeamFinder teams={site.teams} variant="compact" title="Find your club" intro="Search by city, district, or zip. Results are broad-match suggestions until official boundaries are finalized." actionLabel="Open full directory" directoryHref="/teams" />
+      <TeamFinder teams={teams} variant="compact" title="Find your club" intro="Search by city, district, or zip. Results are broad-match suggestions until official boundaries are finalized." actionLabel="Open full directory" directoryHref="/teams" />
     </div>
   </section>
 
   <section id="equipment">
     <div class="container section-block stack-lg">
-      <SectionIntro eyebrow="Equipment" title="Buy the required basics first." intro="For most girls field players, the must-have list is short: stick, mouthguard, protective eyewear, and practical cleats or field shoes. Keep the first purchase simple and skip the panic spending spiral." />
+      <div class="section-header-clean">
+        <div>
+          <div class="section-kicker">Equipment</div>
+          <h2>Buy the required basics first.</h2>
+        </div>
+        <div class="section-header-copy"><p>For most girls field players, the must-have list is short: stick, mouthguard, protective eyewear, and practical cleats or field shoes. Keep the first purchase simple and skip the panic spending spiral.</p></div>
+      </div>
       <div class="metrics-grid">
         <article class="metric"><h3>Stick</h3><p>Start with a legal girls stick that feels manageable in the player’s hands. Fancy is not the point in season one.</p></article>
         <article class="metric"><h3>Protective eyewear</h3><p>Required for girls field players and worth fitting correctly the first time so it stays comfortable.</p></article>
@@ -91,8 +104,14 @@ import { site } from '../../data/site';
 
   <section id="faq">
     <div class="container stack-lg">
-      <SectionIntro eyebrow="Questions parents ask every season" title="Get the common answers in one place." intro="Use the FAQ for start-up questions. Use the rules and code-of-conduct pages when the answer affects placement, eligibility, or behavior." />
-      <FaqAccordion items={site.parentFaqs} />
+      <div class="section-header-clean">
+        <div>
+          <div class="section-kicker">Questions parents ask every season</div>
+          <h2>Get the common answers in one place.</h2>
+        </div>
+        <div class="section-header-copy"><p>Use the FAQ for start-up questions. Use the rules and code-of-conduct pages when the answer affects placement, eligibility, or behavior.</p></div>
+      </div>
+      <FaqAccordion items={parentFaqs} />
     </div>
   </section>
 

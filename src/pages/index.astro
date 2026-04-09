@@ -1,13 +1,10 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import SectionIntro from '../components/SectionIntro.astro';
-import TeamCard from '../components/TeamCard.astro';
-import { site } from '../data/site';
-
-const featuredTeams = site.teams.slice(0, 6);
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import FeaturedTeams from '@/components/FeaturedTeams.astro';
+import { seasonHighlights } from '@/data/season-highlights';
+import { siteMeta } from '@/data/site-meta';
 ---
-
-<BaseLayout title="Arizona Girls Youth Lacrosse | AZGYL" description={site.description} pathname="/">
+<BaseLayout title="Arizona Girls Youth Lacrosse | AZGYL" description={siteMeta.description} pathname="/">
   <section class="hero-home">
     <img class="hero-bg" src="/assets/heroes/home-hero.svg" alt="" loading="eager" />
     <div class="container hero-home-inner">
@@ -26,7 +23,7 @@ const featuredTeams = site.teams.slice(0, 6);
 
   <section>
     <div class="container metrics-grid">
-      {site.seasonHighlights.map((item) => (
+      {seasonHighlights.map((item) => (
         <article class="metric">
           <div class="section-kicker">League highlight</div>
           <h3>{item.title}</h3>
@@ -54,12 +51,18 @@ const featuredTeams = site.teams.slice(0, 6);
   </section>
 
   <section>
-    <div class="container directory-head">
-      <SectionIntro eyebrow="Current programs" title="Start with a team that already exists." intro="Show the current directory cleanly. Regions matter when they connect to a real team option — not as filler navigation." />
-      <a class="button button-outline directory-cta" href="/teams">View full directory</a>
+    <div class="container section-header-clean section-header-clean--action">
+      <div>
+        <div class="section-kicker">Current programs</div>
+        <h2>Start with a team that already exists.</h2>
+      </div>
+      <div class="section-header-copy stack-sm">
+        <p>Show the current directory cleanly. Regions matter when they connect to a real team option — not as filler navigation.</p>
+        <div class="actions"><a class="button button-outline button-sm" href="/teams">View full directory</a></div>
+      </div>
     </div>
-    <div class="container team-grid">
-      {featuredTeams.map((team) => <TeamCard team={team} compact />)}
+    <div class="container">
+      <FeaturedTeams limit={6} />
     </div>
   </section>
 </BaseLayout>

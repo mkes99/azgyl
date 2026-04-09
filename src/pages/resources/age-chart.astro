@@ -1,7 +1,6 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHero from '../../components/PageHero.astro';
-
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
 const rows = [
   { grade: 'K–2', division: '8U', note: 'Best on-ramp for first-year players and youngest starters.' },
   { grade: '3–4', division: '10U', note: 'Adds more structure, spacing, and team concepts.' },
@@ -9,7 +8,6 @@ const rows = [
   { grade: '7–8', division: '14U', note: 'Top rec youth division before the high-school path begins.' },
 ];
 ---
-
 <BaseLayout title="Age Chart | AZGYL" pathname="/resources">
   <PageHero eyebrow="Age chart" title="Use grade first. Keep placement simple." intro="AZGYL uses 8U, 10U, 12U, and 14U divisions to keep competition and development age-appropriate. Use the chart as the parent-friendly starting point, then confirm final placement through the team and boundary rules." image="/assets/heroes/resources-hero.svg" titleMax="12ch" overlayStrength="strong" />
   <section>

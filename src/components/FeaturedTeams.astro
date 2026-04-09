@@ -1,0 +1,9 @@
+---
+import { teams } from '@/data/teams';
+import TeamCard from '@/components/TeamCard.astro';
+interface Props { limit?: number; }
+const { limit = 6 } = Astro.props;
+---
+<div class="team-grid">
+  {teams.slice(0, limit).map((team) => <TeamCard team={team} compact />)}
+</div>
