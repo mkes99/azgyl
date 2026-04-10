@@ -144,9 +144,11 @@ section { padding: clamp(72px, 9vw, 110px) 0; }
 }
 .hero-home-inner,
 .page-hero-inner { position: relative; z-index: 2; padding: 8.5rem 0 4rem; }
-.hero-copy { max-width: 760px; }
+.hero-copy { max-width: 830px; }
 .display, .page-hero h1, .section-heading, .team-card h3, .faq-item summary, .metric h3, .rule-table strong {
-  letter-spacing: -.06em; line-height: .95; margin: 0;
+  /* letter-spacing: -.06em;  */
+  line-height: .95; 
+  margin: 0;
 }
 .display { font-size: clamp(3.2rem, 9vw, 6.4rem); max-width: 9.5ch; color: white; }
 .display em { color: var(--cyan); font-style: normal; }
@@ -1105,6 +1107,7 @@ button.button,
   appearance:none;
   box-shadow:none !important;
   outline:none;
+  padding: 0 20px;
 }
 .button-primary,
 .button-primary:hover,
