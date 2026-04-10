@@ -146,8 +146,7 @@ section { padding: clamp(72px, 9vw, 110px) 0; }
 .page-hero-inner { position: relative; z-index: 2; padding: 8.5rem 0 4rem; }
 .hero-copy { max-width: 830px; }
 .display, .page-hero h1, .section-heading, .team-card h3, .faq-item summary, .metric h3, .rule-table strong {
-  /* letter-spacing: -.06em;  */
-  line-height: .95; 
+  line-height: 1.10; 
   margin: 0;
 }
 .display { font-size: clamp(3.2rem, 9vw, 6.4rem); max-width: 9.5ch; color: white; }
