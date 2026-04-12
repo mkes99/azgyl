@@ -6,24 +6,36 @@ import TeamFinder from '@/components/TeamFinder.astro';
 import { teams } from '@/data/teams';
 import { expansionAreas } from '@/data/expansion-areas';
 ---
+
 <BaseLayout title="Teams | AZGYL" pathname="/teams">
-  <PageHero eyebrow="Teams" title="Current teams and the easiest current path into girls rec lacrosse." intro="Start with a real current team. Use the directory first, then use boundaries and growth-market pages only when the right local option does not exist yet." image="/assets/heroes/regions-hero.svg" />
+  <PageHero
+    eyebrow="Teams"
+    title="Current teams and the easiest path into girls rec lacrosse."
+    intro="Start with a real current team. Use the directory first — boundaries and growth-market pages are only for when the right local option doesn't exist yet."
+    image="/assets/heroes/regions-hero.svg"
+  />
 
   <section>
     <div class="container directory-shell" data-directory-root>
       <div class="section-header-clean section-header-clean--action">
         <div>
           <div class="section-kicker">Current programs</div>
-          <h2>Current programs</h2>
+          <h2>Find your club</h2>
         </div>
         <div class="section-header-copy">
-          <p>Show the current directory cleanly. Regions matter only when they connect to a real team option.</p>
+          <p>Filter by city, district, zip code, or division. Registration is handled directly by each club — not AZGYL.</p>
         </div>
       </div>
       <div class="team-directory-inline">
-        <TeamFinder teams={teams} title="Filter the live directory" intro="Start broad, then narrow by city, district, zip, or division only when you need to." variant="inline" collapsible={true} />
+        <TeamFinder
+          teams={teams}
+          title="Filter the live directory"
+          intro="Start broad, then narrow by city, district, zip, or division only when you need to."
+          variant="inline"
+          collapsible={true}
+        />
         <div class="team-grid">
-          {teams.map((team) => <TeamCard team={team} />)}
+          {teams.map(team => <TeamCard team={team} />)}
         </div>
       </div>
     </div>
@@ -36,9 +48,11 @@ import { expansionAreas } from '@/data/expansion-areas';
           <div class="section-kicker">Growth markets</div>
           <h2>Areas building toward future teams</h2>
         </div>
-        <div class="section-header-copy"><p>Keep expansion visible without pretending the team already exists. These are signals of demand, not active programs.</p></div>
+        <p>These are signals of demand, not active programs yet.</p>
       </div>
-      <div class="inline-chips">{expansionAreas.map((item) => <span class="inline-chip">{item.name}</span>)}</div>
+      <div class="inline-chips">
+        {expansionAreas.map(item => <span class="inline-chip">{item.name}</span>)}
+      </div>
     </div>
   </section>
 </BaseLayout>

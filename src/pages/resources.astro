@@ -1,0 +1,68 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import ResourceCards from '@/components/ResourceCards.astro';
+import FaqAccordion from '@/components/FaqAccordion.astro';
+import { codeOfConductItems } from '@/data/code-of-conduct';
+
+const ageRows = [
+  { grade:'K–2', division:'8U',  note:'Best on-ramp for first-year players and youngest starters.',        color:'#59d5ef' },
+  { grade:'3–4', division:'10U', note:'Adds more structure, spacing, and team concepts.',                  color:'#6e58ff' },
+  { grade:'5–6', division:'12U', note:'Builds field awareness, pace, and game understanding.',             color:'#59d5ef' },
+  { grade:'7–8', division:'14U', note:'Top rec youth division before the high-school path begins.',        color:'#6e58ff' },
+];
+---
+
+<BaseLayout title="Resources | AZGYL" pathname="/resources">
+  <PageHero
+    eyebrow="Resources"
+    title="The Arizona league layer, all in one place."
+    intro="Teams, rules, boundaries, age groups, and conduct standards — everything AZGYL owns."
+    image="/assets/heroes/resources-hero.svg"
+  />
+
+  <!-- Resource card links -->
+  <section>
+    <div class="container stack-lg">
+      <ResourceCards />
+    </div>
+  </section>
+
+  <!-- Age chart -->
+  <section class="section-alt" id="age-chart">
+    <div class="container two-col split-balanced">
+      <div class="copy age-chart-summary stack-lg">
+        <div class="section-kicker">Age groups</div>
+        <h2 class="section-heading section-heading--plain">Grade-first division guide.</h2>
+        <p>Use this chart as the parent-friendly starting point. Final placement can depend on school affiliation, roster needs, and league policy.</p>
+        <div class="actions">
+          <a class="button button-primary" href="/assets/docs/azgyl-age-chart-2026.pdf" target="_blank" rel="noreferrer">Download 2026 PDF</a>
+        </div>
+      </div>
+      <div class="rule-table age-table">
+        {ageRows.map(row => (
+          <div class="rule-row">
+            <strong style={`background:${row.color};color:#fff;border-radius:8px;padding:.3rem .65rem;font-size:1.05rem;display:inline-block;`}>{row.grade}</strong>
+            <span><strong>{row.division}</strong> · {row.note}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Code of conduct -->
+  <section id="code-of-conduct">
+    <div class="container section-block stack-lg">
+      <div class="section-header-clean">
+        <div>
+          <div class="section-kicker">Code of conduct</div>
+          <h2>Set the tone early and keep it consistent.</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>AZGYL publishes conduct expectations for players, parents, and coaches so the culture is clear before conflict starts. All participants must sign before the first game of each season.</p>
+        </div>
+      </div>
+      <FaqAccordion items={codeOfConductItems} />
+    </div>
+  </section>
+</BaseLayout>

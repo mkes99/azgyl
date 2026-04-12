@@ -1,10 +1,13 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
-import FeaturedTeams from '@/components/FeaturedTeams.astro';
+import TeamCard from '@/components/TeamCard.astro';
+import { teams } from '@/data/teams';
 ---
+
 <BaseLayout title="Play | AZGYL" pathname="/play">
   <PageHero eyebrow="Play" title="How AZGYL works" intro="This league is designed to make rec lacrosse cleaner to enter and cleaner to run. Teams manage their own team business. The league coordinates the structure that keeps the season fair, safe, and understandable." image="/assets/heroes/play-hero.svg" />
+
   <section>
     <div class="container two-col split-balanced">
       <div class="copy stack-lg">
@@ -16,6 +19,7 @@ import FeaturedTeams from '@/components/FeaturedTeams.astro';
       <div class="feature-visual"><img src="/assets/visuals/stick-flight.svg" alt="Stylized lacrosse stick graphic" /></div>
     </div>
   </section>
+
   <section class="section-alt">
     <div class="container metrics-grid">
       <article class="metric"><div class="section-kicker">Divisions</div><h3>8U · 10U · 12U · 14U</h3><p>One division ladder across the league keeps expectations cleaner and development easier to explain to families.</p></article>
@@ -23,17 +27,10 @@ import FeaturedTeams from '@/components/FeaturedTeams.astro';
       <article class="metric"><div class="section-kicker">Season flow</div><h3>Flexible dates, stable structure</h3><p>Season timing can change year to year while the core experience stays stable: placement, registration, rosters, games, and parent guidance.</p></article>
     </div>
   </section>
+
   <section>
-    <div class="container section-header-clean section-header-clean--action">
-      <div>
-        <div class="section-kicker">Active programs</div>
-        <h2>Play where a team already exists.</h2>
-      </div>
-      <div class="section-header-copy stack-sm">
-        <p>The directory is team-first by design. Regions matter only when they connect to actual team opportunities.</p>
-        <div class="actions"><a class="button button-outline button-sm" href="/teams">View full directory</a></div>
-      </div>
+    <div class="container team-grid">
+      {teams.slice(0, 6).map((team) => <TeamCard team={team} compact />)}
     </div>
-    <div class="container"><FeaturedTeams limit={6} /></div>
   </section>
 </BaseLayout>

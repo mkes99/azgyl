@@ -4,24 +4,39 @@ import SiteHeader from '@/components/SiteHeader.astro';
 import SiteFooter from '@/components/SiteFooter.astro';
 
 interface Props {
-  title: string;
-  description?: string;
-  pathname?: string;
+  title:           string;
+  description?:    string;
+  pathname?:       string;
+  recaptchaSiteKey?: string;   // pass to enable reCAPTCHA on that page
 }
-
-const { title, description = siteMeta.description, pathname = '/' } = Astro.props;
+const {
+  title,
+  description = siteMeta.description,
+  pathname = '/',
+  recaptchaSiteKey,
+} = Astro.props;
+const fullTitle = title.includes('AZGYL') ? title : `${title} | AZGYL`;
 ---
-
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
+    <meta name="generator" content={Astro.generator} />
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#08111b" />
+    <meta property="og:title"       content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type"        content="website" />
     <link rel="icon" href="/assets/brand/logo-cropped.png" />
     <link rel="stylesheet" href="/assets/css/global.css" />
+    {recaptchaSiteKey && (
+      <>
+        <meta name="recaptcha-site-key" content={recaptchaSiteKey} />
+        <script is:inline src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}></script>
+      </>
+    )}
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -31,14 +46,30 @@ const { title, description = siteMeta.description, pathname = '/' } = Astro.prop
     </main>
     <SiteFooter />
     <script is:inline>
+      // Mobile menu
       const toggle = document.querySelector('[data-menu-toggle]');
-      const menu = document.querySelector('[data-mobile-menu]');
-      toggle?.addEventListener('click', () => {
-        const open = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', String(!open));
-        if (menu) menu.hidden = open;
-        document.body.classList.toggle('menu-open', !open);
-      });
+      const menu   = document.querySelector('[data-mobile-menu]');
+      if (toggle && menu) {
+        toggle.addEventListener('click', () => {
+          const open = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', String(!open));
+          menu.hidden = open;
+          document.body.classList.toggle('menu-open', !open);
+        });
+        document.addEventListener('click', e => {
+          if (!toggle.contains(e.target) && !menu.contains(e.target) && !menu.hidden) {
+            toggle.setAttribute('aria-expanded', 'false');
+            menu.hidden = true;
+            document.body.classList.remove('menu-open');
+          }
+        });
+        // Close desktop dropdowns on outside click
+        document.addEventListener('click', e => {
+          document.querySelectorAll('details.nav-group[open]').forEach(d => {
+            if (!d.contains(e.target)) d.removeAttribute('open');
+          });
+        });
+      }
     </script>
   </body>
 </html>

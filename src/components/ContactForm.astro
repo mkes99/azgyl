@@ -1,18 +1,148 @@
 ---
-import { departments } from '@/data/departments';
-interface Props { selectedTopic?: string; selectedTeam?: string; }
-const { selectedTopic = 'General Questions', selectedTeam = '' } = Astro.props;
+// ContactForm — all data and logic lives here, no external data imports
+// Sends via Cloudflare Pages Function at /api/contact
+// Environment variables managed in Cloudflare Pages Dashboard:
+//   RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, RECAPTCHA_SECRET, RECAPTCHA_MIN_SCORE
+
+const departments = [
+  { label: 'General Questions',           email: '' },  // falls back to first EMAIL_TO value
+  { label: 'Registration & Team Signup',  email: '' },
+  { label: 'Player Placement & Boundaries', email: '' },
+  { label: 'Rules & Eligibility',         email: '' },
+  { label: 'Scheduling & Operations',     email: '' },
+  { label: 'Coaching & Volunteers',       email: '' },
+  { label: 'Officials',                   email: '' },
+  { label: 'Website & Communications',    email: '' },
+];
+// Note: actual routing is done server-side via EMAIL_TO env var in Cloudflare.
+// See functions/api/contact.ts for how EMAIL_TO JSON routing works.
 ---
-<form data-contact-form class="stack-md">
+
+<form id="contact-form" class="stack-md" novalidate>
   <div class="form-grid">
-    <label>Name<input name="name" type="text" placeholder="Parent or team contact" required /></label>
-    <label>Email<input name="email" type="email" placeholder="you@example.com" required /></label>
+    <label>
+      Name
+      <input name="name" type="text" placeholder="Your name" required autocomplete="name" />
+    </label>
+    <label>
+      Email
+      <input name="email" type="email" placeholder="you@example.com" required autocomplete="email" />
+    </label>
   </div>
+
   <div class="form-grid">
-    <label>Department<select name="department">{departments.map((item) => <option value={item} selected={item === selectedTopic}>{item}</option>)}</select></label>
-    <label>Team or area<input name="team" type="text" value={selectedTeam} placeholder="Optional" /></label>
+    <label>
+      Department
+      <select name="department">
+        {departments.map(d => <option value={d.label}>{d.label}</option>)}
+      </select>
+    </label>
+    <label>
+      Team or area <span style="font-weight:400;color:var(--soft)">(optional)</span>
+      <input name="team" type="text" placeholder="e.g. Diamonds, Tucson area" />
+    </label>
   </div>
-  <label>Message<textarea name="message" placeholder="What do you need help with?" required></textarea></label>
-  <div class="actions form-actions"><button class="button button-primary" type="submit">Submit</button></div>
-  <div class="note">This static build prepares a pre-addressed email draft. When final inboxes are ready, wire this form to Cloudflare Pages Functions or your preferred form handler.</div>
+
+  <label>
+    Message
+    <textarea name="message" placeholder="How can we help?" required></textarea>
+  </label>
+
+  <div id="form-status" class="form-status" hidden></div>
+
+  <div class="actions form-actions">
+    <button class="button button-primary" type="submit" id="form-submit">
+      Send Message
+    </button>
+  </div>
+
+  <p class="note">
+    This form sends directly to the AZGYL board via Resend.
+    Protected by reCAPTCHA v3.
+  </p>
 </form>
+
+<script is:inline>
+(function () {
+  const form    = document.getElementById('contact-form');
+  const status  = document.getElementById('form-status');
+  const submit  = document.getElementById('form-submit');
+
+  if (!form) return;
+
+  function showStatus(msg, type) {
+    status.textContent = msg;
+    status.className   = 'form-status form-status--' + type;
+    status.hidden      = false;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submit.disabled     = true;
+    submit.textContent  = 'Sending…';
+    status.hidden       = true;
+
+    const data = new FormData(form);
+    const payload = {
+      name:       data.get('name'),
+      email:      data.get('email'),
+      department: data.get('department'),
+      team:       data.get('team'),
+      message:    data.get('message'),
+      recaptchaToken: null,
+    };
+
+    // reCAPTCHA v3 — if site key is present in the page
+    const siteKey = document.querySelector('meta[name="recaptcha-site-key"]')?.content;
+    if (siteKey && window.grecaptcha) {
+      try {
+        payload.recaptchaToken = await new Promise((resolve, reject) => {
+          window.grecaptcha.ready(() => {
+            window.grecaptcha.execute(siteKey, { action: 'contact' }).then(resolve).catch(reject);
+          });
+        });
+      } catch (_) { /* continue without token */ }
+    }
+
+    try {
+      const res = await fetch('/api/contact', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        showStatus('Message sent! We\'ll be in touch within 1–2 business days.', 'success');
+        form.reset();
+      } else {
+        showStatus(json.error || 'Something went wrong. Please try again.', 'error');
+      }
+    } catch (_) {
+      showStatus('Network error. Please check your connection and try again.', 'error');
+    }
+
+    submit.disabled    = false;
+    submit.textContent = 'Send Message';
+  });
+})();
+</script>
+
+<style>
+  .form-status {
+    padding: .85rem 1.1rem;
+    border-radius: 14px;
+    font-size: .92rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .form-status--success {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .form-status--error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+</style>

@@ -2,49 +2,63 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import ContactForm from '@/components/ContactForm.astro';
-
-const params = Astro.url.searchParams;
-const selectedTopic = params.get('topic') || 'General Questions';
-const selectedTeam = params.get('team') || '';
 ---
+
 <BaseLayout title="Contact | AZGYL" pathname="/contact">
-  <PageHero eyebrow="Contact" title="Route the question to the right place the first time." intro="Use one contact path, but organize it by department so parents, teams, and growth markets are not all shouting into the same inbox." image="/assets/heroes/contact-hero.svg" />
+  <PageHero
+    eyebrow="Contact"
+    title="Reach the AZGYL board."
+    intro="Board inquiries, official assignment requests, new team applications, and general league questions. We respond within 1–2 business days."
+    image="/assets/heroes/contact-hero.svg"
+  />
 
   <section>
     <div class="container contact-layout">
-      <article class="stack-lg">
-        <div class="copy stack-md">
-          <div class="section-kicker">League contact form</div>
-          <h2 class="section-heading">Contact AZGYL</h2>
+
+      <div class="contact-form-column">
+        <ContactForm />
+      </div>
+
+      <div class="contact-aside">
+        <h2 class="contact-aside-title">Common topics</h2>
+        <div class="stack-lg" style="margin-top:1.25rem">
+          {[
+            {
+              t: 'Team registration',
+              d: 'Registration is handled by each member club directly — not AZGYL.',
+              l: 'Find your team',
+              h: '/teams',
+            },
+            {
+              t: 'Schedule & standings',
+              d: 'Full game schedule and division standings for the current season.',
+              l: 'League page',
+              h: '/league',
+            },
+            {
+              t: 'Rules & eligibility',
+              d: 'Player eligibility, rostering rules, and game-day standards.',
+              l: 'Rules',
+              h: '/rules',
+            },
+            {
+              t: 'Become an official',
+              d: 'Join the AZGYL officials program — paid assignments for certified refs.',
+              l: 'Contact us',
+              h: '/contact',
+            },
+          ].map(item => (
+            <div class="info-panel">
+              <strong>{item.t}</strong>
+              <p>{item.d}</p>
+              <a class="button button-outline button-sm" href={item.h} style="margin-top:.75rem">
+                {item.l}
+              </a>
+            </div>
+          ))}
         </div>
-        <ContactForm selectedTopic={selectedTopic} selectedTeam={selectedTeam} />
-      </article>
-      <aside class="contact-aside copy stack-md">
-        <div class="section-kicker">Routing guide</div>
-        <h3 class="contact-aside-title">Common topics</h3>
-        <p>Registration, placement, age group, equipment, and first-season questions should route to parent support first. Scheduling, roster issues, rule interpretation, and game-day problems should route to operations. New team or interest-market requests should route to growth and expansion.</p>
-      </aside>
+      </div>
+
     </div>
   </section>
-
-  <script is:inline>
-    document.querySelector('[data-contact-form]')?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const data = new FormData(form);
-      const department = String(data.get('department') || 'General Questions');
-      const team = String(data.get('team') || '').trim();
-      const subject = `${department}${team ? ` - ${team}` : ''}`;
-      const body = [
-        `Name: ${String(data.get('name') || '')}`,
-        `Email: ${String(data.get('email') || '')}`,
-        `Department: ${department}`,
-        team ? `Team/Area: ${team}` : '',
-        '',
-        String(data.get('message') || ''),
-      ].filter(Boolean).join('
-');
-      window.location.href = `mailto:info@azgyl.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    });
-  </script>
 </BaseLayout>

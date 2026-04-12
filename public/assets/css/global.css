@@ -1351,3 +1351,145 @@ form textarea {
 @media (max-width:720px){.leadership-grid{grid-template-columns:1fr;}}
 .team-grid .team-card.compact .team-actions{margin-top:auto;}
 .contact-layout .stack-lg{gap:1.25rem;}
+
+/* ─────────────────────────────────────────────────────────────
+   AZGYL ADDITIONS — Schedule, Standings, League pages
+   These extend the design system without overriding anything
+   ──────────────────────────────────────────────────────────── */
+
+/* league page standings columns */
+.standings-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .standings-cols { grid-template-columns: 1fr; }
+}
+
+/* inline code (used in league page) */
+code {
+  background: var(--surface-soft);
+  padding: .15rem .45rem;
+  border-radius: 6px;
+  font-size: .87em;
+  color: var(--text);
+}
+
+/* Bylaws page cards */
+.bylaws-stack {
+  display: grid;
+  gap: 1rem;
+}
+.bylaw-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.6rem 1.75rem;
+  border-left: 4px solid var(--purple);
+}
+.bylaw-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: .75rem;
+}
+.bylaw-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--cyan-deep);
+  flex-shrink: 0;
+  padding-top: 1px;
+  min-width: 24px;
+}
+.bylaw-head h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: -.03em;
+}
+.bylaw-summary {
+  color: var(--muted);
+  line-height: 1.72;
+  margin: 0 0 1rem;
+  font-size: .96rem;
+}
+.bylaw-rules {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: .45rem;
+  margin: 0;
+}
+.bylaw-rules li {
+  font-size: .88rem;
+  color: var(--muted);
+  line-height: 1.6;
+  padding-left: 1.1rem;
+  position: relative;
+}
+.bylaw-rules li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--cyan-deep);
+  font-size: .75rem;
+  top: 3px;
+}
+
+/* contact page aside */
+.contact-form-column { padding-right: .5rem; }
+.contact-aside h2   { font-size: clamp(1.6rem, 3vw, 2.4rem); margin-bottom: 0; }
+@media (max-width: 1080px) {
+  .contact-form-column { padding-right: 0; }
+}
+
+/* info-panel links */
+.info-panel .subpage-links a {
+  color: var(--cyan-deep);
+  font-weight: 700;
+}
+
+
+/* ─── AZGYL v9 overrides ──────────────────────────────── */
+
+/* Hero title: 14ch, no inline style needed */
+.page-hero h1,
+.hero-home h1.display {
+  max-width: 14ch !important;
+}
+
+/* Section headings: 14ch globally */
+.section-heading,
+.section-heading--plain,
+.section-header-clean h2 {
+  max-width: 14ch;
+}
+
+/* Hero pills → clickable nav links */
+.hero-nav-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-top: 1.2rem;
+}
+.hero-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: .52rem .92rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.08);
+  color: rgba(235,245,255,.9);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background .18s ease, border-color .18s ease;
+}
+.hero-nav-pill:hover {
+  background: rgba(255,255,255,.15);
+  border-color: rgba(255,255,255,.35);
+  color: #fff;
+}

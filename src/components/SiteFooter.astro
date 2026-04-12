@@ -1,38 +1,36 @@
 ---
-import { siteMeta } from '@/data/site-meta';
+import { siteMeta, parentNav, resourceNav } from '@/data/site-meta';
 import { officialLinks } from '@/data/official-links';
 ---
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand-block">
       <a class="footer-brand" href="/">
-        <img src="/assets/brand/logo-transparent.png" alt="Arizona Girls Youth Lacrosse logo" />
+        <img src="/assets/brand/logo-transparent.png" alt="Arizona Girls Youth Lacrosse" />
       </a>
       <p>{siteMeta.tagline}</p>
-      <p>AZGYL is building the statewide rec home for girls lacrosse in Arizona — clear for parents, structured for teams, and ready to grow.</p>
+      <p>AZGYL governs statewide rec girls lacrosse in Arizona — setting rules, certifying officials, and coordinating the framework every club plays within.</p>
     </div>
     <div>
       <div class="footer-title">Parents</div>
       <div class="footer-links">
-        <a href="/parents">Parent hub</a>
-        <a href="/parents/role">Parent role</a>
-        <a href="/teams">Find your club</a>
-        <a href="/resources/age-chart">Age chart</a>
+        {parentNav.map(item => <a href={item.href}>{item.label}</a>)}
+        <a href="/league">Schedule & standings</a>
       </div>
     </div>
     <div>
       <div class="footer-title">Resources</div>
       <div class="footer-links">
-        <a href="/teams">Teams directory</a>
-        <a href="/rules">League rules</a>
-        <a href="/boundaries">Boundaries</a>
-        <a href="/resources/code-of-conduct">Code of conduct</a>
+        {resourceNav.filter(item => item.href !== '/resources').map(item => (
+          <a href={item.href}>{item.label}</a>
+        ))}
+        <a href="/leadership">Leadership</a>
       </div>
     </div>
     <div>
       <div class="footer-title">Official standards</div>
       <div class="footer-links">
-        {officialLinks.slice(0, 3).map((item) => (
+        {officialLinks.slice(0, 3).map(item => (
           <a href={item.href} target="_blank" rel="noreferrer">{item.title}</a>
         ))}
       </div>

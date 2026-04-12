@@ -4,29 +4,102 @@ import PageHero from '@/components/PageHero.astro';
 import FaqAccordion from '@/components/FaqAccordion.astro';
 import RuleSummary from '@/components/RuleSummary.astro';
 import { ruleFaqs } from '@/data/rule-faqs';
+import { rulesSummary } from '@/data/rules-summary';
+import { bylaws } from '@/data/bylaws';
 ---
-<BaseLayout title="Rules | AZGYL" pathname="/rules">
-  <PageHero eyebrow="Rules" title="USA Lacrosse foundation. AZGYL layer on top." intro="Gameplay and equipment standards come from USA Lacrosse. AZGYL publishes the Arizona rec layer clearly: placement, rosters, scheduling, conduct, game-day expectations, and how league decisions are handled." image="/assets/heroes/resources-hero.svg" />
 
+<BaseLayout title="Rules | AZGYL" pathname="/rules">
+  <PageHero
+    eyebrow="Rules"
+    title="How the AZGYL league works."
+    intro="USA Lacrosse governs the sport itself — gear, field, game mechanics. AZGYL adds the Arizona operating layer: eligibility, scheduling, conduct, and game-day responsibilities."
+    image="/assets/heroes/play-hero.svg"
+  />
+
+  <!-- Rules summary cards -->
   <section>
-    <div class="container two-col split-balanced">
-      <div class="copy stack-md">
-        <div class="section-kicker">Start with the foundation</div>
-        <h2 class="section-heading">Official gameplay comes from USA Lacrosse.</h2>
-        <p>Use the national rulebook and equipment pages for the official standards. Then keep the Arizona rec layer here so parents and coaches do not have to decode multiple sites.</p>
-        <div class="actions"><a class="button button-primary" href="https://www.usalacrosse.com/sites/default/files/documents/Rules/2026-Girls-Youth-Rule-Book.pdf" target="_blank" rel="noreferrer">2026 Youth Rule Book</a><a class="button button-outline" href="https://www.usalacrosse.com/equipment" target="_blank" rel="noreferrer">Equipment basics</a></div>
+    <div class="container">
+      <div class="section-header-clean" style="margin-bottom:1.8rem">
+        <div>
+          <div class="section-kicker">Quick reference</div>
+          <h2>Key operating standards</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>The core rules every coach, player, and parent needs to know before the season starts.</p>
+          <div class="subpage-links" style="margin-top:.75rem">
+            <a href="https://www.usalacrosse.com/sites/default/files/documents/Rules/2026-Girls-Youth-Rule-Book.pdf" target="_blank" rel="noreferrer">2026 USA Lacrosse Rule Book (PDF)</a>
+            <a href="/resources/code-of-conduct">Code of Conduct</a>
+          </div>
+        </div>
       </div>
       <RuleSummary />
     </div>
   </section>
 
-  <section class="section-alt" id="conduct">
+  <!-- Full bylaws -->
+  <section class="section-alt">
     <div class="container">
-      <div class="copy stack-md" style="margin-bottom:1.5rem">
-        <div class="section-kicker">Readable rules</div>
-        <h2 class="section-heading">Publish the practical version, not just the PDF.</h2>
+      <div class="section-header-clean" style="margin-bottom:1.8rem">
+        <div>
+          <div class="section-kicker">Official bylaws</div>
+          <h2>AZGYL Rules & Regulations</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>All member clubs, players, coaches, and officials must comply with these regulations.</p>
+        </div>
+      </div>
+      <div class="bylaws-stack">
+        {bylaws.map(b => (
+          <article class="bylaw-card">
+            <div class="bylaw-head">
+              <span class="bylaw-num">§{b.section}</span>
+              <h3>{b.title}</h3>
+            </div>
+            <p class="bylaw-summary">{b.summary}</p>
+            <ul class="bylaw-rules">
+              {b.rules.map(r => <li>{r}</li>)}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Rule FAQs -->
+  <section>
+    <div class="container two-col split-balanced">
+      <div class="copy">
+        <div class="section-kicker">FAQ</div>
+        <h2 class="section-heading">Rules questions answered.</h2>
+        <p>The questions teams and parents ask most often about league eligibility, rosters, and game-day operations.</p>
       </div>
       <FaqAccordion items={ruleFaqs} />
     </div>
   </section>
+
 </BaseLayout>
+
+<style>
+  .bylaws-stack { display: grid; gap: 1rem; }
+  .bylaw-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 1.6rem 1.75rem;
+    border-left: 4px solid var(--purple);
+  }
+  .bylaw-head { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: .75rem; }
+  .bylaw-num {
+    font-size: 1.1rem; font-weight: 800; color: var(--cyan-deep);
+    flex-shrink: 0; padding-top: 1px;
+  }
+  .bylaw-head h3 { margin: 0; font-size: 1.15rem; letter-spacing: -.03em; }
+  .bylaw-summary { color: var(--muted); line-height: 1.72; margin: 0 0 1rem; font-size: .96rem; }
+  .bylaw-rules { list-style: none; padding: 0; display: grid; gap: .45rem; }
+  .bylaw-rules li {
+    font-size: .88rem; color: var(--muted); line-height: 1.6;
+    padding-left: 1rem; position: relative;
+  }
+  .bylaw-rules li::before {
+    content: '→'; position: absolute; left: 0;
+    color: var(--cyan-deep); font-size: .75rem; top: 2px;
+  }
+</style>

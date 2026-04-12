@@ -1,16 +1,19 @@
 ---
-import { committees } from '@/data/committees';
+interface CommitteeLink { label: string; href: string }
+interface Committee { title: string; body: string; links?: CommitteeLink[] }
+interface Props { items: Committee[] }
+const { items } = Astro.props;
 ---
-<div class="leadership-grid committees-grid">
-  {committees.map((committee) => (
+<div class="leadership-grid">
+  {items.map((item) => (
     <article class="leadership-card">
-      <h3>{committee.title}</h3>
-      <p>{committee.body}</p>
-      {committee.links?.length ? (
-        <div class="inline-link-list">
-          {committee.links.map(([label, href]) => <a href={href}>{label}</a>)}
+      <h3>{item.title}</h3>
+      <p>{item.body}</p>
+      {item.links && item.links.length > 0 && (
+        <div class="inline-chips">
+          {item.links.map((link) => <a class="inline-chip" href={link.href}>{link.label}</a>)}
         </div>
-      ) : null}
+      )}
     </article>
   ))}
 </div>
