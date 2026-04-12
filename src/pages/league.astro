@@ -1,79 +1,17 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
-import ScheduleTable from '@/components/ScheduleTable.astro';
-import StandingsTable from '@/components/StandingsTable.astro';
-import { scheduleEvents } from '@/data/schedule';
-import { allStandings } from '@/data/standings';
-
-const activeEvents = scheduleEvents.filter(e => e.active);
+import LeagueSchedule from '@/components/LeagueSchedule.astro';
+import LeagueStandings from '@/components/LeagueStandings.astro';
 ---
 
 <BaseLayout title="League | AZGYL" pathname="/league">
   <PageHero
     eyebrow="League"
     title="Schedule and standings."
-    intro="Spring 2026 game schedule and division standings. Update src/data/schedule.ts and src/data/standings.ts to make changes — or connect Google Sheets for automatic updates."
+    intro="Spring 2026 game schedule and division standings. Update src/data/schedule.ts each week to add new games."
     image="/assets/heroes/play-hero.svg"
   />
-
-  {/* Show each active event */}
-  {activeEvents.map(event => (
-    <>
-      {/* Schedule */}
-      <section>
-        <div class="container">
-          <div class="section-header-clean section-header-clean--action" style="margin-bottom:1.8rem">
-            <div>
-              <div class="section-kicker">{event.type === 'tournament' ? 'Tournament' : 'Season'}</div>
-              <h2>{event.name} — Schedule</h2>
-            </div>
-            <div class="section-header-copy">
-              <p>
-                {event.startDate} through {event.endDate}.
-                Edit <code>src/data/schedule.ts</code> to update games.
-              </p>
-            </div>
-          </div>
-          <ScheduleTable eventId={event.id} groupBy="division" />
-        </div>
-      </section>
-
-      {/* Standings */}
-      {allStandings.some(s => s.eventId === event.id) && (
-        <section class="section-alt">
-          <div class="container">
-            <div class="section-header-clean" style="margin-bottom:1.8rem">
-              <div>
-                <div class="section-kicker">{event.name}</div>
-                <h2>Division Standings</h2>
-              </div>
-              <div class="section-header-copy">
-                <p>W = 3 pts · T = 1 pt · Updated in <code>src/data/standings.ts</code>.</p>
-              </div>
-            </div>
-            <StandingsTable eventId={event.id} />
-          </div>
-        </section>
-      )}
-    </>
-  ))}
-
-  {/* Setup guide callout (only if no events are active) */}
-  {activeEvents.length === 0 && (
-    <section>
-      <div class="container">
-        <div class="info-panel">
-          <div class="section-kicker">No active events</div>
-          <h3>Set up the schedule</h3>
-          <p>Open <code>src/data/schedule.ts</code>, add your games, and set <code>active: true</code> on the event. The schedule and standings will appear here automatically.</p>
-          <p style="margin-top:.75rem">For automatic updates from Google Sheets, see <code>GOOGLE_SHEETS_SETUP.md</code>.</p>
-        </div>
-      </div>
-    </section>
-  )}
+  <LeagueSchedule />
+  <LeagueStandings />
 </BaseLayout>
-
-<style>
-  code { background: var(--surface-soft); padding: .15rem .45rem; border-radius: 6px; font-size: .87em; color: var(--text); }
-</style>

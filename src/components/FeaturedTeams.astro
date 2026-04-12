@@ -1,23 +1,36 @@
 ---
+// FeaturedTeams — self-contained team grid for homepage and play page.
+// Pages use this as: <FeaturedTeams /> or <FeaturedTeams limit={6} compact />
 import TeamCard from '@/components/TeamCard.astro';
-import { teams } from '@/data/teams';
 import SectionIntro from '@/components/SectionIntro.astro';
+import { teams } from '@/data/teams';
 
 interface Props {
-  limit?: number;
+  limit?:   number;
+  compact?: boolean;
   eyebrow?: string;
-  title?: string;
-  intro?: string;
-  href?: string;
+  title?:   string;
+  intro?:   string;
+  href?:    string;
 }
+const {
+  limit   = 6,
+  compact = false,
+  eyebrow = 'Current programs',
+  title   = 'Start with a team that already exists.',
+  intro   = 'Find the nearest current program. Registration is handled directly by each club — not AZGYL.',
+  href    = '/teams',
+} = Astro.props;
 
-const { limit = 6, eyebrow = 'Current programs', title = 'Start with a team that already exists.', intro = 'Show the current directory cleanly. Regions matter when they connect to a real team option — not as filler navigation.', href = '/teams' } = Astro.props;
 const featuredTeams = teams.slice(0, limit);
 ---
+
 <div class="container directory-head">
   <SectionIntro eyebrow={eyebrow} title={title} intro={intro} />
-  <div class="directory-cta-wrap"><a class="button button-outline" href={href}>View full directory</a></div>
+  <div class="directory-cta-wrap">
+    <a class="button button-outline" href={href}>View full directory</a>
+  </div>
 </div>
 <div class="container team-grid">
-  {featuredTeams.map((team) => <TeamCard team={team} compact />)}
+  {featuredTeams.map(team => <TeamCard team={team} compact={compact} />)}
 </div>

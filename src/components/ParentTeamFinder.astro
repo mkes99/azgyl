@@ -1,0 +1,15 @@
+---
+// ParentTeamFinder — compact team finder for the parent hub.
+// Pages use this as: <ParentTeamFinder />
+import TeamFinder from '@/components/TeamFinder.astro';
+import { teams } from '@/data/teams';
+---
+
+<TeamFinder
+  teams={teams}
+  variant="compact"
+  title="Find your club"
+  intro="Search by city, district, or zip."
+  actionLabel="Open full directory"
+  directoryHref="/teams"
+/>

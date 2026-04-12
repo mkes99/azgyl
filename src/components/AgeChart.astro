@@ -1,0 +1,21 @@
+---
+// AgeChart — renders the grade-to-division reference table.
+// Pages use this as: <AgeChart />
+const rows = [
+  { grade: 'K–2', division: '8U',  note: 'Best on-ramp for first-year players and youngest starters.',   color: '#59d5ef' },
+  { grade: '3–4', division: '10U', note: 'Adds more structure, spacing, and team concepts.',             color: '#6e58ff' },
+  { grade: '5–6', division: '12U', note: 'Builds field awareness, pace, and game understanding.',        color: '#59d5ef' },
+  { grade: '7–8', division: '14U', note: 'Top rec youth division before the high-school path begins.',   color: '#6e58ff' },
+];
+---
+
+<div class="rule-table age-table">
+  {rows.map(row => (
+    <div class="rule-row">
+      <strong style={`background:${row.color};color:#fff;border-radius:8px;padding:.3rem .65rem;font-size:1.05rem;display:inline-block;`}>
+        {row.grade}
+      </strong>
+      <span><strong>{row.division}</strong> · {row.note}</span>
+    </div>
+  ))}
+</div>

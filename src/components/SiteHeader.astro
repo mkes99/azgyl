@@ -11,7 +11,6 @@ const isActive = (href: string) =>
     </a>
 
     <nav class="desktop-nav" aria-label="Primary">
-      <a href="/"           class:list={{ active: isActive('/') }}>Home</a>
       <details class="nav-group">
         <summary class:list={{ active: isActive('/parents') || isActive('/teams') }}>
           Parents
@@ -52,7 +51,6 @@ const isActive = (href: string) =>
 
   <div id="mobile-menu" class="mobile-menu" data-mobile-menu hidden>
     <div class="container mobile-menu-inner">
-      <a href="/">Home</a>
       <details class="mobile-group">
         <summary>Parents</summary>
         <div class="mobile-subnav">

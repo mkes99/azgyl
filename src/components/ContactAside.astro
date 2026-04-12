@@ -1,0 +1,45 @@
+---
+// ContactAside — common topics panel shown beside the contact form.
+// Pages use this as: <ContactAside />
+const topics = [
+  {
+    title: 'Team registration',
+    desc:  'Registration is handled by each member club directly — not AZGYL.',
+    label: 'Find your team',
+    href:  '/teams',
+  },
+  {
+    title: 'Schedule & standings',
+    desc:  'Full game schedule and division standings for the current season.',
+    label: 'League page',
+    href:  '/league',
+  },
+  {
+    title: 'Rules & eligibility',
+    desc:  'Player eligibility, rostering rules, and game-day standards.',
+    label: 'Rules',
+    href:  '/rules',
+  },
+  {
+    title: 'Become an official',
+    desc:  'Join the AZGYL officials program — paid assignments for certified refs.',
+    label: 'Contact us',
+    href:  '/contact',
+  },
+];
+---
+
+<div class="contact-aside-title-wrap">
+  <h2 class="contact-aside-title">Common topics</h2>
+</div>
+<div class="stack-lg" style="margin-top:1.25rem">
+  {topics.map(item => (
+    <div class="info-panel">
+      <strong>{item.title}</strong>
+      <p>{item.desc}</p>
+      <a class="button button-outline button-sm" href={item.href} style="margin-top:.75rem">
+        {item.label}
+      </a>
+    </div>
+  ))}
+</div>

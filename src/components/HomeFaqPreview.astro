@@ -1,0 +1,22 @@
+---
+// HomeFaqPreview — first 4 parent FAQs with a link to full parent guide.
+// Pages use this as: <HomeFaqPreview />
+import FaqAccordion from '@/components/FaqAccordion.astro';
+import { parentFaqs } from '@/data/parent-faqs';
+
+const preview = parentFaqs.slice(0, 4);
+---
+
+<section>
+  <div class="container two-col split-balanced">
+    <div class="copy">
+      <div class="section-kicker">Common questions</div>
+      <h2 class="section-heading">Quick answers.</h2>
+      <p>Everything parents ask when starting out. More detail in the parent guide.</p>
+      <div class="actions" style="margin-top:1rem">
+        <a class="button button-outline" href="/parents">Full parent hub</a>
+      </div>
+    </div>
+    <FaqAccordion items={preview} />
+  </div>
+</section>

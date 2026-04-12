@@ -1,0 +1,15 @@
+---
+// SeasonHighlights — renders the three homepage metric cards.
+// Pages use this as: <SeasonHighlights />
+import { seasonHighlights } from '@/data/season-highlights';
+---
+
+<div class="container metrics-grid">
+  {seasonHighlights.map(item => (
+    <article class="metric">
+      <div class="section-kicker">League highlight</div>
+      <h3>{item.title}</h3>
+      <p>{item.body}</p>
+    </article>
+  ))}
+</div>

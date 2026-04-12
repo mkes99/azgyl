@@ -1,15 +1,11 @@
 ---
-interface Member {
-  role: string;
-  name: string;
-  email: string;
-  body: string;
-}
-interface Props { members: Member[] }
-const { members } = Astro.props;
+// LeadershipGrid — renders board of directors.
+// Pages use this as: <LeadershipGrid />
+import { board } from '@/data/board';
 ---
+
 <div class="leadership-grid">
-  {members.map((member) => (
+  {board.map(member => (
     <article class="leadership-card">
       <div class="leadership-role">{member.role}</div>
       <h3>{member.name}</h3>

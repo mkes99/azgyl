@@ -1,21 +1,14 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import SeasonHighlights from '@/components/SeasonHighlights.astro';
 import FeaturedTeams from '@/components/FeaturedTeams.astro';
-import ScheduleTable from '@/components/ScheduleTable.astro';
-import FaqAccordion from '@/components/FaqAccordion.astro';
-import { siteMeta } from '@/data/site-meta';
-import { seasonHighlights } from '@/data/season-highlights';
-import { parentFaqs } from '@/data/parent-faqs';
-import { scheduleEvents } from '@/data/schedule';
-
-// Name of the first active event for the schedule section heading
-const activeEvent = scheduleEvents.find(e => e.active);
-const scheduleName = activeEvent?.name ?? 'Current Season';
+import HomeSchedulePreview from '@/components/HomeSchedulePreview.astro';
+import HomeFaqPreview from '@/components/HomeFaqPreview.astro';
 ---
 
-<BaseLayout title="Arizona Girls Youth Lacrosse | AZGYL" description={siteMeta.description} pathname="/">
+<BaseLayout title="Arizona Girls Youth Lacrosse | AZGYL" pathname="/">
 
-  <!-- ── HERO ──────────────────────────────────────────── -->
   <section class="hero-home">
     <img class="hero-bg" src="/assets/heroes/home-hero.svg" alt="" loading="eager" aria-hidden="true" />
     <div class="container hero-home-inner">
@@ -27,15 +20,11 @@ const scheduleName = activeEvent?.name ?? 'Current Season';
           setting rules, certifying officials, coordinating schedules, and building
           the league framework every club plays within.
         </p>
-
-        <!-- Primary CTAs -->
         <div class="actions">
           <a class="button button-primary" href="/teams">Find My Team</a>
           <a class="button button-outline" href="/parents">Parent Guide</a>
           <a class="button button-dark"    href="/rules">League Rules</a>
         </div>
-
-        <!-- Quick-nav pills — CLICKABLE, link to key site sections -->
         <nav class="hero-nav-pills" aria-label="Quick navigation">
           <a class="hero-nav-pill" href="/league">📅 Schedule &amp; Standings</a>
           <a class="hero-nav-pill" href="/teams">🏆 Find a Team</a>
@@ -46,30 +35,16 @@ const scheduleName = activeEvent?.name ?? 'Current Season';
     </div>
   </section>
 
-  <!-- ── LEAGUE HIGHLIGHTS ─────────────────────────────── -->
   <section>
-    <div class="container metrics-grid">
-      {seasonHighlights.map(item => (
-        <article class="metric">
-          <div class="section-kicker">League highlight</div>
-          <h3>{item.title}</h3>
-          <p>{item.body}</p>
-        </article>
-      ))}
-    </div>
+    <SeasonHighlights />
   </section>
 
-  <!-- ── WHAT WE DO ────────────────────────────────────── -->
   <section class="section-alt">
     <div class="container two-col split-balanced">
       <div class="copy stack-md">
         <div class="section-kicker">Governing body</div>
         <h2 class="section-heading">The board, not the team.</h2>
-        <p>
-          AZGYL sets the rules, certifies officials, schedules games, and enforces
-          the standards every club plays within. Individual clubs handle their own
-          registration, practices, and uniforms.
-        </p>
+        <p>AZGYL sets the rules, certifies officials, schedules games, and enforces the standards every club plays within. Individual clubs handle their own registration, practices, and uniforms.</p>
         <p><strong>AZGYL does not collect player registration.</strong> Register directly with your local member club.</p>
         <div class="actions">
           <a class="button button-primary" href="/parents">Open parent guide</a>
@@ -78,11 +53,7 @@ const scheduleName = activeEvent?.name ?? 'Current Season';
       <div class="copy stack-md">
         <div class="section-kicker">2026 season</div>
         <h2 class="section-heading">Key dates and standards.</h2>
-        <p>
-          Team dues due February 1st. USA Lacrosse membership required for all
-          players, coaches, and referees. Code of Conduct must be signed before
-          the first game — no exceptions.
-        </p>
+        <p>Team dues due February 1st. USA Lacrosse membership required for all players, coaches, and referees. Code of Conduct must be signed before the first game — no exceptions.</p>
         <div class="actions">
           <a class="button button-outline" href="/rules">League rules</a>
           <a class="button button-ghost"   href="/resources">All resources</a>
@@ -91,53 +62,12 @@ const scheduleName = activeEvent?.name ?? 'Current Season';
     </div>
   </section>
 
-  <!-- ── FEATURED TEAMS ────────────────────────────────── -->
   <section>
     <FeaturedTeams />
   </section>
 
-  <!-- ── SCHEDULE PREVIEW ──────────────────────────────── -->
-  <section class="section-alt">
-    <div class="container">
-      <div class="section-header-clean section-header-clean--action" style="margin-bottom:1.8rem">
-        <div>
-          <div class="section-kicker">Season</div>
-          <h2>{scheduleName} — Upcoming Games</h2>
-        </div>
-        <div class="section-header-copy">
-          <p>Edit <code>src/data/schedule.ts</code> to update games. Full schedule and standings on the league page.</p>
-          <div class="actions">
-            <a class="button button-primary button-sm" href="/league">Full schedule &amp; standings →</a>
-          </div>
-        </div>
-      </div>
-      <ScheduleTable limit={5} />
-    </div>
-  </section>
+  <HomeSchedulePreview />
 
-  <!-- ── FAQ ───────────────────────────────────────────── -->
-  <section>
-    <div class="container two-col split-balanced">
-      <div class="copy">
-        <div class="section-kicker">Common questions</div>
-        <h2 class="section-heading">Quick answers.</h2>
-        <p>Everything parents ask when starting out. More detail in the parent guide.</p>
-        <div class="actions" style="margin-top:1rem">
-          <a class="button button-outline" href="/parents">Full parent hub</a>
-        </div>
-      </div>
-      <FaqAccordion items={parentFaqs.slice(0, 4)} />
-    </div>
-  </section>
+  <HomeFaqPreview />
 
 </BaseLayout>
-
-<style>
-  code {
-    background: var(--surface-soft);
-    padding: .15rem .45rem;
-    border-radius: 6px;
-    font-size: .85em;
-    color: var(--text);
-  }
-</style>

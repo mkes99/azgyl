@@ -1,0 +1,11 @@
+---
+// ExpansionChips — renders growth-market area chips.
+// Pages use this as: <ExpansionChips />
+import { expansionAreas } from '@/data/expansion-areas';
+---
+
+<div class="inline-chips">
+  {expansionAreas.map(item => (
+    <span class="inline-chip">{item.name}</span>
+  ))}
+</div>

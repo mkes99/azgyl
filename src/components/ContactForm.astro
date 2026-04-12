@@ -38,7 +38,7 @@ const departments = [
       </select>
     </label>
     <label>
-      Team or area <span style="font-weight:400;color:var(--soft)">(optional)</span>
+      Team or area <span class="field-optional">optional</span>
       <input name="team" type="text" placeholder="e.g. Diamonds, Tucson area" />
     </label>
   </div>
@@ -144,5 +144,20 @@ const departments = [
     background: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fecaca;
+  }
+  .field-optional {
+    display: inline-block;
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--soft);
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: .18rem .55rem;
+    margin-left: .4rem;
+    vertical-align: middle;
+    line-height: 1;
   }
 </style>

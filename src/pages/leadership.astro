@@ -3,15 +3,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import LeadershipGrid from '@/components/LeadershipGrid.astro';
 import CommitteesGrid from '@/components/CommitteesGrid.astro';
-import { board } from '@/data/board';
-import { committees } from '@/data/committees';
 ---
 
 <BaseLayout title="Leadership | AZGYL" pathname="/leadership">
   <PageHero
     eyebrow="Leadership"
     title="Board of directors and standing committees."
-    intro="AZGYL is governed by a volunteer board of directors. All board members serve 2-year terms and are elected annually by member team representatives."
+    intro="AZGYL is governed by a volunteer board of directors representing coaches, parents, and lacrosse professionals across Arizona."
     image="/assets/heroes/regions-hero.svg"
   />
 
@@ -23,10 +21,10 @@ import { committees } from '@/data/committees';
           <h2>Board of directors</h2>
         </div>
         <div class="section-header-copy">
-          <p>Volunteer board members who set policy, approve budgets, and make binding decisions on behalf of AZGYL.</p>
+          <p>Volunteer board members serving 2-year terms, elected annually by member team representatives.</p>
         </div>
       </div>
-      <LeadershipGrid members={board} />
+      <LeadershipGrid />
     </div>
   </section>
 
@@ -41,7 +39,7 @@ import { committees } from '@/data/committees';
           <p>League work is organized through standing committees — each chaired by a board member.</p>
         </div>
       </div>
-      <CommitteesGrid items={committees} />
+      <CommitteesGrid />
     </div>
   </section>
 
@@ -50,15 +48,15 @@ import { committees } from '@/data/committees';
       <div class="copy">
         <div class="section-kicker">Get involved</div>
         <h2 class="section-heading">Volunteer-run. Community-driven.</h2>
-        <p>AZGYL runs entirely on volunteer effort. If you're a coach, parent, or lacrosse professional who wants to help build the league, we want to hear from you.</p>
+        <p>AZGYL runs entirely on volunteer effort. If you're a coach, parent, or lacrosse professional who wants to help build the league, reach out.</p>
         <div class="actions" style="margin-top:1rem">
           <a class="button button-primary" href="/contact">Get in touch</a>
         </div>
       </div>
       <div class="info-panel">
-        <div class="section-kicker">Sponsors & partners</div>
+        <div class="section-kicker">Sponsors &amp; partners</div>
         <h3>Support Arizona girls lacrosse</h3>
-        <p>Sponsorships fund scholarships, equipment programs, and field access for Arizona girls. Presenting, Gold, and Silver sponsorship tiers available.</p>
+        <p>Sponsorships fund scholarships, equipment programs, and field access for Arizona girls.</p>
         <div class="subpage-links" style="margin-top:1rem">
           <a href="/contact?subject=Sponsorship">Become a sponsor →</a>
         </div>

@@ -12,7 +12,6 @@ export const siteMeta = {
 
 // Desktop nav (top-level links + dropdown groups)
 export const primaryNav = [
-  { label: 'Home',       href: '/'          },
   { label: 'Parents',    href: '/parents'   },
   { label: 'League',     href: '/league'    },
   { label: 'Leadership', href: '/leadership'},

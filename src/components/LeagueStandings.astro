@@ -1,0 +1,34 @@
+---
+// LeagueStandings — renders all active event standings sections.
+// Pages use this as: <LeagueStandings />
+// No props needed. All logic lives here.
+import StandingsTable from '@/components/StandingsTable.astro';
+import { scheduleEvents } from '@/data/schedule';
+import { allStandings } from '@/data/standings';
+
+const activeEvents = scheduleEvents.filter(e => e.active);
+const activeWithStandings = activeEvents.filter(e =>
+  allStandings.some(s => s.eventId === e.id)
+);
+---
+
+{activeWithStandings.map(event => (
+  <section class="section-alt">
+    <div class="container">
+      <div class="section-header-clean" style="margin-bottom:1.8rem">
+        <div>
+          <div class="section-kicker">{event.name}</div>
+          <h2>Division Standings</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>W = 3 pts · T = 1 pt · Update <code>src/data/standings.ts</code> after each game day.</p>
+        </div>
+      </div>
+      <StandingsTable eventId={event.id} />
+    </div>
+  </section>
+))}
+
+<style>
+  code { background: var(--surface-soft); padding: .15rem .4rem; border-radius: 6px; font-size: .85em; }
+</style>

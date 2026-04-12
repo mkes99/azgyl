@@ -2,10 +2,9 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import SectionIntro from '@/components/SectionIntro.astro';
-import FaqAccordion from '@/components/FaqAccordion.astro';
-import TeamFinder from '@/components/TeamFinder.astro';
-import { teams } from '@/data/teams';
-import { parentFaqs } from '@/data/parent-faqs';
+import ParentFaq from '@/components/ParentFaq.astro';
+import ParentTeamFinder from '@/components/ParentTeamFinder.astro';
+import AgeChart from '@/components/AgeChart.astro';
 ---
 
 <BaseLayout title="Parent Guide | AZGYL" pathname="/parents">
@@ -16,7 +15,6 @@ import { parentFaqs } from '@/data/parent-faqs';
     image="/assets/heroes/parents-hero.svg"
   />
 
-  <!-- Steps -->
   <section>
     <div class="container stack-lg">
       <SectionIntro eyebrow="Start here" title="Three steps to get on the field." />
@@ -36,7 +34,7 @@ import { parentFaqs } from '@/data/parent-faqs';
         <article class="metric">
           <div class="section-kicker">Step 2</div>
           <h3>Register and complete membership.</h3>
-          <p>Sign up through the local program and complete USA Lacrosse membership before your player's first practice. This is required — not optional.</p>
+          <p>Sign up through the local program and complete USA Lacrosse membership before your player's first practice. Required — not optional.</p>
         </article>
         <article class="metric">
           <div class="section-kicker">Step 3</div>
@@ -47,15 +45,13 @@ import { parentFaqs } from '@/data/parent-faqs';
     </div>
   </section>
 
-  <!-- Team finder -->
   <section class="section-alt" id="find-team">
     <div class="container finder-grid finder-grid-parents">
       <div class="finder-inline stack-lg">
-        <!-- Age group selector -->
         <div id="age-groups" class="copy stack-md">
           <div class="section-kicker">Age groups</div>
           <h2 class="section-heading section-heading--plain">Find your player's division.</h2>
-          <p class="section-sidecopy">Select her grade band for the recommended division. Use the downloadable age chart for more detail.</p>
+          <p class="section-sidecopy">Select her grade band for the recommended division.</p>
         </div>
         <div class="choice-row" data-grade-buttons>
           <button type="button" data-grade="2">K–2</button>
@@ -66,60 +62,64 @@ import { parentFaqs } from '@/data/parent-faqs';
         <div class="result-shell" data-age-result>
           <div class="note">Recommended division</div>
           <strong>Choose a grade band above</strong>
-          <p>We'll show the best starting division and link you to the full age chart.</p>
+          <p>We'll show the best starting division.</p>
           <div class="actions">
-            <a class="button button-outline button-sm" href="/resources">Open resources</a>
+            <a class="button button-outline button-sm" href="/resources#age-chart">Open age chart</a>
           </div>
         </div>
       </div>
-      <TeamFinder
-        teams={teams}
-        variant="compact"
-        title="Find your club"
-        intro="Search by city, district, or zip."
-        actionLabel="Open full directory"
-        directoryHref="/teams"
-      />
+      <ParentTeamFinder />
     </div>
   </section>
 
-  <!-- Equipment -->
   <section id="equipment">
     <div class="container section-block stack-lg">
-      <SectionIntro eyebrow="Equipment" title="Buy the required basics first." intro="For most girls field players, the must-have list is short: stick, goggles, mouthguard, and cleats. Keep the first purchase simple." />
+      <SectionIntro eyebrow="Equipment" title="Buy the required basics first." intro="Stick, goggles, mouthguard. That's it for year one." />
       <div class="metrics-grid">
         <article class="metric">
           <h3>Stick</h3>
-          <p>Start with a legal girls stick. Must be women's/girls pocket construction — not boys'. A starter stick in the $60–$100 range is fine for year one.</p>
+          <p>A legal girls stick in the $60–$100 range is fine for year one. Must be women's/girls pocket construction — not boys'.</p>
         </article>
         <article class="metric">
           <h3>Protective eyewear</h3>
-          <p>Required for all girls field players. Must meet ASTM F3077 standard. Worth fitting correctly in person — sizing varies significantly.</p>
+          <p>Required. Must meet ASTM F3077 standard. Worth fitting correctly in person — sizing varies significantly.</p>
         </article>
         <article class="metric">
           <h3>Mouthguard</h3>
-          <p>Mandatory by rule. Must be a visible color (not clear, not white) so officials can confirm it's in. Buy two — one lives in the bag.</p>
+          <p>Mandatory. Must be a visible color (not clear, not white). Buy two — one lives in the bag.</p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- FAQ -->
+  <section class="section-alt" id="age-chart-section">
+    <div class="container two-col split-balanced">
+      <div class="copy stack-lg">
+        <div class="section-kicker">Division reference</div>
+        <h2 class="section-heading section-heading--plain">Which division is right for her?</h2>
+        <p>Use grade as the starting point. Final placement can depend on school affiliation and league policy.</p>
+        <div class="actions">
+          <a class="button button-outline" href="/assets/docs/azgyl-age-chart-2026.pdf" target="_blank" rel="noreferrer">Download PDF</a>
+        </div>
+      </div>
+      <AgeChart />
+    </div>
+  </section>
+
   <section class="section-alt" id="faq">
     <div class="container two-col split-balanced">
       <div class="copy stack-md">
         <div class="section-kicker">FAQ</div>
         <h2 class="section-heading">Questions families actually ask.</h2>
-        <p>The practical answers for new-to-lacrosse families in Arizona.</p>
+        <p>Practical answers for new-to-lacrosse families in Arizona.</p>
         <div class="actions" style="margin-top:1rem">
           <a class="button button-outline" href="/rules">Full league rules</a>
         </div>
       </div>
-      <FaqAccordion items={parentFaqs} />
+      <ParentFaq />
     </div>
   </section>
 
-  <!-- Parent role (merged from /parents/role) -->
   <section id="parent-role">
     <div class="container two-col split-balanced">
       <div class="copy stack-md">
@@ -163,7 +163,7 @@ import { parentFaqs } from '@/data/parent-faqs';
       btn.classList.add('is-active');
       const sel = mapping[btn.dataset.grade];
       if (!result || !sel) return;
-      result.innerHTML = `<div class="note">Recommended division</div><strong>${sel.division}</strong><p>${sel.note}</p><div class="actions"><a class="button button-outline button-sm" href="/resources">Open resources</a></div>`;
+      result.innerHTML = `<div class="note">Recommended division</div><strong>${sel.division}</strong><p>${sel.note}</p><div class="actions"><a class="button button-outline button-sm" href="/resources#age-chart">Open age chart</a></div>`;
     });
   });
 </script>

@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import ContactForm from '@/components/ContactForm.astro';
+import ContactAside from '@/components/ContactAside.astro';
 ---
 
 <BaseLayout title="Contact | AZGYL" pathname="/contact">
@@ -14,51 +15,12 @@ import ContactForm from '@/components/ContactForm.astro';
 
   <section>
     <div class="container contact-layout">
-
       <div class="contact-form-column">
         <ContactForm />
       </div>
-
       <div class="contact-aside">
-        <h2 class="contact-aside-title">Common topics</h2>
-        <div class="stack-lg" style="margin-top:1.25rem">
-          {[
-            {
-              t: 'Team registration',
-              d: 'Registration is handled by each member club directly — not AZGYL.',
-              l: 'Find your team',
-              h: '/teams',
-            },
-            {
-              t: 'Schedule & standings',
-              d: 'Full game schedule and division standings for the current season.',
-              l: 'League page',
-              h: '/league',
-            },
-            {
-              t: 'Rules & eligibility',
-              d: 'Player eligibility, rostering rules, and game-day standards.',
-              l: 'Rules',
-              h: '/rules',
-            },
-            {
-              t: 'Become an official',
-              d: 'Join the AZGYL officials program — paid assignments for certified refs.',
-              l: 'Contact us',
-              h: '/contact',
-            },
-          ].map(item => (
-            <div class="info-panel">
-              <strong>{item.t}</strong>
-              <p>{item.d}</p>
-              <a class="button button-outline button-sm" href={item.h} style="margin-top:.75rem">
-                {item.l}
-              </a>
-            </div>
-          ))}
-        </div>
+        <ContactAside />
       </div>
-
     </div>
   </section>
 </BaseLayout>
