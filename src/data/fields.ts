@@ -27,7 +27,7 @@ export const fields: Field[] = [
   {
     id:      'mesquite-f1',
     name:    'Mesquite HS — Field 1',
-    label:   'Field 1',
+    label:   'Mesquite HS — Field 1',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -37,7 +37,7 @@ export const fields: Field[] = [
   {
     id:      'mesquite-f2',
     name:    'Mesquite HS — Field 2',
-    label:   'Field 2',
+    label:   'Mesquite HS — Field 2',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -47,7 +47,7 @@ export const fields: Field[] = [
   {
     id:      'mesquite-f3',
     name:    'Mesquite HS — Field 3',
-    label:   'Field 3',
+    label:   'Mesquite HS — Field 3',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -81,7 +81,7 @@ export const fields: Field[] = [
   {
     id:      'ssc',
     name:    'Surprise Soccer Complex',
-    label:   'Surprise SC',
+    label:   'Surprise Soccer Complex',
     venue:   'Surprise Soccer Complex (SSC)',
     address: '14450 W Sweetwater Ave, Surprise, AZ 85379',
     city:    'Surprise',
@@ -93,7 +93,7 @@ export const fields: Field[] = [
   {
     id:      'mohave',
     name:    'Mohave Middle School',
-    label:   'Mohave MS',
+    label:   'Mohave Middle School',
     venue:   'Mohave Middle School',
     address: '8425 W Mohave St, Tolleson, AZ 85353',
     city:    'Tolleson',
@@ -105,7 +105,7 @@ export const fields: Field[] = [
   {
     id:      'anthem-community',
     name:    'Anthem Community Park',
-    label:   'Anthem Park',
+    label:   'Anthem Community Park',
     venue:   'Anthem Community Park',
     address: '41703 N Gavilan Peak Pkwy, Anthem, AZ 85086',
     city:    'Anthem',

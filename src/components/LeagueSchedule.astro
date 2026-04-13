@@ -142,15 +142,12 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                       <span class="sl-away">{g.away}</span>
                     </span>
                     <span class="sl-field">
-                      <span>
-                        <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="sl-field-link">
-                          {fieldName(g.field)}
-                          {fieldNote(g.field).startsWith('⚠️') && (
-                            <span class="field-warn" title={fieldNote(g.field)}>⚠️</span>
-                          )}
-                        </a>
-                      </span>
-                      {(() => { const f = getFieldById(g.field); return f ? <span class="sl-field-addr">{f.city}</span> : null; })()}
+                      <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="sl-field-link">
+                        {fieldName(g.field)}
+                      </a>
+                      {fieldNote(g.field).startsWith('⚠️') && (
+                        <span class="field-warn" title={fieldNote(g.field)}>⚠️</span>
+                      )}
                     </span>
                   </div>
                 ))}
@@ -304,7 +301,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sched-list-header,
   .sched-row {
     display: grid;
-    grid-template-columns: 64px 110px 1fr auto;
+    grid-template-columns: 64px 110px 1fr 200px;
     align-items: center;
     gap: 0 1rem;
   }
@@ -346,11 +343,10 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sl-vs      { font-size: .68rem; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
   .sl-away    { color: var(--text); font-size: .9rem; }
 
-  .sl-field       { display: flex; flex-direction: column; align-items: flex-end; gap: .15rem; }
-  .sl-field-link  { font-size: .82rem; color: var(--cyan-deep); text-decoration: none; font-weight: 600; white-space: nowrap; }
+  .sl-field       { display: flex; align-items: center; justify-content: flex-end; gap: .3rem; }
+  .sl-field-link  { font-size: .84rem; color: var(--cyan-deep); text-decoration: none; font-weight: 600; white-space: nowrap; }
   .sl-field-link:hover { text-decoration: underline; }
-  .sl-field-addr  { font-size: .72rem; color: var(--muted); white-space: nowrap; text-align: right; }
-  .field-warn     { cursor: help; margin-left: .2rem; }
+  .field-warn     { cursor: help; flex-shrink: 0; }
   .game-note      { font-size: .7rem; color: var(--soft); font-style: italic; }
 
   /* ── Mobile cards ────────────────────────────── */
