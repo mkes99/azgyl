@@ -9,9 +9,10 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface Field {
-  id:      string;    // used in schedule.ts — e.g. 'mesquite-f1'
-  name:    string;    // display name shown on schedule table
-  venue:   string;    // venue name (parent location)
+  id:      string;    // used in schedule.ts
+  name:    string;    // full display name
+  label:   string;    // short label for schedule table (keep under ~18 chars)
+  venue:   string;    // venue name
   address: string;
   city:    string;
   mapUrl:  string;
@@ -26,6 +27,7 @@ export const fields: Field[] = [
   {
     id:      'mesquite-f1',
     name:    'Mesquite HS — Field 1',
+    label:   'Field 1',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -35,6 +37,7 @@ export const fields: Field[] = [
   {
     id:      'mesquite-f2',
     name:    'Mesquite HS — Field 2',
+    label:   'Field 2',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -44,6 +47,7 @@ export const fields: Field[] = [
   {
     id:      'mesquite-f3',
     name:    'Mesquite HS — Field 3',
+    label:   'Field 3',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -55,6 +59,7 @@ export const fields: Field[] = [
   {
     id:      'naranja-park',
     name:    'Naranja Park',
+    label:   'Naranja Park',
     venue:   'Naranja Park',
     address: '1100 N Naranja Dr, Oro Valley, AZ 85737',
     city:    'Oro Valley',
@@ -64,6 +69,7 @@ export const fields: Field[] = [
   {
     id:      'chuparosa',
     name:    'Chuparosa Park',
+    label:   'Chuparosa Park',
     venue:   'Chuparosa Park',
     address: '11175 N Chuparosa Dr, Oro Valley, AZ 85737',
     city:    'Oro Valley',
@@ -75,6 +81,7 @@ export const fields: Field[] = [
   {
     id:      'ssc',
     name:    'Surprise Soccer Complex',
+    label:   'Surprise SC',
     venue:   'Surprise Soccer Complex (SSC)',
     address: '14450 W Sweetwater Ave, Surprise, AZ 85379',
     city:    'Surprise',
@@ -86,6 +93,7 @@ export const fields: Field[] = [
   {
     id:      'mohave',
     name:    'Mohave Middle School',
+    label:   'Mohave MS',
     venue:   'Mohave Middle School',
     address: '8425 W Mohave St, Tolleson, AZ 85353',
     city:    'Tolleson',
@@ -97,6 +105,7 @@ export const fields: Field[] = [
   {
     id:      'anthem-community',
     name:    'Anthem Community Park',
+    label:   'Anthem Park',
     venue:   'Anthem Community Park',
     address: '41703 N Gavilan Peak Pkwy, Anthem, AZ 85086',
     city:    'Anthem',

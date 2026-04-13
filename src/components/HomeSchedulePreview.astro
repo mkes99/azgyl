@@ -1,32 +1,163 @@
 ---
-// HomeSchedulePreview — compact upcoming-games strip for the homepage.
-// Shows the first active event name + upcoming games (limit 5).
-// Pages use this as: <HomeSchedulePreview />
-import ScheduleTable from '@/components/ScheduleTable.astro';
 import { scheduleEvents } from '@/data/schedule';
+import { getFieldById }   from '@/data/fields';
 
-const activeEvent = scheduleEvents.find(e => e.active);
-const eventName   = activeEvent?.name ?? 'Current Season';
+const event = scheduleEvents.find(e => e.active);
+if (!event) return;
+
+const games    = event.games;
+const allDates = [...new Set(games.map(g => g.date))].sort();
+
+// Current week = first game date on or after today — purely date-driven.
+const todayISO     = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+const nextDate     = allDates.find(d => d >= todayISO) ?? null;
+const seasonComplete = !nextDate;
+
+const dayGames     = nextDate ? games.filter(g => g.date === nextDate) : [];
+const weekNum      = nextDate ? allDates.indexOf(nextDate) + 1 : 0;
+const primaryVenue = dayGames[0] ? getFieldById(dayGames[0].field) : null;
+
+const fmtDate = (iso: string) =>
+  new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric',
+  });
+
+const DIV_ORDER  = ['8U','10U','12U','14U'];
+const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
 ---
 
 <section class="section-alt">
   <div class="container">
-    <div class="section-header-clean section-header-clean--action" style="margin-bottom:1.8rem">
-      <div>
-        <div class="section-kicker">Season</div>
-        <h2>{eventName} — Upcoming Games</h2>
+
+    {/* ── Season complete state ─────────────────── */}
+    {seasonComplete && (
+      <div class="hsp-complete">
+        <div class="section-kicker">{event.name}</div>
+        <h2 class="hsp-title">Season Complete</h2>
+        <p>All games have been played. Final standings and results are on the league page.</p>
+        <a class="button button-primary button-sm" href="/league" style="margin-top:1rem">
+          View final standings →
+        </a>
       </div>
-      <div class="section-header-copy">
-        <p>Update <code>src/data/schedule.ts</code> each week. Full schedule and standings on the league page.</p>
-        <div class="actions">
-          <a class="button button-primary button-sm" href="/league">Full schedule &amp; standings →</a>
+    )}
+
+    {/* ── Active schedule ───────────────────────── */}
+    {!seasonComplete && (
+      <Fragment>
+        <div class="hsp-head">
+          <div>
+            <div class="section-kicker">Week {weekNum} · {event.name}</div>
+            <h2 class="hsp-title">{fmtDate(nextDate!)}</h2>
+            {primaryVenue && (
+              <a class="hsp-venue" href={primaryVenue.mapUrl} target="_blank" rel="noreferrer">
+                📍 {primaryVenue.venue} · {primaryVenue.city}
+              </a>
+            )}
+          </div>
+          <a class="button button-primary button-sm hsp-cta" href="/league">
+            Full schedule &amp; standings →
+          </a>
         </div>
-      </div>
-    </div>
-    <ScheduleTable limit={5} />
+
+        <div class="hsp-grid">
+          {activeDivs.map(div => {
+            const divGames = dayGames
+              .filter(g => g.division === div)
+              .sort((a, b) => a.time.localeCompare(b.time));
+            return (
+              <div class="hsp-div-block">
+                <div class="hsp-div-label">
+                  <span class="hsp-div-name">{div}</span>
+                  <span class="hsp-div-count">{divGames.length} game{divGames.length !== 1 ? 's' : ''}</span>
+                </div>
+                {divGames.map(g => {
+                  const field = getFieldById(g.field);
+                  return (
+                    <div class="hsp-game">
+                      <div class="hsp-game-time">{g.time}</div>
+                      <div class="hsp-game-teams">
+                        <span class="hsp-home">{g.home}</span>
+                        <span class="hsp-vs">vs</span>
+                        <span class="hsp-away">{g.away}</span>
+                      </div>
+                      {field && (
+                        <a class="hsp-field" href={field.mapUrl} target="_blank" rel="noreferrer">
+                          {field.label ?? field.name}
+                        </a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+
+        <div class="hsp-footer">
+          <span>{dayGames.length} total games across {activeDivs.length} divisions</span>
+          <a href="/league">View full schedule &amp; standings →</a>
+        </div>
+      </Fragment>
+    )}
+
   </div>
 </section>
 
 <style>
-  code { background: var(--surface-soft); padding: .15rem .4rem; border-radius: 6px; font-size: .85em; }
+  .hsp-complete { padding: 2rem; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+  .hsp-complete p { color: var(--muted); margin-top: .5rem; }
+
+  .hsp-head {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .hsp-title  { margin: .2rem 0 .3rem; font-size: clamp(1.4rem, 3vw, 2rem); }
+  .hsp-venue  { font-size: .88rem; color: var(--cyan-deep); text-decoration: none; font-weight: 600; }
+  .hsp-venue:hover { text-decoration: underline; }
+  .hsp-cta    { align-self: center; white-space: nowrap; }
+
+  .hsp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--line);
+    gap: 1px;
+  }
+
+  .hsp-div-block { background: var(--surface); display: flex; flex-direction: column; }
+
+  .hsp-div-label {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .6rem 1rem .55rem;
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .hsp-div-name  { font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--purple-deep); }
+  .hsp-div-count { font-size: .72rem; color: var(--muted); }
+
+  .hsp-game { display: flex; flex-direction: column; gap: .18rem; padding: .7rem 1rem; border-bottom: 1px solid var(--line); }
+  .hsp-game:last-child { border-bottom: none; }
+
+  .hsp-game-time  { font-size: .75rem; font-weight: 700; color: var(--muted); }
+  .hsp-game-teams { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; font-size: .88rem; }
+  .hsp-home       { font-weight: 700; color: var(--text); }
+  .hsp-vs         { font-size: .68rem; color: var(--soft); text-transform: uppercase; font-weight: 700; }
+  .hsp-away       { color: var(--muted); }
+  .hsp-field      { font-size: .75rem; color: var(--cyan-deep); text-decoration: none; }
+  .hsp-field:hover { text-decoration: underline; }
+
+  .hsp-footer {
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap; margin-top: .85rem;
+    font-size: .84rem; color: var(--muted);
+  }
+  .hsp-footer a { color: var(--cyan-deep); font-weight: 700; text-decoration: none; }
+  .hsp-footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 640px) { .hsp-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 420px) { .hsp-grid { grid-template-columns: 1fr; } }
 </style>

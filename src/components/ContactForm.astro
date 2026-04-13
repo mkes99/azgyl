@@ -1,32 +1,42 @@
 ---
-// ContactForm — all data and logic lives here, no external data imports
-// Sends via Cloudflare Pages Function at /api/contact
-// Environment variables managed in Cloudflare Pages Dashboard:
-//   RESEND_API_KEY, EMAIL_FROM, EMAIL_TO, RECAPTCHA_SECRET, RECAPTCHA_MIN_SCORE
-
+// ContactForm — self-contained with Resend via Cloudflare Pages Function.
+// HTML5 native validation is ON (no novalidate).
+// Required fields marked with * — standard, universally understood.
+// Optional fields have no marker — absence of * means optional.
 const departments = [
-  { label: 'General Questions',           email: '' },  // falls back to first EMAIL_TO value
-  { label: 'Registration & Team Signup',  email: '' },
-  { label: 'Player Placement & Boundaries', email: '' },
-  { label: 'Rules & Eligibility',         email: '' },
-  { label: 'Scheduling & Operations',     email: '' },
-  { label: 'Coaching & Volunteers',       email: '' },
-  { label: 'Officials',                   email: '' },
-  { label: 'Website & Communications',    email: '' },
+  'General Questions',
+  'Registration & Team Signup',
+  'Player Placement & Boundaries',
+  'Rules & Eligibility',
+  'Scheduling & Operations',
+  'Coaching & Volunteers',
+  'Officials',
+  'Website & Communications',
 ];
-// Note: actual routing is done server-side via EMAIL_TO env var in Cloudflare.
-// See functions/api/contact.ts for how EMAIL_TO JSON routing works.
 ---
 
-<form id="contact-form" class="stack-md" novalidate>
+<form id="contact-form" class="contact-form-inner">
+
   <div class="form-grid">
     <label>
-      Name
-      <input name="name" type="text" placeholder="Your name" required autocomplete="name" />
+      <span class="label-text">Name <span class="req" aria-hidden="true">*</span></span>
+      <input
+        name="name"
+        type="text"
+        placeholder="Your name"
+        required
+        autocomplete="name"
+      />
     </label>
     <label>
-      Email
-      <input name="email" type="email" placeholder="you@example.com" required autocomplete="email" />
+      <span class="label-text">Email <span class="req" aria-hidden="true">*</span></span>
+      <input
+        name="email"
+        type="email"
+        placeholder="you@example.com"
+        required
+        autocomplete="email"
+      />
     </label>
   </div>
 
@@ -34,19 +44,26 @@ const departments = [
     <label>
       Department
       <select name="department">
-        {departments.map(d => <option value={d.label}>{d.label}</option>)}
+        {departments.map(d => <option value={d}>{d}</option>)}
       </select>
     </label>
     <label>
-      Team or area <span class="field-optional">optional</span>
-      <input name="team" type="text" placeholder="e.g. Diamonds, Tucson area" />
+      Team or area
+      <input
+        name="team"
+        type="text"
+        placeholder="e.g. Diamonds, Tucson area"
+        autocomplete="off"
+      />
     </label>
   </div>
 
   <label>
-    Message
+    <span class="label-text">Message <span class="req" aria-hidden="true">*</span></span>
     <textarea name="message" placeholder="How can we help?" required></textarea>
   </label>
+
+  <p class="form-required-note" style="margin-top:.6rem"><span class="req">*</span> Required field</p>
 
   <div id="form-status" class="form-status" hidden></div>
 
@@ -57,16 +74,15 @@ const departments = [
   </div>
 
   <p class="note">
-    This form sends directly to the AZGYL board via Resend.
-    Protected by reCAPTCHA v3.
+    This form sends directly to the AZGYL board via Resend. Protected by reCAPTCHA v3.
   </p>
 </form>
 
 <script is:inline>
 (function () {
-  const form    = document.getElementById('contact-form');
-  const status  = document.getElementById('form-status');
-  const submit  = document.getElementById('form-submit');
+  var form   = document.getElementById('contact-form');
+  var status = document.getElementById('form-status');
+  var submit = document.getElementById('form-submit');
 
   if (!form) return;
 
@@ -76,14 +92,16 @@ const departments = [
     status.hidden      = false;
   }
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
-    submit.disabled     = true;
-    submit.textContent  = 'Sending…';
-    status.hidden       = true;
 
-    const data = new FormData(form);
-    const payload = {
+    // HTML5 validation ran already (no novalidate) — if we're here it passed.
+    submit.disabled    = true;
+    submit.textContent = 'Sending…';
+    status.hidden      = true;
+
+    var data = new FormData(form);
+    var payload = {
       name:       data.get('name'),
       email:      data.get('email'),
       department: data.get('department'),
@@ -92,27 +110,27 @@ const departments = [
       recaptchaToken: null,
     };
 
-    // reCAPTCHA v3 — if site key is present in the page
-    const siteKey = document.querySelector('meta[name="recaptcha-site-key"]')?.content;
-    if (siteKey && window.grecaptcha) {
+    // reCAPTCHA v3 — only if site key meta tag is present
+    var metaKey = document.querySelector('meta[name="recaptcha-site-key"]');
+    if (metaKey && window.grecaptcha) {
       try {
-        payload.recaptchaToken = await new Promise((resolve, reject) => {
-          window.grecaptcha.ready(() => {
-            window.grecaptcha.execute(siteKey, { action: 'contact' }).then(resolve).catch(reject);
+        payload.recaptchaToken = await new Promise(function (resolve, reject) {
+          window.grecaptcha.ready(function () {
+            window.grecaptcha.execute(metaKey.content, { action: 'contact' }).then(resolve).catch(reject);
           });
         });
       } catch (_) { /* continue without token */ }
     }
 
     try {
-      const res = await fetch('/api/contact', {
+      var res  = await fetch('/api/contact', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
       });
-      const json = await res.json();
+      var json = await res.json();
       if (json.ok) {
-        showStatus('Message sent! We\'ll be in touch within 1–2 business days.', 'success');
+        showStatus("Message sent! We'll be in touch within 1–2 business days.", 'success');
         form.reset();
       } else {
         showStatus(json.error || 'Something went wrong. Please try again.', 'error');
@@ -128,6 +146,32 @@ const departments = [
 </script>
 
 <style>
+  .contact-form-inner {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  /* label-text keeps the label + asterisk on one line
+     even when <label> is display:grid from global CSS */
+  .label-text {
+    display: inline;
+  }
+  .req {
+    color: var(--purple);
+    font-weight: 700;
+    margin-left: .15rem;
+  }
+  .form-required-note {
+    font-size: .78rem;
+    color: var(--soft);
+    margin: -.25rem 0 0;
+    display: flex;
+    align-items: center;
+    gap: .2rem;
+  }
+  .form-required-note .req {
+    margin-left: 0;
+  }
   .form-status {
     padding: .85rem 1.1rem;
     border-radius: 14px;
@@ -144,20 +188,5 @@ const departments = [
     background: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fecaca;
-  }
-  .field-optional {
-    display: inline-block;
-    font-size: .65rem;
-    font-weight: 600;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--soft);
-    background: var(--surface-soft);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: .18rem .55rem;
-    margin-left: .4rem;
-    vertical-align: middle;
-    line-height: 1;
   }
 </style>

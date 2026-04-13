@@ -1,14 +1,15 @@
 ---
-// LeagueStandings — renders all active event standings sections.
-// Pages use this as: <LeagueStandings />
-// No props needed. All logic lives here.
 import StandingsTable from '@/components/StandingsTable.astro';
 import { scheduleEvents } from '@/data/schedule';
-import { allStandings } from '@/data/standings';
+import { localStandings, STANDINGS_CSV_URL } from '@/data/standings';
 
 const activeEvents = scheduleEvents.filter(e => e.active);
+
+// Match active events to standing data.
+// StandingsTable handles the sheet-vs-local decision internally;
+// we just need to know which eventIds have any standing data at all.
 const activeWithStandings = activeEvents.filter(e =>
-  allStandings.some(s => s.eventId === e.id)
+  localStandings.some(s => s.eventId === e.id)
 );
 ---
 
@@ -21,7 +22,12 @@ const activeWithStandings = activeEvents.filter(e =>
           <h2>Division Standings</h2>
         </div>
         <div class="section-header-copy">
-          <p>W = 3 pts · T = 1 pt · Update <code>src/data/standings.ts</code> after each game day.</p>
+          <p>
+            {STANDINGS_CSV_URL
+              ? 'Live from Google Sheets. Update the sheet and redeploy to refresh.'
+              : 'Update standings in src/data/standings.ts — or connect Google Sheets. See STANDINGS_SETUP.md.'
+            }
+          </p>
         </div>
       </div>
       <StandingsTable eventId={event.id} />

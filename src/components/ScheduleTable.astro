@@ -27,7 +27,7 @@ function groupGames(games: Game[], by: string) {
   if (by === 'none') return [{ label: '', games }];
   const map = new Map<string, Game[]>();
   for (const g of games) {
-    const key = by === 'division' ? g.division : (getFieldById(g.field)?.name ?? g.field);
+    const key = by === 'division' ? g.division : (getFieldById(g.field)?.label ?? getFieldById(g.field)?.name ?? g.field);
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(g);
   }
@@ -48,7 +48,7 @@ function fmtDate(iso: string) {
   } catch { return iso; }
 }
 function fieldName(id: string) {
-  return getFieldById(id)?.name ?? id;
+  return getFieldById(id)?.label ?? getFieldById(id)?.name ?? id;
 }
 function mapUrl(id: string) {
   return getFieldById(id)?.mapUrl ?? '#';
@@ -89,7 +89,7 @@ function fieldNotes(id: string) {
           </thead>
           <tbody>
             {group.games.map(g => (
-              <tr class={g.result === 'upcoming' ? 'row-upcoming' : g.result === 'cancelled' ? 'row-cancelled' : ''}>
+              <tr class=>
                 <td class="col-date">{fmtDate(g.date)}</td>
                 <td class="col-time col-arrive">{g.arrival ?? '—'}</td>
                 <td class="col-time"><strong>{g.time}</strong></td>
@@ -105,11 +105,11 @@ function fieldNotes(id: string) {
                   )}
                 </td>
                 <td>
-                  {g.result === 'upcoming'   && <span class="result-chip result-up">Upcoming</span>}
-                  {g.result === 'cancelled'  && <span class="result-chip result-cancel">Cancelled</span>}
-                  {g.result === 'W'          && <span class="result-chip result-w">W {g.score}</span>}
-                  {g.result === 'L'          && <span class="result-chip result-l">L {g.score}</span>}
-                  {g.result === 'T'          && <span class="result-chip result-t">T {g.score}</span>}
+                  
+                  {getResult(g.id)?.result === 'P'  && <span class="result-chip result-cancel">Cancelled</span>}
+                  {getResult(g.id)?.result === 'W'          && <span class="result-chip result-w">W {g.score}</span>}
+                  {getResult(g.id)?.result === 'L'          && <span class="result-chip result-l">L {g.score}</span>}
+                  {getResult(g.id)?.result === 'T'          && <span class="result-chip result-t">T {g.score}</span>}
                   {g.notes && <span class="game-note">{g.notes}</span>}
                 </td>
               </tr>
@@ -121,7 +121,7 @@ function fieldNotes(id: string) {
       {/* ── Mobile cards ────────────────────────── */}
       <div class="sched-cards">
         {group.games.map(g => (
-          <div class={`sched-card${g.result === 'upcoming' ? ' sched-card--upcoming' : g.result === 'cancelled' ? ' sched-card--cancelled' : ''}`}>
+          <div class={`sched-card$`}>
             <div class="sched-card-top">
               <div class="sched-card-time-block">
                 <span class="sched-card-date">{fmtDate(g.date)}</span>
@@ -130,11 +130,11 @@ function fieldNotes(id: string) {
                   <strong>Start {g.time}</strong>
                 </span>
               </div>
-              {g.result === 'upcoming'  && <span class="result-chip result-up">Upcoming</span>}
-              {g.result === 'cancelled' && <span class="result-chip result-cancel">Cancelled</span>}
-              {g.result === 'W'         && <span class="result-chip result-w">W {g.score}</span>}
-              {g.result === 'L'         && <span class="result-chip result-l">L {g.score}</span>}
-              {g.result === 'T'         && <span class="result-chip result-t">T {g.score}</span>}
+              
+              {getResult(g.id)?.result === 'P' && <span class="result-chip result-cancel">Cancelled</span>}
+              {getResult(g.id)?.result === 'W'         && <span class="result-chip result-w">W {g.score}</span>}
+              {getResult(g.id)?.result === 'L'         && <span class="result-chip result-l">L {g.score}</span>}
+              {getResult(g.id)?.result === 'T'         && <span class="result-chip result-t">T {g.score}</span>}
             </div>
             <div class="sched-card-matchup">
               <span class="div-chip">{g.division}</span>
