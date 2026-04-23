@@ -240,7 +240,7 @@ textarea { min-height: 180px; resize: vertical; }
 .rule-row:first-child { padding-top: 0; border-top: 0; }
 
 .site-footer {
-  margin-top: 4rem; padding: 3rem 0 4rem; background: linear-gradient(90deg, rgba(51,0,111,0.9), rgba(10,16,32,0.98) 26%, rgba(10,16,32,0.98) 74%, rgba(51,0,111,0.9)); color: rgba(241,245,249,.92); border-top: 1px solid rgba(255,255,255,.08);
+  margin-top: 4rem; padding: 3rem 0 0; background: linear-gradient(90deg, rgba(51,0,111,0.9), rgba(10,16,32,0.98) 26%, rgba(10,16,32,0.98) 74%, rgba(51,0,111,0.9)); color: rgba(241,245,249,.92); border-top: 1px solid rgba(255,255,255,.08);
 }
 .footer-grid { grid-template-columns: 1.2fr .8fr .9fr .7fr; }
 .footer-brand img { width: min(250px, 100%); margin-bottom: 1rem; }
