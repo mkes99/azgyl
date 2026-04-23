@@ -55,6 +55,7 @@ section { padding: clamp(72px, 9vw, 110px) 0; }
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 1.5rem;
+  padding: 10px 0;
 }
 .brand img { width: clamp(160px, 13vw, 210px); }
 .desktop-nav { display: flex; align-items: center; justify-content: center; gap: .2rem; }
