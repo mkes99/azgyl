@@ -157,7 +157,7 @@ const divs = event
 <style>
   .standings-wrap { display: grid; gap: .65rem; margin-bottom: 2rem; }
   .standings-wrap:last-child { margin-bottom: 0; }
-  .standings-div-label { font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--cyan-deep); }
+  .standings-div-label { font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--rose-deep); }
 
   .standings-table-shell { border-radius: 18px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
   .standings-table { width: 100%; border-collapse: collapse; font-size: .9rem; table-layout: fixed; }
@@ -166,36 +166,36 @@ const divs = event
   .th-rank { text-align: center; }
   .th-team { text-align: left; }
   .th-num  { text-align: center; }
-  .th-pts  { color: var(--purple-deep); }
+  .th-pts  { color: var(--olive); }
   .standings-table td { padding: .78rem 1rem; border-bottom: 1px solid var(--line); }
   .standings-table tbody tr:last-child td { border-bottom: none; }
   .standings-table tbody tr:hover td { background: var(--surface-soft); }
-  .row-leader td { background: color-mix(in srgb, var(--cyan) 5%, white); }
+  .row-leader td { background: color-mix(in srgb, var(--rose) 5%, white); }
 
   .td-rank { text-align: center; }
-  .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); color: #fff; font-size: .72rem; font-weight: 800; }
+  .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--rose), var(--olive)); color: #fff; font-size: .72rem; font-weight: 800; }
   .rank-num  { color: var(--soft); font-size: .88rem; }
 
   .td-team { font-weight: 700; color: var(--text); }
   .td-team-inner { display: inline-flex; align-items: center; gap: .5rem; }
-  .leader-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); flex-shrink: 0; }
+  .leader-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--rose); flex-shrink: 0; }
 
   .td-num   { text-align: center; color: var(--text); }
   .td-muted { color: var(--muted); }
-  .td-pts   { color: var(--purple-deep); font-weight: 700; }
+  .td-pts   { color: var(--olive); font-weight: 700; }
   .td-pos   { color: #15803d; font-weight: 700; }
   .td-neg   { color: #b91c1c; }
 
   .standings-cards { display: none; flex-direction: column; gap: .45rem; }
   .stand-card { border-radius: 16px; border: 1px solid var(--line); background: var(--surface); padding: .85rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  .stand-card--leader { background: color-mix(in srgb, var(--cyan) 5%, white); border-color: color-mix(in srgb, var(--cyan) 20%, white); }
+  .stand-card--leader { background: color-mix(in srgb, var(--rose) 5%, white); border-color: color-mix(in srgb, var(--rose) 20%, white); }
   .stand-left  { display: flex; align-items: center; gap: .65rem; min-width: 0; }
   .stand-team  { font-weight: 700; color: var(--text); font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .stand-stats { display: flex; gap: .85rem; align-items: center; flex-shrink: 0; }
   .stand-stat         { display: flex; flex-direction: column; align-items: center; gap: .1rem; }
   .stand-stat span    { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
   .stand-stat strong  { font-size: .92rem; color: var(--text); }
-  .stand-stat--pts strong { color: var(--purple-deep); font-weight: 700; }
+  .stand-stat--pts strong { color: var(--olive); font-weight: 700; }
   .stand-stat--pos strong { color: #15803d; }
   .stand-stat--neg strong { color: #b91c1c; }
 

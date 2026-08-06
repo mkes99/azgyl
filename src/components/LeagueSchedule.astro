@@ -264,9 +264,9 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sched-tab:hover   { background: var(--surface-soft); color: var(--text); border-color: var(--text); }
   /* Active: solid filled — no opacity, full contrast */
   .sched-tab--active {
-    background: var(--navy-soft);
+    background: var(--charcoal);
     color: #fff;
-    border-color: var(--navy-soft);
+    border-color: var(--charcoal);
     font-weight: 700;
   }
   /* Past weeks: slightly muted text, still fully legible */
@@ -280,7 +280,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   /* ── Day panel ───────────────────────────────── */
   .sched-day--hidden { display: none; }
   .sched-day-hdr { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 2px solid var(--line); }
-  .sched-day-week { display: block; font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--cyan-deep); margin-bottom: .2rem; }
+  .sched-day-week { display: block; font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--rose-deep); margin-bottom: .2rem; }
   .week-status-past {
     display: inline-block; margin-left: .5rem;
     padding: .1rem .48rem; border-radius: 999px;
@@ -328,9 +328,9 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .div-chip {
     display: inline-block; padding: .2rem .55rem; border-radius: 999px;
     font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    background: color-mix(in srgb, var(--purple) 10%, white);
-    color: var(--purple-deep);
-    border: 1px solid color-mix(in srgb, var(--purple) 16%, white);
+    background: color-mix(in srgb, var(--olive) 10%, white);
+    color: var(--olive);
+    border: 1px solid color-mix(in srgb, var(--olive) 16%, white);
     white-space: nowrap;
   }
 
@@ -339,12 +339,12 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sl-arrive      { font-size: .74rem; color: var(--muted); }
 
   .sl-matchup { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
-  .sl-home    { font-weight: 700; color: var(--purple-deep); font-size: .9rem; }
+  .sl-home    { font-weight: 700; color: var(--olive); font-size: .9rem; }
   .sl-vs      { font-size: .68rem; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
   .sl-away    { color: var(--text); font-size: .9rem; }
 
   .sl-field       { display: flex; align-items: center; justify-content: flex-end; gap: .3rem; }
-  .sl-field-link  { font-size: .84rem; color: var(--cyan-deep); text-decoration: none; font-weight: 600; white-space: nowrap; }
+  .sl-field-link  { font-size: .84rem; color: var(--rose-deep); text-decoration: none; font-weight: 600; white-space: nowrap; }
   .sl-field-link:hover { text-decoration: underline; }
   .field-warn     { cursor: help; flex-shrink: 0; }
   .game-note      { font-size: .7rem; color: var(--soft); font-style: italic; }
@@ -357,7 +357,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .scard-time    { font-size: .88rem; font-weight: 700; color: var(--text); }
   .scard-arrive  { font-size: .76rem; color: var(--muted); }
   .scard-matchup { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
-  .scard-home    { font-weight: 800; color: var(--purple-deep); font-size: .95rem; }
+  .scard-home    { font-weight: 800; color: var(--olive); font-size: .95rem; }
   .scard-vs      { font-size: .7rem; font-weight: 700; color: var(--soft); text-transform: uppercase; }
   .scard-away    { color: var(--text); font-size: .95rem; }
   .scard-field   { font-size: .8rem; }

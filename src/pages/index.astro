@@ -7,10 +7,10 @@ import HomeSchedulePreview from '@/components/HomeSchedulePreview.astro';
 import HomeFaqPreview from '@/components/HomeFaqPreview.astro';
 ---
 
-<BaseLayout title="Arizona Girls Youth Lacrosse | AZGYL" pathname="/">
+<BaseLayout title="AZGYL — Arizona Girls Youth Lacrosse | Grades K–8 Statewide Rec" pathname="/">
 
   <section class="hero-home">
-    <img class="hero-bg" src="/assets/heroes/home-hero.svg" alt="" loading="eager" aria-hidden="true" />
+    <img class="hero-bg" src="/assets/heroes/home-hero.jpg" alt="" loading="eager" aria-hidden="true" />
     <div class="container hero-home-inner">
       <div class="hero-copy stack-xl">
         <div class="eyebrow">Arizona Girls Youth Lacrosse · Grades K–8</div>
@@ -26,10 +26,22 @@ import HomeFaqPreview from '@/components/HomeFaqPreview.astro';
           <a class="button button-dark"    href="/rules">League Rules</a>
         </div>
         <nav class="hero-nav-pills" aria-label="Quick navigation">
-          <a class="hero-nav-pill" href="/league">📅 Schedule &amp; Standings</a>
-          <a class="hero-nav-pill" href="/teams">🏆 Find a Team</a>
-          <a class="hero-nav-pill" href="/resources#age-chart">📊 Age Chart</a>
-          <a class="hero-nav-pill" href="/contact">✉️ Contact</a>
+          <a class="hero-nav-pill" href="/league">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Schedule &amp; Standings
+          </a>
+          <a class="hero-nav-pill" href="/teams">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Find a Team
+          </a>
+          <a class="hero-nav-pill" href="/resources#age-chart">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Age Chart
+          </a>
+          <a class="hero-nav-pill" href="/contact">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Contact
+          </a>
         </nav>
       </div>
     </div>

@@ -25,11 +25,23 @@ const fullTitle = title.includes('AZGYL') ? title : `${title} | AZGYL`;
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#08111b" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#1a1a1a" />
+    <!-- Open Graph -->
     <meta property="og:title"       content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type"        content="website" />
-    <link rel="icon" href="/assets/brand/logo-cropped.png" />
+    <meta property="og:site_name"   content="Arizona Girls Youth Lacrosse" />
+    <meta property="og:image"       content="/assets/brand/logo-flat.jpg" />
+    <!-- Twitter -->
+    <meta name="twitter:card"        content="summary" />
+    <meta name="twitter:title"       content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <!-- Canonical -->
+    <link rel="canonical" href={`https://azgyl.com${pathname}`} />
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/brand/logo-cropped.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/assets/brand/logo-cropped.png" />
     <link rel="stylesheet" href="/assets/css/global.css" />
     {recaptchaSiteKey && (
       <>
