@@ -4,9 +4,10 @@
  *
  * BRAND COLORS
  *   Rose:    #d7657b  (primary accent — buttons, links, highlights)
- *   Charcoal:#1a1a1a  (header, footer, dark surfaces)
- *   Olive:   #4b4c30  (secondary — schedule chips, standings)
- *   Cream:   #faf8f5  (page background)
+ *   Cream:   #fbeed0  (header & footer — sampled from the logo artwork)
+ *   Olive:   #4b4c30  (nav ink on cream, schedule chips, standings)
+ *   Charcoal:#1a1a1a  (hero overlays)
+ *   Page bg: #faf8f5
  *
  * TO CHANGE A COLOR: update the CSS variable in :root below.
  * That's it. One place, all changes cascade automatically.
@@ -45,8 +46,19 @@
   --charcoal-2:   #242424;
 
   --olive:        #4b4c30;
+  --olive-deep:   #383921;
   --olive-bg:     #f0f0e8;
   --olive-border: #c8c8a8;
+
+  /* Cream — sampled from the logo artwork (#fbeed0) so the mark sits on the
+     same field it was drawn on. Used for the header and footer. */
+  --cream:        #fbeed0;
+  --cream-soft:   #fdf6e4;
+  --cream-line:   rgba(75,76,48,0.16);
+
+  /* Hero overlay — one flat black wash, no gradient */
+  --hero-scrim:    rgba(0,0,0,0.55);
+  --hero-scrim-sm: rgba(0,0,0,0.62);
 
   /* Surfaces */
   --bg:           #faf8f5;
@@ -217,28 +229,35 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--charcoal);
-  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: var(--cream);
+  border-bottom: 1px solid var(--cream-line);
 }
 .header-inner {
-  min-height: 108px;
+  min-height: var(--header-h, 164px);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 2rem;
+  transition: min-height .22s ease;
 }
-.brand { padding: .5rem 0; }
+.brand { padding: .4rem 0; }
 .brand img {
-  height: 88px;
+  height: var(--logo-h, 144px);
   width: auto;
-  max-width: 260px;
+  max-width: 300px;
   object-fit: contain;
   display: block;
-  border-radius: 12px;
+  transition: height .22s ease;
+}
+/* Shrink once the page scrolls so the larger mark doesn't cost viewport height */
+.site-header[data-scrolled] {
+  --header-h: 104px;
+  --logo-h:   84px;
+  box-shadow: 0 2px 16px rgba(75,76,48,.10);
 }
 @media (max-width: 1040px) {
-  .header-inner { min-height: 88px; }
-  .brand img { height: 68px; }
+  .site-header { --header-h: 112px; --logo-h: 92px; }
+  .site-header[data-scrolled] { --header-h: 88px; --logo-h: 70px; }
 }
 .desktop-nav {
   display: flex;
@@ -251,11 +270,11 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  color: rgba(255,255,255,.78);
+  color: var(--olive);
   padding: .65rem .9rem;
   border-radius: 10px;
   font-size: .92rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   list-style: none;
   transition: background .15s, color .15s;
@@ -264,9 +283,11 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .desktop-nav > a.active,
 .nav-group summary:hover,
 .nav-group[open] summary {
-  background: rgba(255,255,255,.08);
-  color: white;
+  background: rgba(75,76,48,.10);
+  color: var(--olive-deep);
 }
+.desktop-nav > a.active,
+.nav-group summary.active { color: var(--rose-deep); }
 .nav-group { position: relative; }
 .nav-group summary::-webkit-details-marker { display: none; }
 .nav-dropdown {
@@ -277,20 +298,21 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   display: grid;
   gap: .15rem;
   padding: .5rem;
-  background: #111;
-  border: 1px solid rgba(255,255,255,.08);
+  background: var(--cream-soft);
+  border: 1px solid var(--cream-line);
   border-radius: 14px;
-  box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  box-shadow: 0 20px 44px rgba(75,76,48,.18);
   z-index: 10;
 }
 .nav-dropdown a {
-  color: rgba(255,255,255,.78);
+  color: var(--olive);
   padding: .65rem .75rem;
   border-radius: 8px;
   font-size: .9rem;
+  font-weight: 500;
   transition: background .12s, color .12s;
 }
-.nav-dropdown a:hover { background: rgba(255,255,255,.08); color: white; }
+.nav-dropdown a:hover { background: rgba(75,76,48,.10); color: var(--olive-deep); }
 .header-actions { display: flex; align-items: center; gap: .75rem; justify-content: flex-end; }
 
 /* Mobile menu */
@@ -298,21 +320,22 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   display: none;
   width: 44px; height: 44px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: white;
+  border: 1px solid var(--cream-line);
+  background: rgba(75,76,48,.06);
+  color: var(--olive);
   cursor: pointer;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 5px;
 }
-.menu-toggle span { display: block; width: 18px; height: 2px; background: white; border-radius: 2px; }
-.mobile-menu { background: #111; border-top: 1px solid rgba(255,255,255,.06); }
+.menu-toggle span { display: block; width: 18px; height: 2px; background: var(--olive); border-radius: 2px; }
+.mobile-menu { background: var(--cream-soft); border-top: 1px solid var(--cream-line); }
 .mobile-menu-inner { display: grid; gap: .2rem; padding: 1rem 0 1.25rem; }
 .mobile-menu a,
 .mobile-group summary {
-  color: rgba(255,255,255,.85);
+  color: var(--olive);
+  font-weight: 600;
   padding: .85rem 0;
   display: block;
   font-size: .95rem;
@@ -322,9 +345,9 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 }
 .mobile-group summary::-webkit-details-marker { display: none; }
 .mobile-menu a:hover,
-.mobile-group summary:hover { color: var(--rose); }
+.mobile-group summary:hover { color: var(--rose-deep); }
 .mobile-subnav { padding-left: 1rem; display: grid; gap: .15rem; }
-.mobile-subnav a { color: rgba(255,255,255,.65); padding: .5rem 0; font-size: .88rem; }
+.mobile-subnav a { color: var(--muted); font-weight: 500; padding: .5rem 0; font-size: .88rem; }
 .mobile-cta { margin-top: .75rem; }
 
 .skip-link { position: absolute; left: -9999px; top: 0; }
@@ -339,8 +362,9 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
    ───────────────────────────────────────────────────────── */
 
 .site-footer {
-  background: var(--charcoal);
-  color: rgba(255,255,255,.65);
+  background: var(--cream);
+  color: var(--muted);
+  border-top: 1px solid var(--cream-line);
   padding-top: 4rem;
 }
 .footer-brand-block { display: flex; flex-direction: column; gap: .75rem; }
@@ -350,10 +374,10 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   max-width: 300px;
   object-fit: contain;
 }
-.footer-tagline { font-weight: 600; color: rgba(255,255,255,.9); }
+.footer-tagline { font-weight: 600; color: var(--olive-deep); }
 .footer-badge {
   display: flex; align-items: center; gap: .5rem;
-  font-size: .72rem; color: rgba(255,255,255,.3);
+  font-size: .72rem; color: var(--soft);
   letter-spacing: .06em; text-transform: uppercase;
   margin-top: .5rem;
 }
@@ -361,26 +385,26 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .footer-title {
   font-size: .7rem; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(255,255,255,.38);
+  color: var(--olive);
   margin-bottom: 1rem;
 }
 .footer-links { display: grid; gap: .55rem; }
-.footer-links a { color: rgba(255,255,255,.62); font-size: .9rem; transition: color .15s; }
-.footer-links a:hover { color: var(--rose); }
-.footer-divider { border: none; border-top: 1px solid rgba(255,255,255,.06); margin-top: 3rem; }
+.footer-links a { color: var(--muted); font-size: .9rem; transition: color .15s; }
+.footer-links a:hover { color: var(--rose-deep); }
+.footer-divider { border: none; border-top: 1px solid var(--cream-line); margin-top: 3rem; }
 .footer-bottom {
   display: flex; align-items: center;
   justify-content: space-between; gap: 1rem;
   padding: 1.2rem 0;
   font-size: .8rem;
-  color: rgba(255,255,255,.28);
+  color: var(--soft);
 }
-.footer-bottom a { color: rgba(255,255,255,.4); transition: color .15s; }
-.footer-bottom a:hover { color: var(--rose); }
+.footer-bottom a { color: var(--muted); transition: color .15s; }
+.footer-bottom a:hover { color: var(--rose-deep); }
 .footer-legal {
   padding-top: 1rem; margin-top: 2rem;
-  border-top: 1px solid rgba(255,255,255,.06);
-  color: rgba(255,255,255,.3);
+  border-top: 1px solid var(--cream-line);
+  color: var(--soft);
   font-size: .82rem;
 }
 
@@ -463,17 +487,24 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   height: 100%;
   object-fit: cover;
 }
-/* Dark overlay on bg images */
+/* Flat black overlay on bg images — one even wash, no gradient, so the
+   photograph reads the same across the whole frame */
 .hero-home::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(110deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.62) 45%, rgba(0,0,0,.78) 100%);
+  background: var(--hero-scrim);
 }
 .page-hero-shade {
   position: absolute; inset: 0;
-  background: rgba(0,0,0,.45);
+  background: var(--hero-scrim);
+}
+/* Narrow screens: copy spans the full width over the busiest part of the
+   photo, so the wash goes a step heavier */
+@media (max-width: 760px) {
+  .hero-home::before,
+  .page-hero-shade { background: var(--hero-scrim-sm); }
 }
 .hero-home-inner,
 .page-hero-inner {

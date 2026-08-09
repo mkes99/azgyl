@@ -59,8 +59,9 @@ import { officialLinks } from '@/data/official-links';
 
 <style>
   .site-footer {
-    background: #1a1a1a;
-    color: rgba(255,255,255,0.65);
+    background: var(--cream);
+    color: var(--muted);
+    border-top: 1px solid var(--cream-line);
     padding-top: 4rem;
     padding-bottom: 0;
   }
@@ -70,19 +71,17 @@ import { officialLinks } from '@/data/official-links';
     gap: 3rem;
     padding-bottom: 3rem;
   }
+  /* The footer is now the same cream the logo was drawn on, so the mark no
+     longer needs its own tile — it sits directly on the background. */
   .footer-brand img {
     height: 156px;
     width: auto;
     object-fit: contain;
     margin-bottom: 1rem;
-    box-sizing: border-box;
-    padding: 10px;
-    border-radius: 18px;
-    background: #fbeed0;
   }
   .footer-tagline {
     font-weight: 600;
-    color: rgba(255,255,255,0.9) !important;
+    color: var(--olive-deep) !important;
     margin-bottom: .5rem !important;
   }
   .footer-badge {
@@ -91,7 +90,7 @@ import { officialLinks } from '@/data/official-links';
     gap: .5rem;
     margin-top: 1.25rem;
     font-size: .76rem;
-    color: rgba(255,255,255,0.35);
+    color: var(--soft);
     letter-spacing: .06em;
     text-transform: uppercase;
   }
@@ -101,7 +100,7 @@ import { officialLinks } from '@/data/official-links';
     font-weight: 700;
     letter-spacing: .14em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.4);
+    color: var(--olive);
     margin-bottom: 1.1rem;
   }
   .footer-links {
@@ -109,15 +108,15 @@ import { officialLinks } from '@/data/official-links';
     gap: .6rem;
   }
   .footer-links a {
-    color: rgba(255,255,255,0.65);
+    color: var(--muted);
     font-size: .9rem;
     transition: color .15s;
     text-decoration: none;
   }
-  .footer-links a:hover { color: #d7657b; }
+  .footer-links a:hover { color: #b84d63; }
   .footer-divider {
     border: none;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid var(--cream-line);
     margin: 0;
   }
   .footer-bottom {
@@ -127,14 +126,14 @@ import { officialLinks } from '@/data/official-links';
     gap: 1rem;
     padding: 1.25rem 0;
     font-size: .82rem;
-    color: rgba(255,255,255,0.3);
+    color: var(--soft);
   }
   .footer-bottom a {
-    color: rgba(255,255,255,0.45);
+    color: var(--muted);
     text-decoration: none;
     transition: color .15s;
   }
-  .footer-bottom a:hover { color: #d7657b; }
+  .footer-bottom a:hover { color: #b84d63; }
 
   @media (max-width: 960px) {
     .footer-grid { grid-template-columns: 1fr 1fr; }

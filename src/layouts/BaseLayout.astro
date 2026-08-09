@@ -26,7 +26,7 @@ const fullTitle = title.includes('AZGYL') ? title : `${title} | AZGYL`;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#1a1a1a" />
+    <meta name="theme-color" content="#fbeed0" />
     <!-- Open Graph -->
     <meta property="og:title"       content={fullTitle} />
     <meta property="og:description" content={description} />
@@ -81,6 +81,17 @@ const fullTitle = title.includes('AZGYL') ? title : `${title} | AZGYL`;
             if (!d.contains(e.target)) d.removeAttribute('open');
           });
         });
+      }
+
+      // Header shrinks past the fold so the larger logo doesn't cost viewport height
+      const header = document.querySelector('[data-header]');
+      if (header) {
+        const sync = () => {
+          if (window.scrollY > 40) header.setAttribute('data-scrolled', '');
+          else header.removeAttribute('data-scrolled');
+        };
+        sync();
+        window.addEventListener('scroll', sync, { passive: true });
       }
     </script>
   </body>
