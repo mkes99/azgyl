@@ -37,10 +37,16 @@
 
 :root {
   /* Brand */
+  /* Rose. #d7657b is the brand tone but only reaches 3.48:1 against white, so
+     it is reserved for fills, dots, pips and borders — never text or button
+     labels. --rose-deep is the text-safe tone, --rose-deeper the hover. */
   --rose:         #d7657b;
-  --rose-deep:    #b84d63;
+  --rose-deep:    #b14a5f;
+  --rose-deeper:  #9d4053;
   --rose-light:   #f5c4cf;
   --rose-bg:      rgba(215,101,123,0.08);
+  /* Hero accent — light enough to clear 3:1 over the .62 scrim */
+  --rose-hero:    #efaebb;
 
   --charcoal:     #1a1a1a;
   --charcoal-2:   #242424;
@@ -57,20 +63,24 @@
   --cream-line:   rgba(75,76,48,0.16);
 
   /* Hero overlay — one flat black wash, no gradient */
-  --hero-scrim:    rgba(0,0,0,0.55);
-  --hero-scrim-sm: rgba(0,0,0,0.62);
+  --hero-scrim:    rgba(0,0,0,0.62);
+  --hero-scrim-sm: rgba(0,0,0,0.66);
 
   /* Surfaces */
   --bg:           #faf8f5;
   --bg-alt:       #f3efe8;
   --surface:      #ffffff;
   --surface-soft: #f7f3ee;
+  /* --line is decorative (card edges, table rules). --line-strong is for the
+     boundary of an actual control — inputs, chips, tabs — which WCAG 1.4.11
+     requires to reach 3:1 against its background. */
   --line:         rgba(28,26,23,0.10);
+  --line-strong:  rgba(28,26,23,0.50);
 
   /* Text */
   --text:         #1c1a17;
   --muted:        #6b6157;
-  --soft:         #9a8f84;
+  --soft:         #736b63;
 
   /* Shadows */
   --shadow-sm:    0 2px 8px rgba(28,26,23,0.06);
@@ -109,7 +119,7 @@ button, input, select, textarea { font: inherit; }
   color: white;
   max-width: 13ch;
 }
-.display em { color: var(--rose); font-style: normal; }
+.display em { color: var(--rose-hero); font-style: normal; }
 
 h1, h2, h3, h4 {
   line-height: 1.1;
@@ -124,7 +134,8 @@ h3 { font-size: clamp(1.3rem, 2.5vw, 1.9rem); font-weight: 700; }
 .lead {
   font-size: clamp(1rem, 1.5vw, 1.15rem);
   line-height: 1.75;
-  color: rgba(232,240,250,.84);
+  /* .84 left play-hero's lead at 4.42:1; .92 clears AA on every hero photo */
+  color: rgba(232,240,250,.92);
   max-width: 60ch;
 }
 .copy { max-width: 64ch; }
@@ -199,7 +210,7 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .subpage-links a {
   display: inline-flex; align-items: center; justify-content: center;
   padding: .82rem 1rem; border-radius: 999px;
-  border: 1px solid var(--line); background: #fff;
+  border: 1px solid var(--line-strong); background: #fff;
   color: var(--text); font-weight: 700;
 }
 .subpage-links a:hover { background: var(--surface-soft); }
@@ -217,7 +228,7 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 
 .checklist { list-style: none; display: grid; gap: .6rem; }
 .checklist li { padding-left: 1.2rem; position: relative; color: var(--muted); line-height: 1.6; }
-.checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--rose); font-weight: 700; }
+.checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--rose-deep); font-weight: 700; }
 
 .note { font-size: .84rem; color: var(--soft); }
 
@@ -430,21 +441,21 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 
 .button-primary {
   padding: .85rem 1.6rem;
-  background: var(--rose);
+  background: var(--rose-deep);
   color: white;
   box-shadow: 0 4px 16px rgba(215,101,123,.28);
 }
 .button-primary:hover {
-  background: var(--rose-deep);
+  background: var(--rose-deeper);
   box-shadow: 0 6px 24px rgba(215,101,123,.38);
 }
 .button-outline {
   padding: .82rem 1.55rem;
   background: white;
   color: var(--text);
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--line-strong);
 }
-.button-outline:hover { border-color: var(--rose); color: var(--rose); }
+.button-outline:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
 .button-dark {
   padding: .82rem 1.55rem;
   background: rgba(255,255,255,.08);
@@ -455,8 +466,8 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .button-ghost {
   padding: .82rem 1.55rem;
   background: transparent;
-  color: var(--rose);
-  border: 1.5px solid rgba(215,101,123,.35);
+  color: var(--rose-deep);
+  border: 1.5px solid rgba(177,74,95,.55);
 }
 .button-ghost:hover { background: var(--rose-bg); }
 .button-sm {
@@ -676,7 +687,7 @@ label {
   color: var(--text);
 }
 .label-text { display: inline; }
-.req { color: var(--rose); font-weight: 700; margin-left: .12rem; }
+.req { color: var(--rose-deep); font-weight: 700; margin-left: .12rem; }
 .form-required-note {
   display: flex; align-items: center; gap: .2rem;
   font-size: .78rem; color: var(--soft); margin-top: .25rem;
@@ -688,7 +699,7 @@ select,
 textarea {
   width: 100%;
   padding: .72rem 1rem;
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-sm);
   background: white;
   color: var(--text);
@@ -698,8 +709,8 @@ textarea {
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: var(--rose);
-  box-shadow: 0 0 0 3px rgba(215,101,123,.12);
+  border-color: var(--rose-deep);
+  box-shadow: 0 0 0 3px rgba(177,74,95,.30);
 }
 textarea { min-height: 130px; resize: vertical; }
 select { cursor: pointer; }
@@ -737,7 +748,7 @@ select { cursor: pointer; }
 .sched-filter-tabs { display: flex; gap: .3rem; flex-wrap: wrap; }
 .sched-tab {
   padding: .38rem .8rem; border-radius: 999px;
-  border: 1.5px solid var(--line); background: var(--surface);
+  border: 1.5px solid var(--line-strong); background: var(--surface);
   color: var(--muted); font-size: .8rem; font-weight: 600;
   cursor: pointer; white-space: nowrap;
   transition: background .12s, color .12s, border-color .12s;
@@ -807,9 +818,9 @@ select { cursor: pointer; }
 .sl-away { color: var(--muted); font-size: .9rem; }
 .sl-field { display: flex; align-items: center; justify-content: flex-end; gap: .25rem; }
 .sl-field-link { font-size: .82rem; color: var(--rose-deep); font-weight: 600; white-space: nowrap; }
-.sl-field-link:hover { color: var(--rose); text-decoration: underline; }
+.sl-field-link:hover { color: var(--rose-deeper); text-decoration: underline; }
 .field-link { color: var(--rose-deep); font-weight: 600; }
-.field-link:hover { color: var(--rose); text-decoration: underline; }
+.field-link:hover { color: var(--rose-deeper); text-decoration: underline; }
 .field-warn { cursor: help; }
 .game-note { font-size: .72rem; color: var(--soft); font-style: italic; }
 .sched-msg { color: var(--muted); padding: 1.5rem 0; font-size: .95rem; }
@@ -864,7 +875,7 @@ select { cursor: pointer; }
 .rank-badge {
   display: inline-flex; align-items: center; justify-content: center;
   width: 24px; height: 24px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--rose), var(--rose-deep));
+  background: linear-gradient(135deg, var(--rose-deep), var(--rose-deeper));
   color: white; font-size: .7rem; font-weight: 800;
 }
 .rank-num { color: var(--soft); font-size: .85rem; }
@@ -985,13 +996,13 @@ select { cursor: pointer; }
 .choice-row { display: flex; gap: .5rem; flex-wrap: wrap; }
 .choice-row button {
   padding: .8rem 1rem; border-radius: 999px;
-  border: 1.5px solid var(--line); background: var(--surface);
+  border: 1.5px solid var(--line-strong); background: var(--surface);
   color: var(--text); font-weight: 600; font-size: 1rem;
   cursor: pointer; transition: background .12s, border-color .12s, color .12s;
 }
 .choice-row button:hover,
 .choice-row button.is-active {
-  background: var(--rose); border-color: var(--rose); color: white;
+  background: var(--rose-deep); border-color: var(--rose-deep); color: white;
 }
 .result-shell {
   padding: 1rem 1.15rem;
@@ -1064,7 +1075,7 @@ select { cursor: pointer; }
 .hsp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .hsp-title { margin: .2rem 0 .3rem; }
 .hsp-venue { font-size: .88rem; color: var(--rose-deep); font-weight: 600; }
-.hsp-venue:hover { color: var(--rose); text-decoration: underline; }
+.hsp-venue:hover { color: var(--rose-deeper); text-decoration: underline; }
 .hsp-cta { align-self: center; white-space: nowrap; }
 .hsp-grid {
   display: grid;
@@ -1091,7 +1102,7 @@ select { cursor: pointer; }
 .hsp-field:hover { text-decoration: underline; }
 .hsp-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: .75rem; font-size: .82rem; color: var(--soft); }
 .hsp-footer a { color: var(--rose-deep); font-weight: 700; }
-.hsp-footer a:hover { color: var(--rose); }
+.hsp-footer a:hover { color: var(--rose-deeper); }
 
 /* ─────────────────────────────────────────────────────────
    14. RESPONSIVE

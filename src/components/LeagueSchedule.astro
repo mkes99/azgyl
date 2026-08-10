@@ -256,7 +256,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
 
   .sched-tab {
     padding: .4rem .85rem; border-radius: 999px;
-    border: 1px solid var(--line); background: var(--surface);
+    border: 1px solid var(--line-strong); background: var(--surface);
     color: var(--muted); font-size: .82rem; font-weight: 600;
     cursor: pointer; white-space: nowrap;
     transition: background .15s, color .15s, border-color .15s;
@@ -273,7 +273,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sched-tab--past {
     color: var(--soft);
     background: var(--surface-soft);
-    border-color: var(--line);
+    border-color: var(--line-strong);
   }
   .sched-tab--past:hover { color: var(--text); background: var(--surface-soft); }
 
