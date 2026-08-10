@@ -1,18 +1,31 @@
+// ─────────────────────────────────────────────────────────────────────────
+// TEAMS
+//
+// Three clubs are commented out below rather than deleted, so they can be
+// restored by removing the comment markers:
+//   Marana Reapers · Cave Creek · Vail
+// Commented out 2026-08-09.
+//
+// Note: the schedule and standings still contain historical Marana Reapers
+// games (src/data/schedule.ts, src/data/standings.ts). Those are past results
+// and were left intact — see CHANGELOG.
+// ─────────────────────────────────────────────────────────────────────────
+
 export const teams = [
-  {
-    slug: 'marana-reapers',
-    name: 'Marana Reapers',
-    area: 'Marana',
-    city: 'Marana',
-    district: 'Marana USD',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85653','85658'],
-    contact: 'marana@azgyl.com',
-    href: 'https://www.reaperslc.com/',
-    notes: 'Northwest Tucson-area rec entry point with room for younger and returning players.',
-    logo: '/assets/team-logos/marana-reapers.png',
-    color: '#8B5CF6'
-  },
+  // {
+  //   slug: 'marana-reapers',
+  //   name: 'Marana Reapers',
+  //   area: 'Marana',
+  //   city: 'Marana',
+  //   district: 'Marana USD',
+  //   divisions: ['8U','10U','12U','14U'],
+  //   zipcode: ['85653','85658'],
+  //   contact: 'marana@azgyl.com',
+  //   href: 'https://www.reaperslc.com/',
+  //   notes: 'Northwest Tucson-area rec entry point with room for younger and returning players.',
+  //   logo: '/assets/team-logos/marana-reapers.png',
+  //   color: '#8B5CF6'
+  // },
   {
     slug: 'sol-sisters',
     name: 'Sol Sisters',
@@ -111,20 +124,20 @@ export const teams = [
     logo: '/assets/team-logos/hawks.png',
     color: '#14B8A6'
   },
-  {
-    slug: 'cave-creek',
-    name: 'Cave Creek',
-    area: 'Cave Creek / Carefree / North Scottsdale',
-    city: 'Cave Creek',
-    district: 'Cave Creek USD',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85331','85262','85266'],
-    contact: 'cavecreek@azgyl.com',
-    href: 'https://tshq.bluesombrero.com/Default.aspx?tabid=2666156',
-    notes: 'Foothills option for families north of Scottsdale and east of North Phoenix.',
-    logo: '/assets/team-logos/cave-creek.png',
-    color: '#EC4899'
-  },
+  // {
+  //   slug: 'cave-creek',
+  //   name: 'Cave Creek',
+  //   area: 'Cave Creek / Carefree / North Scottsdale',
+  //   city: 'Cave Creek',
+  //   district: 'Cave Creek USD',
+  //   divisions: ['8U','10U','12U','14U'],
+  //   zipcode: ['85331','85262','85266'],
+  //   contact: 'cavecreek@azgyl.com',
+  //   href: 'https://tshq.bluesombrero.com/Default.aspx?tabid=2666156',
+  //   notes: 'Foothills option for families north of Scottsdale and east of North Phoenix.',
+  //   logo: '/assets/team-logos/cave-creek.png',
+  //   color: '#EC4899'
+  // },
   {
     slug: 'chandler-lax',
     name: 'Chandler Lax',
@@ -153,18 +166,18 @@ export const teams = [
     logo: '/assets/team-logos/east-valley-bullets.png',
     color: '#F97316'
   },
-  {
-    slug: 'vail',
-    name: 'Vail',
-    area: 'Vail / Southeast Tucson',
-    city: 'Vail',
-    district: 'Vail Unified',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85641','85747'],
-    contact: 'vail@azgyl.com',
-    href: '#',
-    notes: 'Southeast Tucson growth-area team listing awaiting finalized public club link and official assets.',
-    logo: '/assets/team-logos/vail-placeholder.png',
-    color: '#7C3AED'
-  },
+  // {
+  //   slug: 'vail',
+  //   name: 'Vail',
+  //   area: 'Vail / Southeast Tucson',
+  //   city: 'Vail',
+  //   district: 'Vail Unified',
+  //   divisions: ['8U','10U','12U','14U'],
+  //   zipcode: ['85641','85747'],
+  //   contact: 'vail@azgyl.com',
+  //   href: '#',
+  //   notes: 'Southeast Tucson growth-area team listing awaiting finalized public club link and official assets.',
+  //   logo: '/assets/team-logos/vail-placeholder.png',
+  //   color: '#7C3AED'
+  // },
 ];

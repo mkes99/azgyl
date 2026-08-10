@@ -22,9 +22,10 @@ const topics = [
   },
   {
     title: 'Become an official',
-    desc:  'Join the AZGYL officials program — paid assignments for certified refs.',
-    label: 'Contact us',
-    href:  '/contact',
+    desc:  'Join the AZGYL officials program — paid assignments for certified refs. Fill out the interest form and the board will follow up.',
+    label: 'Open the interest form',
+    href:  'https://docs.google.com/forms/d/e/1FAIpQLSdy7a7feSTop8dhUs9vtMVerqo16ckG_VHTjhVkuA97wEBLMA/viewform',
+    external: true,
   },
 ];
 ---
@@ -37,8 +38,14 @@ const topics = [
     <div class="info-panel">
       <strong>{item.title}</strong>
       <p>{item.desc}</p>
-      <a class="button button-outline button-sm" href={item.href} style="margin-top:.75rem">
-        {item.label}
+      <a
+        class="button button-outline button-sm"
+        href={item.href}
+        style="margin-top:.75rem"
+        target={item.external ? '_blank' : undefined}
+        rel={item.external ? 'noreferrer' : undefined}
+      >
+        {item.label}{item.external && <span class="sr-only"> (opens in a new tab)</span>}
       </a>
     </div>
   ))}

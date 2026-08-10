@@ -3,6 +3,45 @@
 All notable changes to the AZGYL site are recorded here, newest first.
 Versions continue the `version 3.x` sequence used in the commit history up to 3.4.
 
+Open work is tracked in [TODO.md](TODO.md).
+
+---
+
+## [3.7] — 2026-08-09 — Team roster trimmed, officials form, league inbox
+
+### Changed
+
+- **Three clubs removed from the directory** — Marana Reapers, Cave Creek and
+  Vail. Commented out in `src/data/teams.ts` rather than deleted, so they can be
+  restored by removing the comment markers. The directory, team finder and
+  boundaries pages all read from this list and update automatically.
+- **"Become an official"** now opens the officials interest form instead of
+  looping back to `/contact`, which was a dead end. The panel already existed in
+  `ContactAside.astro` under "Common topics". Opens in a new tab, with an
+  `sr-only` note saying so.
+- **Contact form fallback recipient** changed from `info@azgyl.com` to
+  `azgirlsyouthlax@gmail.com`. The old address had no mailbox behind it, so any
+  enquiry that fell through to the default was being lost.
+
+### Deliberately not changed
+
+- **`EMAIL_FROM`** is still `noreply@azgyl.com`. Resend only sends *from* a
+  verified domain — pointing it at a Gmail address would break sending outright.
+  The from-address and the to-address are separate problems.
+- **Board role addresses** (`president@`, `vicepresident@`, `treasurer@`,
+  `secretary@` on `azgyl.com`) are unchanged, pending real mailboxes.
+- **Historical Marana Reapers results** remain in `schedule.ts` (4 games) and
+  `standings.ts` (one 12U row). These are completed results from a finished
+  season; removing them would rewrite the record and leave the 12U standings not
+  adding up. The club is absent from the directory but still present in past
+  results. See TODO.md.
+
+### Note
+
+The recipient change only takes effect when `EMAIL_TO` is unset in the
+Cloudflare Pages environment. If `EMAIL_TO` is already configured there, it
+takes precedence and the code change has no effect — verify in the dashboard.
+
 ---
 
 ## [3.6] — 2026-08-09 — Accessibility: WCAG 2.1 AA colour pass

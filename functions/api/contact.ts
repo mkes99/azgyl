@@ -8,10 +8,12 @@
 //   EMAIL_FROM            — sender address (e.g. "AZGYL Website <noreply@azgyl.com>")
 //   EMAIL_TO              — a single address OR a JSON object mapping
 //                           department names to addresses, e.g.:
-//                           {"General Questions":"info@azgyl.com",
-//                            "Officials":"officials@azgyl.com"}
+//                           {"General Questions":"azgirlsyouthlax@gmail.com",
+//                            "Officials":"azgirlsyouthlax@gmail.com"}
 //                           Any department not found falls back to the
 //                           first value in the object.
+//                           If unset, everything goes to the league inbox
+//                           (azgirlsyouthlax@gmail.com) — see below.
 //   RECAPTCHA_SECRET      — Google reCAPTCHA v3 secret key
 //   RECAPTCHA_MIN_SCORE   — minimum score to accept (default "0.5")
 // ─────────────────────────────────────────────────────────────────────────
@@ -60,7 +62,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   // ── Resolve "to" address ─────────────────────────────────────────────────
   // EMAIL_TO can be a plain address or a JSON object keyed by department name
-  let toAddress = env.EMAIL_TO ?? 'info@azgyl.com';
+  // League inbox — used whenever EMAIL_TO is not set in the Pages environment.
+  // Was info@azgyl.com, which had no mailbox behind it, so unrouted enquiries
+  // were being lost. Updated 2026-08-09.
+  let toAddress = env.EMAIL_TO ?? 'azgirlsyouthlax@gmail.com';
   try {
     const mapping = JSON.parse(env.EMAIL_TO) as Record<string, string>;
     const values  = Object.values(mapping);
