@@ -126,3 +126,11 @@ fine while the live page still decapitates someone.
       `/parents`.** Other pages (play, league, rules, leadership, boundaries,
       teams, resources, contact) haven't been checked for adjacent sections
       sharing the same `section-alt`/plain background.
+- [x] **Gallery videos didn't play** — resolved. Source iPhone HDR footage
+      carried 10-bit color through the ffmpeg re-encode (browsers can't
+      decode 10-bit H.264 at all). If adding more video clips to the gallery
+      in future, the ffmpeg encode must force `-pix_fmt yuv420p` explicitly —
+      don't rely on the default, since an HDR source will silently produce
+      an unplayable 10-bit file otherwise. Also dropped 2 near-instant
+      (<1.5s) clips that were closer to Live Photos than real video content;
+      gallery is down to 53 items (52 photos, 1 video).

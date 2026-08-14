@@ -61,7 +61,7 @@ const items: Item[] = [
       />
       {item.kind === 'video' && (
         <span class="gallery-play" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </span>
       )}
     </button>
@@ -113,16 +113,23 @@ const items: Item[] = [
   .gallery-tile:hover img { transform: scale(1.03); }
   .gallery-tile:focus-visible { outline: 3px solid var(--rose-deep); outline-offset: 2px; }
 
+  /* Small corner badge, not a full-tile wash — identifies the tile as a
+     video without dimming the poster image or hiding among the photos. */
   .gallery-play {
     position: absolute;
-    inset: 0;
+    bottom: .55rem;
+    right: .55rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: rgba(20,16,14,.72);
+    border: 1.5px solid rgba(240,208,189,.75);
     color: white;
-    background: rgba(20,16,14,.28);
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
   }
-  .gallery-play svg { filter: drop-shadow(0 1px 6px rgba(0,0,0,.5)); }
 
   @media (max-width: 560px) {
     .gallery-mosaic { column-width: 150px; column-gap: .5rem; }
@@ -140,6 +147,10 @@ const items: Item[] = [
     border: none;
     background: rgba(10,9,8,.96);
     color: white;
+    /* Rapid clicks on the nav buttons were triggering the browser's native
+       text/image selection highlight on the surrounding content. */
+    user-select: none;
+    -webkit-user-select: none;
   }
   .gallery-lightbox::backdrop { background: transparent; }
   .gallery-lightbox[open] {
@@ -242,6 +253,12 @@ const items: Item[] = [
 
     tiles.forEach((tile, i) => {
       tile.addEventListener('click', () => open(i));
+    });
+
+    // preventDefault on mousedown stops rapid clicks from starting a native
+    // text/image selection drag on the buttons or the stage behind them
+    dialog.querySelectorAll('.lightbox-close, .lightbox-nav').forEach(btn => {
+      btn.addEventListener('mousedown', (e) => e.preventDefault());
     });
 
     dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', close);

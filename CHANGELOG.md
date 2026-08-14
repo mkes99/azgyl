@@ -7,6 +7,36 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.9] — 2026-08-14 — Gallery video fixes
+
+### Fixed
+
+- **Gallery videos silently failed to play.** All 3 clips were encoded as
+  10-bit H.264 (High 10 Profile) — the source iPhone footage was HDR, and the
+  re-encode carried that 10-bit color depth through since `-pix_fmt` was
+  never forced. Browsers cannot decode 10-bit H.264 at all; the video would
+  hang indefinitely in a loading state with no error. Re-encoded the
+  remaining clip to standard 8-bit (`-pix_fmt yuv420p`).
+- **Lightbox selection highlight.** Rapid clicks on the prev/next arrows were
+  triggering the browser's native text/image selection drag on the
+  surrounding content — added `user-select: none` on the lightbox and
+  `preventDefault()` on nav-button `mousedown`.
+- **Video tiles were hard to spot in the grid.** The play indicator was a
+  full-tile 28%-opacity dark wash with a small centered icon, which dimmed
+  the poster photo and didn't read clearly as "this is a video" at a glance.
+  Replaced with a small dark rose-gold-rimmed corner badge — the poster photo
+  now stays fully visible.
+
+### Removed
+
+- **`IMG_2265.mp4` and `IMG_2266.mp4`** — these were near-instant (0.7–1.5s)
+  clips, closer to Live Photos than real video content, and should have been
+  treated as stills rather than kept as video files. Removed both, along
+  with their now-orphaned poster thumbnails. Gallery is down to 53 items (52
+  photos, 1 video — the one clip worth keeping as motion, `IMG_9766.mp4`).
+
+---
+
 ## [3.8] — 2026-08-14 — Real photos, photo gallery, board contacts
 
 ### Added
