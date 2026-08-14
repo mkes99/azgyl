@@ -1,42 +1,146 @@
 ---
-import { siteMeta } from '@/data/site-meta';
+import { siteMeta, parentNav, resourceNav } from '@/data/site-meta';
 import { officialLinks } from '@/data/official-links';
 ---
 <footer class="site-footer">
   <div class="container footer-grid">
+
     <div class="footer-brand-block">
-      <a class="footer-brand" href="/">
-        <img src="/assets/brand/logo-transparent.png" alt="Arizona Girls Youth Lacrosse logo" />
+      <a class="footer-brand" href="/" aria-label="AZGYL home">
+        <img src="/assets/brand/logo-transparent.webp" alt="AZGYL — Arizona Girls Youth Lacrosse" width="240" height="250" loading="lazy" />
       </a>
-      <p>{siteMeta.tagline}</p>
-      <p>AZGYL is building the statewide rec home for girls lacrosse in Arizona — clear for parents, structured for teams, and ready to grow.</p>
+      <p class="footer-tagline">{siteMeta.tagline}</p>
+      <p>The governing body for girls youth recreational lacrosse across Arizona — grades K through 8.</p>
+      <div class="footer-badge">
+        <span>Est. Arizona</span>
+        <span class="footer-badge-dot">·</span>
+        <span>Grades K–8</span>
+        <span class="footer-badge-dot">·</span>
+        <span>Non-profit</span>
+      </div>
     </div>
+
     <div>
       <div class="footer-title">Parents</div>
       <div class="footer-links">
-        <a href="/parents">Parent hub</a>
-        <a href="/parents/role">Parent role</a>
-        <a href="/teams">Find your club</a>
-        <a href="/resources/age-chart">Age chart</a>
+        {parentNav.map(item => <a href={item.href}>{item.label}</a>)}
+        <a href="/league">Schedule &amp; standings</a>
       </div>
     </div>
+
     <div>
       <div class="footer-title">Resources</div>
       <div class="footer-links">
-        <a href="/teams">Teams directory</a>
-        <a href="/rules">League rules</a>
-        <a href="/boundaries">Boundaries</a>
-        <a href="/resources/code-of-conduct">Code of conduct</a>
+        {resourceNav.filter(item => item.href !== '/resources').map(item => (
+          <a href={item.href}>{item.label}</a>
+        ))}
+        <a href="/leadership">Leadership</a>
+        <a href="/gallery">Gallery</a>
       </div>
     </div>
+
     <div>
-      <div class="footer-title">Official standards</div>
+      <div class="footer-title">Official</div>
       <div class="footer-links">
-        {officialLinks.slice(0, 3).map((item) => (
+        {officialLinks.slice(0, 4).map(item => (
           <a href={item.href} target="_blank" rel="noreferrer">{item.title}</a>
         ))}
       </div>
     </div>
+
   </div>
-  <div class="container footer-legal">© 2026 Arizona Girls Youth Lacrosse. All rights reserved.</div>
+
+  <div class="footer-divider"></div>
+
+  <div class="container footer-bottom">
+    <span>© 2026 Arizona Girls Youth Lacrosse (AZGYL). All rights reserved.</span>
+    <a href="/contact">Contact the board</a>
+  </div>
 </footer>
+
+<style>
+  .site-footer {
+    background: var(--cream);
+    color: var(--muted);
+    border-top: 1px solid var(--cream-line);
+    padding-top: 4rem;
+    padding-bottom: 0;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 3rem;
+    padding-bottom: 3rem;
+  }
+  /* The footer is now the same cream the logo was drawn on, so the mark no
+     longer needs its own tile — it sits directly on the background. */
+  .footer-brand img {
+    height: 156px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
+  .footer-tagline {
+    font-weight: 600;
+    color: var(--olive-deep) !important;
+    margin-bottom: .5rem !important;
+  }
+  .footer-badge {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: 1.25rem;
+    font-size: .76rem;
+    color: var(--soft);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .footer-badge-dot { color: #d7657b; }
+  .footer-title {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--olive);
+    margin-bottom: 1.1rem;
+  }
+  .footer-links {
+    display: grid;
+    gap: .6rem;
+  }
+  .footer-links a {
+    color: var(--muted);
+    font-size: .9rem;
+    transition: color .15s;
+    text-decoration: none;
+  }
+  .footer-links a:hover { color: var(--rose-deep); }
+  .footer-divider {
+    border: none;
+    border-top: 1px solid var(--cream-line);
+    margin: 0;
+  }
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    font-size: .82rem;
+    color: var(--soft);
+  }
+  .footer-bottom a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .15s;
+  }
+  .footer-bottom a:hover { color: var(--rose-deep); }
+
+  @media (max-width: 960px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 580px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; gap: .5rem; }
+  }
+</style>

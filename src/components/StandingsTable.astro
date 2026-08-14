@@ -1,0 +1,206 @@
+---
+// StandingsTable
+// Reads from Google Sheets CSV when STANDINGS_CSV_URL is set in standings.ts.
+// Falls back to localStandings otherwise.
+// Responsive: table on desktop, stacked cards on mobile.
+import { localStandings, sortedRows, STANDINGS_CSV_URL } from '@/data/standings';
+import type { EventStandings } from '@/data/standings';
+
+interface Props {
+  eventId?:  string;
+  division?: string;
+}
+const { eventId, division } = Astro.props;
+
+// ── Fetch from Google Sheets if URL is set ────────────────────────────────
+let allStandings: EventStandings[] = localStandings;
+
+if (STANDINGS_CSV_URL) {
+  try {
+    const res  = await fetch(STANDINGS_CSV_URL);
+    const text = await res.text();
+
+    // Parse CSV: division,team,W,L,T,GF,GA
+    const rows = text.trim().split('\n').slice(1); // skip header row
+    const divMap = new Map<string, typeof localStandings[0]['divisions'][0]['rows']>();
+
+    for (const raw of rows) {
+      const [div, team, W, L, T, GF, GA] = raw.split(',').map(c => c.replace(/"/g,'').trim());
+      if (!div || !team) continue;
+      if (!divMap.has(div)) divMap.set(div, []);
+      divMap.get(div)!.push({
+        team,
+        W: Number(W) || 0, L: Number(L) || 0, T: Number(T) || 0,
+        GF: Number(GF) || 0, GA: Number(GA) || 0,
+      });
+    }
+
+    // Wrap in the same EventStandings shape — eventId from first local entry
+    const baseEventId = localStandings[0]?.eventId ?? 'spring-2026';
+    allStandings = [{
+      eventId:   baseEventId,
+      eventName: localStandings[0]?.eventName ?? 'Spring 2026',
+      divisions: [...divMap.entries()].map(([div, rows]) => ({ division: div, rows })),
+    }];
+  } catch (e) {
+    // Sheet fetch failed — silently fall back to local data
+    allStandings = localStandings;
+  }
+}
+
+// ── Resolve which event + divisions to show ───────────────────────────────
+const event = eventId
+  ? allStandings.find(s => s.eventId === eventId)
+  : allStandings[0];
+
+const divs = event
+  ? (division ? event.divisions.filter(d => d.division === division) : event.divisions)
+  : [];
+---
+
+{divs.map(div => {
+  const rows = sortedRows(div.rows);
+  return (
+    <div class="standings-wrap">
+      <div class="standings-div-label">{div.division}</div>
+
+      {/* Desktop table */}
+      <div class="standings-table-shell">
+        <table class="standings-table" aria-label={`${div.division} standings`}>
+          <colgroup>
+            <col style="width:52px"  />
+            <col />
+            <col style="width:54px"  />
+            <col style="width:54px"  />
+            <col style="width:54px"  />
+            <col style="width:62px"  />
+            <col style="width:54px"  />
+            <col style="width:54px"  />
+            <col style="width:62px"  />
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="th-rank">#</th>
+              <th class="th-team">Team</th>
+              <th class="th-num" title="Wins">W</th>
+              <th class="th-num" title="Losses">L</th>
+              <th class="th-num" title="Ties">T</th>
+              <th class="th-num th-pts" title="Points">Pts</th>
+              <th class="th-num" title="Goals For">GF</th>
+              <th class="th-num" title="Goals Against">GA</th>
+              <th class="th-num" title="Goal Differential">+/−</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => {
+              const pts  = row.W * 3 + row.T;
+              const diff = row.GF - row.GA;
+              return (
+                <tr class={i === 0 ? 'row-leader' : ''}>
+                  <td class="td-rank">
+                    {i === 0
+                      ? <span class="rank-badge">1</span>
+                      : <span class="rank-num">{i + 1}</span>}
+                  </td>
+                  <td class="td-team">
+                    <span class="td-team-inner">
+                      {i === 0 && <span class="leader-pip" aria-hidden="true" />}
+                      {row.team}
+                    </span>
+                  </td>
+                  <td class="td-num">{row.W}</td>
+                  <td class="td-num td-muted">{row.L}</td>
+                  <td class="td-num td-muted">{row.T}</td>
+                  <td class="td-num td-pts">{pts}</td>
+                  <td class="td-num td-muted">{row.GF}</td>
+                  <td class="td-num td-muted">{row.GA}</td>
+                  <td class={`td-num${diff > 0 ? ' td-pos' : diff < 0 ? ' td-neg' : ' td-muted'}`}>
+                    {diff > 0 ? `+${diff}` : diff}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div class="standings-cards">
+        {rows.map((row, i) => {
+          const pts  = row.W * 3 + row.T;
+          const diff = row.GF - row.GA;
+          return (
+            <div class={`stand-card${i === 0 ? ' stand-card--leader' : ''}`}>
+              <div class="stand-left">
+                {i === 0
+                  ? <span class="rank-badge">1</span>
+                  : <span class="rank-num">{i + 1}</span>}
+                <span class="stand-team">{row.team}</span>
+              </div>
+              <div class="stand-stats">
+                <div class="stand-stat"><span>W</span><strong>{row.W}</strong></div>
+                <div class="stand-stat"><span>L</span><strong>{row.L}</strong></div>
+                <div class="stand-stat"><span>T</span><strong>{row.T}</strong></div>
+                <div class="stand-stat stand-stat--pts"><span>Pts</span><strong>{pts}</strong></div>
+                <div class={`stand-stat${diff > 0 ? ' stand-stat--pos' : diff < 0 ? ' stand-stat--neg' : ''}`}>
+                  <span>+/−</span><strong>{diff > 0 ? `+${diff}` : diff}</strong>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+})}
+
+<style>
+  .standings-wrap { display: grid; gap: .65rem; margin-bottom: 2rem; }
+  .standings-wrap:last-child { margin-bottom: 0; }
+  .standings-div-label { font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--rose-deep); }
+
+  .standings-table-shell { border-radius: 18px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+  .standings-table { width: 100%; border-collapse: collapse; font-size: .9rem; table-layout: fixed; }
+  .standings-table thead tr { background: var(--surface-soft); border-bottom: 2px solid var(--line); }
+  .standings-table th { padding: .65rem 1rem; font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .th-rank { text-align: center; }
+  .th-team { text-align: left; }
+  .th-num  { text-align: center; }
+  .th-pts  { color: var(--olive); }
+  .standings-table td { padding: .78rem 1rem; border-bottom: 1px solid var(--line); }
+  .standings-table tbody tr:last-child td { border-bottom: none; }
+  .standings-table tbody tr:hover td { background: var(--surface-soft); }
+  .row-leader td { background: color-mix(in srgb, var(--rose) 5%, white); }
+
+  .td-rank { text-align: center; }
+  .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--rose-deep), var(--olive)); color: #fff; font-size: .72rem; font-weight: 800; }
+  .rank-num  { color: var(--soft); font-size: .88rem; }
+
+  .td-team { font-weight: 700; color: var(--text); }
+  .td-team-inner { display: inline-flex; align-items: center; gap: .5rem; }
+  .leader-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--rose); flex-shrink: 0; }
+
+  .td-num   { text-align: center; color: var(--text); }
+  .td-muted { color: var(--muted); }
+  .td-pts   { color: var(--olive); font-weight: 700; }
+  .td-pos   { color: #15803d; font-weight: 700; }
+  .td-neg   { color: #b91c1c; }
+
+  .standings-cards { display: none; flex-direction: column; gap: .45rem; }
+  .stand-card { border-radius: 16px; border: 1px solid var(--line); background: var(--surface); padding: .85rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .stand-card--leader { background: color-mix(in srgb, var(--rose) 5%, white); border-color: color-mix(in srgb, var(--rose) 20%, white); }
+  .stand-left  { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+  .stand-team  { font-weight: 700; color: var(--text); font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stand-stats { display: flex; gap: .85rem; align-items: center; flex-shrink: 0; }
+  .stand-stat         { display: flex; flex-direction: column; align-items: center; gap: .1rem; }
+  .stand-stat span    { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+  .stand-stat strong  { font-size: .92rem; color: var(--text); }
+  .stand-stat--pts strong { color: var(--olive); font-weight: 700; }
+  .stand-stat--pos strong { color: #15803d; }
+  .stand-stat--neg strong { color: #b91c1c; }
+
+  @media (max-width: 600px) {
+    .standings-table-shell { display: none; }
+    .standings-cards { display: flex; }
+  }
+</style>

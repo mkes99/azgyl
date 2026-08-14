@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+<BaseLayout title="Page Not Found | AZGYL — Arizona Girls Youth Lacrosse" pathname="/404">
+  <section class="hero-home" style="min-height:60svh">
+    <img class="hero-bg" src="/assets/heroes/home-hero.jpg" alt="" loading="eager" aria-hidden="true"/>
+    <div class="container hero-home-inner">
+      <div class="hero-copy stack-xl">
+        <div class="eyebrow">404 · Page not found</div>
+        <h1 class="display" style="font-size:clamp(2.8rem,6vw,4.8rem)">This page doesn't exist.</h1>
+        <p class="lead">You might have followed an old link, or the page moved. Start from the homepage or use the links below.</p>
+        <div class="actions">
+          <a class="button button-primary" href="/">Back to home</a>
+          <a class="button button-outline" href="/teams">Find a team</a>
+          <a class="button button-dark"    href="/contact">Contact</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,44 @@
+---
+// BylawsList — renders all AZGYL bylaws sections.
+// Pages use this as: <BylawsList />
+import { bylaws } from '@/data/bylaws';
+---
+
+<div class="bylaws-stack">
+  {bylaws.map(b => (
+    <article class="bylaw-card">
+      <div class="bylaw-head">
+        <span class="bylaw-num">§{b.section}</span>
+        <h3>{b.title}</h3>
+      </div>
+      <p class="bylaw-summary">{b.summary}</p>
+      <ul class="bylaw-rules">
+        {b.rules.map(r => <li>{r}</li>)}
+      </ul>
+    </article>
+  ))}
+</div>
+
+<style>
+  .bylaws-stack { display: grid; gap: 1rem; }
+  .bylaw-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.6rem 1.75rem;
+    border-left: 4px solid var(--rose-deep);
+  }
+  .bylaw-head { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: .75rem; }
+  .bylaw-num { font-size: 1.05rem; font-weight: 800; color: var(--rose-deep); flex-shrink: 0; padding-top: 1px; }
+  .bylaw-head h3 { margin: 0; font-size: 1.15rem; letter-spacing: -.03em; }
+  .bylaw-summary { color: var(--muted); line-height: 1.72; margin: 0 0 1rem; font-size: .95rem; }
+  .bylaw-rules { list-style: none; padding: 0; display: grid; gap: .45rem; margin: 0; }
+  .bylaw-rules li {
+    font-size: .88rem; color: var(--muted); line-height: 1.6;
+    padding-left: 1.1rem; position: relative;
+  }
+  .bylaw-rules li::before {
+    content: '→'; position: absolute; left: 0;
+    color: var(--rose-deep); font-size: .75rem; top: 3px;
+  }
+</style>

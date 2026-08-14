@@ -1,68 +1,90 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import SeasonHighlights from '@/components/SeasonHighlights.astro';
+import HomeGalleryTeaser from '@/components/HomeGalleryTeaser.astro';
 import FeaturedTeams from '@/components/FeaturedTeams.astro';
-import { seasonHighlights } from '@/data/season-highlights';
-import { siteMeta } from '@/data/site-meta';
+import HomeSchedulePreview from '@/components/HomeSchedulePreview.astro';
+import HomeFaqPreview from '@/components/HomeFaqPreview.astro';
 ---
-<BaseLayout title="Arizona Girls Youth Lacrosse | AZGYL" description={siteMeta.description} pathname="/">
+
+<BaseLayout title="AZGYL — Arizona Girls Youth Lacrosse | Grades K–8 Statewide Rec" pathname="/">
+
   <section class="hero-home">
-    <img class="hero-bg" src="/assets/heroes/home-hero.svg" alt="" loading="eager" />
+    <img class="hero-bg" src="/assets/heroes/home-hero.jpg" alt="" loading="eager" aria-hidden="true" />
     <div class="container hero-home-inner">
       <div class="hero-copy stack-xl">
-        <div class="eyebrow">Arizona Girls Youth Lacrosse · azgyl.com</div>
-        <h1 class="display">Rec girls lacrosse for <em>all of Arizona</em>.</h1>
-        <p class="lead">AZGYL is the statewide rec front door for girls in grades K–8 — clear on how to start, clear on where to play, and clear on how the league works.</p>
+        <div class="eyebrow">Arizona Girls Youth Lacrosse · Grades K–8</div>
+        <h1 class="display">Girls rec lacrosse for <em>all of Arizona.</em></h1>
+        <p class="lead">
+          AZGYL is the statewide governing body for girls youth recreational lacrosse —
+          setting rules, certifying officials, coordinating schedules, and building
+          the league framework every club plays within.
+        </p>
         <div class="actions">
           <a class="button button-primary" href="/teams">Find My Team</a>
-          <a class="button button-outline" href="/parents">Parent Resources</a>
-          <a class="button button-dark" href="/rules">League Rules</a>
+          <a class="button button-outline" href="/parents">Parent Guide</a>
+          <a class="button button-dark"    href="/rules">League Rules</a>
+        </div>
+        <nav class="hero-nav-pills" aria-label="Quick navigation">
+          <a class="hero-nav-pill" href="/league">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Schedule &amp; Standings
+          </a>
+          <a class="hero-nav-pill" href="/teams">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Find a Team
+          </a>
+          <a class="hero-nav-pill" href="/resources#age-chart">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Age Chart
+          </a>
+          <a class="hero-nav-pill" href="/contact">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Contact
+          </a>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <SeasonHighlights />
+  </section>
+
+  <section class="section-alt">
+    <HomeGalleryTeaser />
+  </section>
+
+  <section>
+    <div class="container two-col split-balanced">
+      <div class="copy stack-md">
+        <div class="section-kicker">Governing body</div>
+        <h2 class="section-heading">The board, not the team.</h2>
+        <p>AZGYL sets the rules, certifies officials, schedules games, and enforces the standards every club plays within. Individual clubs handle their own registration, practices, and uniforms.</p>
+        <p><strong>AZGYL does not collect player registration.</strong> Register directly with your local member club.</p>
+        <div class="actions">
+          <a class="button button-primary" href="/parents">Open parent guide</a>
+        </div>
+      </div>
+      <div class="copy stack-md">
+        <div class="section-kicker">2026 season</div>
+        <h2 class="section-heading">Key dates and standards.</h2>
+        <p>Team dues due February 1st. USA Lacrosse membership required for all players, coaches, and referees. Code of Conduct must be signed before the first game — no exceptions.</p>
+        <div class="actions">
+          <a class="button button-outline" href="/rules">League rules</a>
+          <a class="button button-ghost"   href="/resources">All resources</a>
         </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="container metrics-grid">
-      {seasonHighlights.map((item) => (
-        <article class="metric">
-          <div class="section-kicker">League highlight</div>
-          <h3>{item.title}</h3>
-          <p>{item.body}</p>
-        </article>
-      ))}
-    </div>
-  </section>
-
   <section class="section-alt">
-    <div class="container two-col split-balanced">
-      <div class="copy stack-md">
-        <div class="section-kicker">Start here</div>
-        <h2 class="section-heading">Useful beats generic.</h2>
-        <p>Parents need one clear place to understand the sport, find the right team, figure out equipment, and know what to do next.</p>
-        <div class="actions"><a class="button button-primary" href="/parents">Open parent hub</a></div>
-      </div>
-      <div class="copy stack-md">
-        <div class="section-kicker">League resources</div>
-        <h2 class="section-heading">Own the Arizona layer here.</h2>
-        <p>Use AZGYL for teams, rules, boundaries, age groups, and conduct pages. Link to USA Lacrosse only for the official national standards.</p>
-        <div class="actions"><a class="button button-outline" href="/resources">Open resources</a></div>
-      </div>
-    </div>
+    <FeaturedTeams />
   </section>
 
-  <section>
-    <div class="container section-header-clean section-header-clean--action">
-      <div>
-        <div class="section-kicker">Current programs</div>
-        <h2>Start with a team that already exists.</h2>
-      </div>
-      <div class="section-header-copy stack-sm">
-        <p>Show the current directory cleanly. Regions matter when they connect to a real team option — not as filler navigation.</p>
-        <div class="actions"><a class="button button-outline button-sm" href="/teams">View full directory</a></div>
-      </div>
-    </div>
-    <div class="container">
-      <FeaturedTeams limit={6} />
-    </div>
-  </section>
+  <HomeSchedulePreview />
+
+  <HomeFaqPreview />
+
 </BaseLayout>

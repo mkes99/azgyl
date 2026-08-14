@@ -4,4 +4,4 @@ export const ruleFaqs = [
   { q: 'Rosters, divisions, and flex rules', a: 'Players are rostered in 8U, 10U, 12U, or 14U. One roster per player is the default. Goalie flexibility and limited flex rostering exist to keep games playable, but the rule is not supposed to become a backdoor for stacking teams.' },
   { q: 'Scheduling, practices, and game changes', a: 'Preseason practices may begin in the fall but cannot be mandatory. Competition begins after the MLK weekend structure in the bylaws, and all teams should play the same number of divisional games. Schedule changes must be communicated early enough to keep officials and opponents aligned.' },
   { q: 'Game-day operations, medical, and reporting', a: 'Home teams provide the lined field, clock or scoreboard, water, ice, safety sheet, and timekeeper support. Both teams bring rosters, first aid, and proof of USA Lacrosse membership. Severe injuries need to be reported promptly and game summaries should be filed after play.' },
-] as const;
+];

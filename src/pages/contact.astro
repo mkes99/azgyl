@@ -2,49 +2,25 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import ContactForm from '@/components/ContactForm.astro';
-
-const params = Astro.url.searchParams;
-const selectedTopic = params.get('topic') || 'General Questions';
-const selectedTeam = params.get('team') || '';
+import ContactAside from '@/components/ContactAside.astro';
 ---
-<BaseLayout title="Contact | AZGYL" pathname="/contact">
-  <PageHero eyebrow="Contact" title="Route the question to the right place the first time." intro="Use one contact path, but organize it by department so parents, teams, and growth markets are not all shouting into the same inbox." image="/assets/heroes/contact-hero.svg" />
+
+<BaseLayout title="Contact the Board | AZGYL — Arizona Girls Youth Lacrosse" pathname="/contact">
+  <PageHero
+    eyebrow="Contact"
+    title="Reach the AZGYL board."
+    intro="Board inquiries, official assignment requests, new team applications, and general league questions. We respond within 1–2 business days."
+    image="/assets/heroes/contact-hero.jpg"
+  />
 
   <section>
     <div class="container contact-layout">
-      <article class="stack-lg">
-        <div class="copy stack-md">
-          <div class="section-kicker">League contact form</div>
-          <h2 class="section-heading">Contact AZGYL</h2>
-        </div>
-        <ContactForm selectedTopic={selectedTopic} selectedTeam={selectedTeam} />
-      </article>
-      <aside class="contact-aside copy stack-md">
-        <div class="section-kicker">Routing guide</div>
-        <h3 class="contact-aside-title">Common topics</h3>
-        <p>Registration, placement, age group, equipment, and first-season questions should route to parent support first. Scheduling, roster issues, rule interpretation, and game-day problems should route to operations. New team or interest-market requests should route to growth and expansion.</p>
-      </aside>
+      <div class="contact-form-column">
+        <ContactForm />
+      </div>
+      <div class="contact-aside">
+        <ContactAside />
+      </div>
     </div>
   </section>
-
-  <script is:inline>
-    document.querySelector('[data-contact-form]')?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const data = new FormData(form);
-      const department = String(data.get('department') || 'General Questions');
-      const team = String(data.get('team') || '').trim();
-      const subject = `${department}${team ? ` - ${team}` : ''}`;
-      const body = [
-        `Name: ${String(data.get('name') || '')}`,
-        `Email: ${String(data.get('email') || '')}`,
-        `Department: ${department}`,
-        team ? `Team/Area: ${team}` : '',
-        '',
-        String(data.get('message') || ''),
-      ].filter(Boolean).join('
-');
-      window.location.href = `mailto:info@azgyl.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    });
-  </script>
 </BaseLayout>

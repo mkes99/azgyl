@@ -1,0 +1,264 @@
+---
+// GalleryGrid — mosaic photo/video gallery with a built-in lightbox.
+// Reads every file from src/assets/gallery/ at build time and renders them
+// in filename order. To reorder, rename files (numeric prefix controls
+// order); to add photos, just drop them in the folder — no data file to edit.
+import { Image } from 'astro:assets';
+
+const photoModules = import.meta.glob<{ default: ImageMetadata }>(
+  '../assets/gallery/*.jpg',
+  { eager: true }
+);
+const videoModules = import.meta.glob<string>(
+  '../assets/gallery/*.mp4',
+  { eager: true, query: '?url', import: 'default' }
+);
+
+const posters: Record<string, ImageMetadata> = {};
+const photos: { name: string; image: ImageMetadata }[] = [];
+for (const [path, mod] of Object.entries(photoModules)) {
+  const name = path.split('/').pop()!;
+  if (name.includes('-poster.')) {
+    posters[name.replace('-poster', '')] = mod.default;
+  } else {
+    photos.push({ name, image: mod.default });
+  }
+}
+
+const videos = Object.entries(videoModules).map(([path, src]) => {
+  const name = path.split('/').pop()!;
+  const posterName = name.replace('.mp4', '.jpg');
+  return { name, src, poster: posters[posterName] };
+});
+
+type Item =
+  | { kind: 'photo'; name: string; image: ImageMetadata }
+  | { kind: 'video'; name: string; src: string; poster: ImageMetadata };
+
+const items: Item[] = [
+  ...photos.map(p => ({ kind: 'photo' as const, ...p })),
+  ...videos.map(v => ({ kind: 'video' as const, ...v })),
+].sort((a, b) => a.name.localeCompare(b.name));
+---
+
+<div class="gallery-mosaic" data-gallery>
+  {items.map((item, i) => (
+    <button
+      type="button"
+      class="gallery-tile"
+      data-index={i}
+      data-kind={item.kind}
+      data-video-src={item.kind === 'video' ? item.src : null}
+      aria-label={`Open ${item.kind} ${i + 1} of ${items.length}`}
+    >
+      <Image
+        src={item.kind === 'photo' ? item.image : item.poster}
+        alt={`AZGYL gallery ${item.kind} ${i + 1} of ${items.length}`}
+        width={900}
+        format="webp"
+        quality={78}
+        loading={i < 8 ? 'eager' : 'lazy'}
+      />
+      {item.kind === 'video' && (
+        <span class="gallery-play" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+      )}
+    </button>
+  ))}
+</div>
+
+<dialog class="gallery-lightbox" aria-label="Gallery viewer">
+  <button type="button" class="lightbox-close" data-lightbox-close aria-label="Close">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button type="button" class="lightbox-nav lightbox-prev" data-lightbox-prev aria-label="Previous">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button type="button" class="lightbox-nav lightbox-next" data-lightbox-next aria-label="Next">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+  <div class="lightbox-stage" data-lightbox-stage></div>
+  <p class="lightbox-count" data-lightbox-count></p>
+</dialog>
+
+<style>
+  /* True masonry — CSS columns, natural photo heights, no object-fit crop.
+     The photo set is a mixed-orientation phone-photo dump, not curated
+     uniform shots, so a fixed-cell mosaic force-cropped every photo to fit
+     its cell. Columns lay each photo out at its own native aspect ratio. */
+  .gallery-mosaic {
+    column-width: 240px;
+    column-gap: .6rem;
+  }
+  .gallery-tile {
+    display: block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: .6rem;
+    position: relative;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--surface-soft);
+  }
+  .gallery-tile img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform .3s ease;
+  }
+  .gallery-tile:hover img { transform: scale(1.03); }
+  .gallery-tile:focus-visible { outline: 3px solid var(--rose-deep); outline-offset: 2px; }
+
+  .gallery-play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: rgba(20,16,14,.28);
+  }
+  .gallery-play svg { filter: drop-shadow(0 1px 6px rgba(0,0,0,.5)); }
+
+  @media (max-width: 560px) {
+    .gallery-mosaic { column-width: 150px; column-gap: .5rem; }
+    .gallery-tile { margin-bottom: .5rem; }
+  }
+
+  .gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: rgba(10,9,8,.96);
+    color: white;
+  }
+  .gallery-lightbox::backdrop { background: transparent; }
+  .gallery-lightbox[open] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-stage {
+    max-width: min(94vw, 1400px);
+    max-height: 86vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-stage img,
+  .lightbox-stage video {
+    max-width: min(94vw, 1400px);
+    max-height: 86vh;
+    width: auto;
+    height: auto;
+    border-radius: var(--radius-sm);
+  }
+  .lightbox-close,
+  .lightbox-nav {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    border: 1px solid rgba(240,208,189,.4);
+    background: rgba(20,16,14,.55);
+    color: white;
+    cursor: pointer;
+  }
+  .lightbox-close:hover,
+  .lightbox-nav:hover { background: rgba(20,16,14,.8); border-color: rgba(240,208,189,.7); }
+  .lightbox-close { top: 1.2rem; right: 1.2rem; }
+  .lightbox-prev { left: 1.2rem; top: 50%; transform: translateY(-50%); }
+  .lightbox-next { right: 1.2rem; top: 50%; transform: translateY(-50%); }
+  .lightbox-count {
+    position: fixed;
+    bottom: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: .85rem;
+    color: rgba(255,255,255,.7);
+  }
+  @media (max-width: 640px) {
+    .lightbox-prev { left: .5rem; }
+    .lightbox-next { right: .5rem; }
+    .lightbox-close { top: .6rem; right: .6rem; }
+  }
+</style>
+
+<script>
+  function initGallery() {
+    const grid = document.querySelector<HTMLElement>('[data-gallery]');
+    const dialog = document.querySelector<HTMLDialogElement>('.gallery-lightbox');
+    if (!grid || !dialog) return;
+
+    const tiles = Array.from(grid.querySelectorAll<HTMLButtonElement>('.gallery-tile'));
+    const stage = dialog.querySelector<HTMLElement>('[data-lightbox-stage]')!;
+    const count = dialog.querySelector<HTMLElement>('[data-lightbox-count]')!;
+    let current = 0;
+
+    function render(index: number) {
+      current = (index + tiles.length) % tiles.length;
+      const tile = tiles[current];
+      const kind = tile.dataset.kind;
+      stage.innerHTML = '';
+      if (kind === 'video') {
+        const video = document.createElement('video');
+        video.src = tile.dataset.videoSrc || '';
+        video.poster = tile.querySelector('img')?.src || '';
+        video.controls = true;
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        stage.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = tile.querySelector('img')?.src || '';
+        img.alt = tile.querySelector('img')?.alt || '';
+        stage.appendChild(img);
+      }
+      count.textContent = `${current + 1} / ${tiles.length}`;
+    }
+
+    function open(index: number) {
+      render(index);
+      if (!dialog.open) dialog.showModal();
+    }
+
+    function close() {
+      stage.innerHTML = '';
+      if (dialog.open) dialog.close();
+    }
+
+    tiles.forEach((tile, i) => {
+      tile.addEventListener('click', () => open(i));
+    });
+
+    dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', close);
+    dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => render(current - 1));
+    dialog.querySelector('[data-lightbox-next]')?.addEventListener('click', () => render(current + 1));
+
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) close();
+    });
+    dialog.addEventListener('close', () => { stage.innerHTML = ''; });
+
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') render(current + 1);
+      if (e.key === 'ArrowLeft') render(current - 1);
+    });
+  }
+
+  initGallery();
+  document.addEventListener('astro:page-load', initGallery);
+</script>

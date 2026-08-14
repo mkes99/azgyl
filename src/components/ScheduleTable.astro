@@ -1,0 +1,244 @@
+---
+// ScheduleTable  ·  src/components/ScheduleTable.astro
+// Data: src/data/schedule.ts  ·  Fields: src/data/fields.ts
+// Responsive: table on desktop, stacked cards on mobile
+import { scheduleEvents, type Game } from '@/data/schedule';
+import { getFieldById } from '@/data/fields';
+
+interface Props {
+  eventId?:  string;   // omit = first active event
+  division?: string;   // filter to one division
+  limit?:    number;   // cap rows (homepage preview)
+  groupBy?:  'division' | 'field' | 'none';  // default 'none'
+}
+const { eventId, division, limit, groupBy = 'none' } = Astro.props;
+
+const activeEvents = scheduleEvents.filter(e => e.active);
+const event = eventId
+  ? scheduleEvents.find(e => e.id === eventId)
+  : activeEvents[0];
+
+let games: Game[] = event?.games ?? [];
+if (division) games = games.filter(g => g.division === division);
+if (limit)    games = games.slice(0, limit);
+
+// Group games
+function groupGames(games: Game[], by: string) {
+  if (by === 'none') return [{ label: '', games }];
+  const map = new Map<string, Game[]>();
+  for (const g of games) {
+    const key = by === 'division' ? g.division : (getFieldById(g.field)?.label ?? getFieldById(g.field)?.name ?? g.field);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(g);
+  }
+  // Sort division keys naturally
+  const sorted = by === 'division'
+    ? [...map.entries()].sort((a,b) => a[0].localeCompare(b[0]))
+    : [...map.entries()];
+  return sorted.map(([label, games]) => ({ label, games }));
+}
+
+const groups = groupGames(games, groupBy);
+
+function fmtDate(iso: string) {
+  try {
+    return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric',
+    });
+  } catch { return iso; }
+}
+function fieldName(id: string) {
+  return getFieldById(id)?.label ?? getFieldById(id)?.name ?? id;
+}
+function mapUrl(id: string) {
+  return getFieldById(id)?.mapUrl ?? '#';
+}
+function fieldNotes(id: string) {
+  return getFieldById(id)?.notes;
+}
+---
+
+<div class="schedule-wrap">
+
+  {!event && (
+    <p class="sched-msg">No active schedule. Set <code>active: true</code> on an event in <code>src/data/schedule.ts</code>.</p>
+  )}
+
+  {event && games.length === 0 && (
+    <p class="sched-msg">No games found{division ? ` for ${division}` : ''}.</p>
+  )}
+
+  {event && games.length > 0 && groups.map(group => (
+    <div class="sched-group">
+      {group.label && <h4 class="sched-group-label">{group.label}</h4>}
+
+      {/* ── Desktop table ───────────────────────── */}
+      <div class="sched-table-shell" role="region" aria-label={`${event.name}${group.label ? ' · ' + group.label : ''} schedule`} tabindex="0">
+        <table class="sched-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Arrive</th>
+              <th>Start</th>
+              <th>Div</th>
+              <th>Home</th>
+              <th>Away</th>
+              <th>Field</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            {group.games.map(g => (
+              <tr class=>
+                <td class="col-date">{fmtDate(g.date)}</td>
+                <td class="col-time col-arrive">{g.arrival ?? '—'}</td>
+                <td class="col-time"><strong>{g.time}</strong></td>
+                <td><span class="div-chip">{g.division}</span></td>
+                <td class="col-home">{g.home}</td>
+                <td class="col-away">{g.away}</td>
+                <td class="col-field">
+                  <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="field-link">
+                    {fieldName(g.field)}
+                  </a>
+                  {fieldNotes(g.field)?.startsWith('⚠️') && (
+                    <span class="field-warn" title={fieldNotes(g.field)}>⚠️</span>
+                  )}
+                </td>
+                <td>
+                  
+                  {getResult(g.id)?.result === 'P'  && <span class="result-chip result-cancel">Cancelled</span>}
+                  {getResult(g.id)?.result === 'W'          && <span class="result-chip result-w">W {g.score}</span>}
+                  {getResult(g.id)?.result === 'L'          && <span class="result-chip result-l">L {g.score}</span>}
+                  {getResult(g.id)?.result === 'T'          && <span class="result-chip result-t">T {g.score}</span>}
+                  {g.notes && <span class="game-note">{g.notes}</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── Mobile cards ────────────────────────── */}
+      <div class="sched-cards">
+        {group.games.map(g => (
+          <div class={`sched-card$`}>
+            <div class="sched-card-top">
+              <div class="sched-card-time-block">
+                <span class="sched-card-date">{fmtDate(g.date)}</span>
+                <span class="sched-card-start">
+                  {g.arrival && <span class="sched-card-arrive">Arrive {g.arrival} · </span>}
+                  <strong>Start {g.time}</strong>
+                </span>
+              </div>
+              
+              {getResult(g.id)?.result === 'P' && <span class="result-chip result-cancel">Cancelled</span>}
+              {getResult(g.id)?.result === 'W'         && <span class="result-chip result-w">W {g.score}</span>}
+              {getResult(g.id)?.result === 'L'         && <span class="result-chip result-l">L {g.score}</span>}
+              {getResult(g.id)?.result === 'T'         && <span class="result-chip result-t">T {g.score}</span>}
+            </div>
+            <div class="sched-card-matchup">
+              <span class="div-chip">{g.division}</span>
+              <span class="sched-card-home">{g.home}</span>
+              <span class="sched-card-vs">vs</span>
+              <span class="sched-card-away">{g.away}</span>
+            </div>
+            <div class="sched-card-field-row">
+              <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="field-link">
+                📍 {fieldName(g.field)}
+              </a>
+            </div>
+            {g.notes && <div class="sched-card-note">{g.notes}</div>}
+          </div>
+        ))}
+      </div>
+
+    </div>
+  ))}
+</div>
+
+<style>
+  .sched-msg { color: var(--muted); font-size: .95rem; padding: 1.25rem 0; }
+  .sched-msg code { background: var(--surface-soft); padding: .1rem .4rem; border-radius: 6px; font-size: .85em; }
+
+  .sched-group { margin-bottom: 1.5rem; }
+  .sched-group:last-child { margin-bottom: 0; }
+  .sched-group-label {
+    font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--rose-deep); margin-bottom: .65rem;
+  }
+
+  /* ── Desktop table ───────────────────────────────── */
+  .sched-table-shell { border-radius: 18px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+  .sched-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .sched-table thead tr { background: var(--surface-soft); border-bottom: 2px solid var(--line); }
+  .sched-table th {
+    padding: .65rem .9rem; text-align: left;
+    font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); white-space: nowrap;
+  }
+  .sched-table td { padding: .72rem .9rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .sched-table tbody tr:last-child td { border-bottom: none; }
+  .sched-table tbody tr:hover td { background: var(--surface-soft); }
+
+  .row-upcoming td  { background: color-mix(in srgb, #fef9c3 22%, white); }
+  .row-cancelled td { opacity: .65; }
+  .row-upcoming:hover td { background: color-mix(in srgb, #fef9c3 38%, white) !important; }
+
+  .col-date   { font-weight: 600; white-space: nowrap; color: var(--text); font-size: .82rem; }
+  .col-time   { white-space: nowrap; font-size: .84rem; }
+  .col-arrive { color: var(--muted); font-size: .8rem; }
+  .col-home   { font-weight: 700; color: var(--olive); }
+  .col-away   { color: var(--text); }
+  .col-field  { font-size: .82rem; white-space: nowrap; }
+
+  .field-link  { color: var(--rose-deep); font-weight: 500; text-decoration: none; }
+  .field-link:hover { text-decoration: underline; }
+  .field-warn  { margin-left: .3rem; cursor: help; }
+
+  .div-chip {
+    display: inline-block; padding: .22rem .6rem; border-radius: 999px;
+    font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    background: color-mix(in srgb, var(--olive) 10%, white);
+    color: var(--olive);
+    border: 1px solid color-mix(in srgb, var(--olive) 18%, white);
+    white-space: nowrap;
+  }
+
+  .result-chip { display: inline-block; padding: .22rem .68rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+  .result-w      { background: #dcfce7; color: #15803d; }
+  .result-l      { background: #fee2e2; color: #b91c1c; }
+  .result-t      { background: var(--surface-soft); color: var(--muted); }
+  .result-up     { background: #fef9c3; color: #854d0e; }
+  .result-cancel { background: #fee2e2; color: #9f1239; }
+
+  .game-note { display: block; font-size: .7rem; color: var(--soft); font-style: italic; margin-top: .12rem; }
+
+  /* ── Mobile cards ─────────────────────────────────── */
+  .sched-cards { display: none; flex-direction: column; gap: .6rem; }
+  .sched-card {
+    border-radius: 18px; border: 1px solid var(--line);
+    background: var(--surface); padding: .95rem 1.1rem;
+    display: flex; flex-direction: column; gap: .55rem;
+  }
+  .sched-card--upcoming  { background: color-mix(in srgb, #fef9c3 16%, white); }
+  .sched-card--cancelled { opacity: .7; }
+
+  .sched-card-top       { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+  .sched-card-time-block { display: flex; flex-direction: column; gap: .1rem; }
+  .sched-card-date      { font-size: .76rem; color: var(--muted); }
+  .sched-card-start     { font-size: .88rem; color: var(--text); }
+  .sched-card-arrive    { color: var(--soft); font-weight: 400; font-size: .82rem; }
+
+  .sched-card-matchup   { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; font-size: .94rem; }
+  .sched-card-home      { font-weight: 800; color: var(--olive); }
+  .sched-card-vs        { font-size: .7rem; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .08em; }
+  .sched-card-away      { color: var(--text); font-weight: 500; }
+
+  .sched-card-field-row { font-size: .8rem; }
+  .sched-card-note      { font-size: .76rem; color: var(--soft); font-style: italic; padding-top: .25rem; border-top: 1px solid var(--line); }
+
+  @media (max-width: 760px) {
+    .sched-table-shell { display: none; }
+    .sched-cards { display: flex; }
+  }
+</style>

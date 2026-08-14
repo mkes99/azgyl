@@ -1,0 +1,169 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import SectionIntro from '@/components/SectionIntro.astro';
+import ParentFaq from '@/components/ParentFaq.astro';
+import ParentTeamFinder from '@/components/ParentTeamFinder.astro';
+import AgeChart from '@/components/AgeChart.astro';
+---
+
+<BaseLayout title="Parent Guide | AZGYL — Arizona Girls Youth Lacrosse" pathname="/parents">
+  <PageHero
+    eyebrow="Parents"
+    title="Everything you need before the first game."
+    intro="Find the right team, confirm the age group, get the required gear, and know what to do on game day — all in one place."
+    image="/assets/heroes/parents-hero.jpg"
+  />
+
+  <section>
+    <div class="container stack-lg">
+      <SectionIntro eyebrow="Start here" title="Three steps to get on the field." />
+      <nav class="subpage-links" aria-label="Parent quick links">
+        <a href="#find-team">Find your team</a>
+        <a href="#age-groups">Age groups</a>
+        <a href="#equipment">Equipment</a>
+        <a href="#faq">FAQ</a>
+        <a href="#parent-role">Parent role</a>
+      </nav>
+      <div class="metrics-grid">
+        <article class="metric">
+          <div class="section-kicker">Step 1</div>
+          <h3>Find the closest current team.</h3>
+          <p>Use city, district, or zip code to find the best current fit. Registration is handled directly by each club — not AZGYL.</p>
+        </article>
+        <article class="metric">
+          <div class="section-kicker">Step 2</div>
+          <h3>Register and complete membership.</h3>
+          <p>Sign up through the local program and complete USA Lacrosse membership before your player's first practice. Required — not optional.</p>
+        </article>
+        <article class="metric">
+          <div class="section-kicker">Step 3</div>
+          <h3>Get the gear and show up ready.</h3>
+          <p>Buy the three required basics (stick, goggles, mouthguard), arrive early, and let coaches handle the learning curve from there.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-alt" id="find-team">
+    <div class="container finder-grid finder-grid-parents">
+      <div class="finder-inline stack-lg">
+        <div id="age-groups" class="copy stack-md">
+          <div class="section-kicker">Age groups</div>
+          <h2 class="section-heading section-heading--plain">Find your player's division.</h2>
+          <p class="section-sidecopy">Select her grade band for the recommended division.</p>
+        </div>
+        <div class="choice-row" data-grade-buttons>
+          <button type="button" data-grade="2">K–2</button>
+          <button type="button" data-grade="4">3–4</button>
+          <button type="button" data-grade="6">5–6</button>
+          <button type="button" data-grade="8">7–8</button>
+        </div>
+        <div class="result-shell" data-age-result>
+          <div class="note">Recommended division</div>
+          <strong>Choose a grade band above</strong>
+          <p>We'll show the best starting division.</p>
+          <div class="actions">
+            <a class="button button-outline button-sm" href="/resources#age-chart">Open age chart</a>
+          </div>
+        </div>
+      </div>
+      <ParentTeamFinder />
+    </div>
+  </section>
+
+  <section id="equipment">
+    <div class="container section-block stack-lg">
+      <SectionIntro eyebrow="Equipment" title="Buy the required basics first." intro="Stick, goggles, mouthguard. That's it for year one." />
+      <div class="metrics-grid">
+        <article class="metric">
+          <h3>Stick</h3>
+          <p>A legal girls stick in the $60–$100 range is fine for year one. Must be women's/girls pocket construction — not boys'.</p>
+        </article>
+        <article class="metric">
+          <h3>Protective eyewear</h3>
+          <p>Required. Must meet ASTM F3077 standard. Worth fitting correctly in person — sizing varies significantly.</p>
+        </article>
+        <article class="metric">
+          <h3>Mouthguard</h3>
+          <p>Mandatory. Must be a visible color (not clear, not white). Buy two — one lives in the bag.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-alt" id="age-chart-section">
+    <div class="container two-col split-balanced">
+      <div class="copy stack-lg">
+        <div class="section-kicker">Division reference</div>
+        <h2 class="section-heading section-heading--plain">Which division is right for her?</h2>
+        <p>Use grade as the starting point. Final placement can depend on school affiliation and league policy.</p>
+        <div class="actions">
+          <a class="button button-outline" href="/assets/docs/azgyl-age-chart-2026.pdf" target="_blank" rel="noreferrer">Download PDF</a>
+        </div>
+      </div>
+      <AgeChart />
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="container two-col split-balanced">
+      <div class="copy stack-md">
+        <div class="section-kicker">FAQ</div>
+        <h2 class="section-heading">Questions families actually ask.</h2>
+        <p>Practical answers for new-to-lacrosse families in Arizona.</p>
+        <div class="actions" style="margin-top:1rem">
+          <a class="button button-outline" href="/rules">Full league rules</a>
+        </div>
+      </div>
+      <ParentFaq />
+    </div>
+  </section>
+
+  <section class="section-alt" id="parent-role">
+    <div class="container two-col split-balanced">
+      <div class="copy stack-md">
+        <div class="section-kicker">What helps</div>
+        <h2 class="section-heading">The behaviors that make youth sports better.</h2>
+        <ul class="checklist">
+          <li>Get your player to practices and games on time.</li>
+          <li>Fuel the day: water, breakfast, a simple snack.</li>
+          <li>Be a good fan — your player reads your sideline energy fast.</li>
+          <li>Trust coaches. They're making decisions with safety and development in mind.</li>
+          <li>Be kind to officials. Many are still learning too.</li>
+        </ul>
+      </div>
+      <div class="copy stack-md">
+        <div class="section-kicker">What hurts</div>
+        <h2 class="section-heading">The habits that make rec harder than it needs to be.</h2>
+        <ul class="checklist">
+          <li>Coaching from the sideline or correcting every mistake in real time.</li>
+          <li>Using officials as the outlet for a close game.</li>
+          <li>Treating rec lacrosse like a recruiting contest.</li>
+          <li>Escalating problems instead of giving them a cooling-off window.</li>
+          <li>Making the player responsible for adult frustration.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline>
+  const buttons = [...document.querySelectorAll('[data-grade-buttons] button')];
+  const result  = document.querySelector('[data-age-result]');
+  const mapping = {
+    2: { division: '8U',  note: 'Best on-ramp for first-year players and youngest starters.' },
+    4: { division: '10U', note: 'Good fit for players ready for more structure and spacing.' },
+    6: { division: '12U', note: 'Builds field awareness, pace, and game understanding.' },
+    8: { division: '14U', note: 'Top rec youth division before the high-school path begins.' },
+  };
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      const sel = mapping[btn.dataset.grade];
+      if (!result || !sel) return;
+      result.innerHTML = `<div class="note">Recommended division</div><strong>${sel.division}</strong><p>${sel.note}</p><div class="actions"><a class="button button-outline button-sm" href="/resources#age-chart">Open age chart</a></div>`;
+    });
+  });
+</script>

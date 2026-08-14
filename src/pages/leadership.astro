@@ -4,32 +4,63 @@ import PageHero from '@/components/PageHero.astro';
 import LeadershipGrid from '@/components/LeadershipGrid.astro';
 import CommitteesGrid from '@/components/CommitteesGrid.astro';
 ---
-<BaseLayout title="Leadership | AZGYL" pathname="/leadership">
-  <PageHero eyebrow="Leadership" title="Board leadership and committees should be easy to understand." intro="Keep leadership visible, practical, and parent-readable. These sections should explain who owns what without turning into internal jargon." image="/assets/heroes/resources-hero.svg" />
+
+<BaseLayout title="Board of Directors | AZGYL — Arizona Girls Youth Lacrosse" pathname="/leadership">
+  <PageHero
+    eyebrow="Leadership"
+    title="Board of directors and standing committees."
+    intro="AZGYL is governed by a volunteer board of directors representing coaches, parents, and lacrosse professionals across Arizona."
+    image="/assets/heroes/leadership-hero.jpg"
+  />
 
   <section>
-    <div class="container stack-lg">
-      <div class="section-header-clean">
+    <div class="container">
+      <div class="section-header-clean" style="margin-bottom:2rem">
         <div>
-          <div class="section-kicker">Executive board</div>
-          <h2>Executive Board</h2>
+          <div class="section-kicker">Governance</div>
+          <h2>Board of directors</h2>
         </div>
-        <div class="section-header-copy"><p>Replace placeholders with real names as soon as leadership is finalized. The layout already supports any number of board members.</p></div>
+        <div class="section-header-copy">
+          <p>Volunteer board members serving 2-year terms, elected annually by member team representatives.</p>
+        </div>
       </div>
       <LeadershipGrid />
     </div>
   </section>
 
   <section class="section-alt">
-    <div class="container stack-lg">
-      <div class="section-header-clean">
+    <div class="container">
+      <div class="section-header-clean" style="margin-bottom:2rem">
         <div>
           <div class="section-kicker">Committees</div>
-          <h2>League Committees</h2>
+          <h2>Standing committees</h2>
         </div>
-        <div class="section-header-copy"><p>Committees should map to actual league work. Each card supports direct links and can be extended with contact details as the structure is finalized.</p></div>
+        <div class="section-header-copy">
+          <p>League work is organized through standing committees — each chaired by a board member.</p>
+        </div>
       </div>
       <CommitteesGrid />
+    </div>
+  </section>
+
+  <section>
+    <div class="container two-col split-balanced">
+      <div class="copy">
+        <div class="section-kicker">Get involved</div>
+        <h2 class="section-heading">Volunteer-run. Community-driven.</h2>
+        <p>AZGYL runs entirely on volunteer effort. If you're a coach, parent, or lacrosse professional who wants to help build the league, reach out.</p>
+        <div class="actions" style="margin-top:1rem">
+          <a class="button button-primary" href="/contact">Get in touch</a>
+        </div>
+      </div>
+      <div class="info-panel">
+        <div class="section-kicker">Sponsors &amp; partners</div>
+        <h3>Support Arizona girls lacrosse</h3>
+        <p>Sponsorships fund scholarships, equipment programs, and field access for Arizona girls.</p>
+        <div class="subpage-links" style="margin-top:1rem">
+          <a href="/contact?subject=Sponsorship">Become a sponsor →</a>
+        </div>
+      </div>
     </div>
   </section>
 </BaseLayout>

@@ -1,0 +1,15 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import TeamDirectory from '@/components/TeamDirectory.astro';
+---
+
+<BaseLayout title="Find a Team | AZGYL — Arizona Girls Youth Lacrosse" pathname="/teams">
+  <PageHero
+    eyebrow="Teams"
+    title="Current teams and the easiest path into girls rec lacrosse."
+    intro="Start with a real current team. Use the directory first — boundaries and growth-market pages are only for when the right local option doesn't exist yet."
+    image="/assets/heroes/teams-hero.jpg"
+  />
+  <TeamDirectory />
+</BaseLayout>
