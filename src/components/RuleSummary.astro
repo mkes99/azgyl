@@ -1,0 +1,8 @@
+---
+import { rulesSummary } from '@/data/rules-summary';
+---
+<div class="rule-table">
+  <div class="section-kicker">AZGYL layer</div>
+  <h3>What the league owns directly</h3>
+  {rulesSummary.map((item) => <div class="rule-row"><strong>{item.title}</strong><span>{item.body}</span></div>)}
+</div>

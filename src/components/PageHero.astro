@@ -1,0 +1,22 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  intro: string;
+  image: string;
+  align?: 'left' | 'center';
+  titleMax?: string;
+  overlay?: boolean;
+  overlayStrength?: 'light' | 'medium' | 'strong';
+}
+const { eyebrow, title, intro, image, align = 'left', titleMax = '11ch', overlay = true, overlayStrength = 'medium' } = Astro.props;
+---
+<section class={`page-hero ${align === 'center' ? 'page-hero-center' : ''} page-hero-overlay-${overlay ? overlayStrength : 'none'}`}>
+  <img class="page-hero-image" src={image} alt="" loading="eager" />
+  {overlay && <div class="page-hero-shade"></div>}
+  <div class="container page-hero-inner stack-lg">
+    {eyebrow && <div class="eyebrow">{eyebrow}</div>}
+    <h1 style={`--hero-title-max:${titleMax}`}>{title}</h1>
+    <p class="lead">{intro}</p>
+  </div>
+</section>

@@ -1,0 +1,47 @@
+---
+// TeamDirectory — full filterable team directory with expansion chips.
+// Pages use this as: <TeamDirectory />
+import TeamCard from '@/components/TeamCard.astro';
+import TeamFinder from '@/components/TeamFinder.astro';
+import ExpansionChips from '@/components/ExpansionChips.astro';
+import { teams } from '@/data/teams';
+---
+
+<section>
+  <div class="container directory-shell" data-directory-root>
+    <div class="section-header-clean section-header-clean--action">
+      <div>
+        <div class="section-kicker">Current programs</div>
+        <h2>Find your club</h2>
+      </div>
+      <div class="section-header-copy">
+        <p>Filter by city, district, zip, or division. Registration is handled directly by each club — not AZGYL.</p>
+      </div>
+    </div>
+    <div class="team-directory-inline">
+      <TeamFinder
+        teams={teams}
+        title="Filter the directory"
+        intro="Start broad, narrow only when you need to."
+        variant="inline"
+        collapsible={true}
+      />
+      <div class="team-grid">
+        {teams.map(team => <TeamCard team={team} />)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-alt">
+  <div class="container stack-lg">
+    <div class="section-header-clean">
+      <div>
+        <div class="section-kicker">Growth markets</div>
+        <h2>Areas building toward future teams</h2>
+      </div>
+      <p>Signals of demand — not active programs yet.</p>
+    </div>
+    <ExpansionChips />
+  </div>
+</section>

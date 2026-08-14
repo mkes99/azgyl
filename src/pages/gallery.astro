@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import GalleryGrid from '@/components/GalleryGrid.astro';
+---
+
+<BaseLayout title="Photo Gallery | AZGYL — Arizona Girls Youth Lacrosse" pathname="/gallery">
+  <PageHero
+    eyebrow="Gallery"
+    title="Games, teams, and the season in photos."
+    intro="Real moments from AZGYL clubs across Arizona — tap any photo to open it full-size."
+    image="/assets/heroes/gallery-hero.jpg"
+  />
+
+  <section>
+    <div class="container">
+      <GalleryGrid />
+    </div>
+  </section>
+</BaseLayout>

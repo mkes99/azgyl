@@ -1,0 +1,20 @@
+---
+// LeadershipGrid — renders board of directors.
+// Pages use this as: <LeadershipGrid />
+import { board } from '@/data/board';
+---
+
+<div class="leadership-grid">
+  {board.map(member => {
+    const firstName = member.name.split(' ')[0];
+    const subject = encodeURIComponent(`Message for the AZGYL ${member.role}`);
+    return (
+      <article class="leadership-card">
+        <h3>{member.name}</h3>
+        <div class="leadership-role">{member.role}</div>
+        <p>{member.body}</p>
+        <a class="leadership-email" href={`mailto:${member.email}?subject=${subject}`}>Email {firstName} &rarr;</a>
+      </article>
+    );
+  })}
+</div>

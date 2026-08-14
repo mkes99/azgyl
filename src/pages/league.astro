@@ -1,0 +1,17 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import LeagueSchedule from '@/components/LeagueSchedule.astro';
+import LeagueStandings from '@/components/LeagueStandings.astro';
+---
+
+<BaseLayout title="Schedule & Standings | AZGYL — Arizona Girls Youth Lacrosse" pathname="/league">
+  <PageHero
+    eyebrow="League"
+    title="Schedule and standings."
+    intro="Spring 2026 game schedule and division standings. Update src/data/schedule.ts each week to add new games."
+    image="/assets/heroes/league-hero.jpg"
+  />
+  <LeagueSchedule />
+  <LeagueStandings />
+</BaseLayout>

@@ -1,0 +1,11 @@
+---
+import { resourceCards } from '@/data/resource-cards';
+---
+<div class="resources-cards">
+  {resourceCards.map((card) => (
+    <a class="resource-card" href={card.href}>
+      <strong>{card.title}</strong>
+      <span>{card.body}</span>
+    </a>
+  ))}
+</div>

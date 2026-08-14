@@ -1,0 +1,28 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import ExpansionChips from '@/components/ExpansionChips.astro';
+---
+
+<BaseLayout title="Boundaries & Service Areas | AZGYL — Arizona Girls Youth Lacrosse" pathname="/boundaries">
+  <PageHero
+    eyebrow="Boundaries"
+    title="Draft boundaries should be visible before they are final."
+    intro="AZGYL will publish school-based and district-based placement rules here once boundaries are ratified. Until then, use the team directory to find the nearest current option."
+    image="/assets/heroes/boundaries-hero.jpg"
+  />
+
+  <section>
+    <div class="container two-col">
+      <div class="copy stack-md">
+        <div class="section-kicker">Current approach</div>
+        <h2 class="section-heading">Use team-first placement now.</h2>
+        <p>Until the final school-district map is approved, AZGYL shows draft service areas and points families to the nearest current team option.</p>
+        <ExpansionChips />
+      </div>
+      <div>
+        <img class="boundary-map" src="/assets/graphics/arizona-zones.svg" alt="Draft Arizona service area placeholder map" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

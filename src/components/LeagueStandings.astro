@@ -1,0 +1,40 @@
+---
+import StandingsTable from '@/components/StandingsTable.astro';
+import { scheduleEvents } from '@/data/schedule';
+import { localStandings, STANDINGS_CSV_URL } from '@/data/standings';
+
+const activeEvents = scheduleEvents.filter(e => e.active);
+
+// Match active events to standing data.
+// StandingsTable handles the sheet-vs-local decision internally;
+// we just need to know which eventIds have any standing data at all.
+const activeWithStandings = activeEvents.filter(e =>
+  localStandings.some(s => s.eventId === e.id)
+);
+---
+
+{activeWithStandings.map(event => (
+  <section class="section-alt">
+    <div class="container">
+      <div class="section-header-clean" style="margin-bottom:1.8rem">
+        <div>
+          <div class="section-kicker">{event.name}</div>
+          <h2>Division Standings</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>
+            {STANDINGS_CSV_URL
+              ? 'Live from Google Sheets. Update the sheet and redeploy to refresh.'
+              : 'Update standings in src/data/standings.ts — or connect Google Sheets. See STANDINGS_SETUP.md.'
+            }
+          </p>
+        </div>
+      </div>
+      <StandingsTable eventId={event.id} />
+    </div>
+  </section>
+))}
+
+<style>
+  code { background: var(--surface-soft); padding: .15rem .4rem; border-radius: 6px; font-size: .85em; }
+</style>
