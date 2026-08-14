@@ -1,0 +1,69 @@
+---
+// HomeGalleryTeaser — a handful of gallery photos on the homepage, linking
+// through to the full /gallery page. Picks an even spread across the whole
+// set so it doesn't just show the oldest (or newest) photos.
+import { Image } from 'astro:assets';
+
+const photoModules = import.meta.glob<{ default: ImageMetadata }>(
+  '../assets/gallery/*.jpg',
+  { eager: true }
+);
+
+const photos = Object.entries(photoModules)
+  .filter(([path]) => !path.split('/').pop()!.includes('-poster.'))
+  .map(([path, mod]) => ({ name: path.split('/').pop()!, image: mod.default }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const PICK = 6;
+const step = Math.max(1, Math.floor(photos.length / PICK));
+const preview = photos.filter((_, i) => i % step === 0).slice(0, PICK);
+---
+
+<div class="container">
+  <div class="section-header-clean" style="margin-bottom:1.5rem">
+    <div>
+      <div class="section-kicker">From the season</div>
+      <h2>Photo gallery.</h2>
+    </div>
+    <div class="section-header-copy">
+      <p>Real games, real teams, real Arizona lacrosse. Browse the full gallery for every photo from the season.</p>
+    </div>
+  </div>
+  <a class="home-gallery-teaser" href="/gallery" aria-label="View the full photo gallery">
+    {preview.map(p => (
+      <span class="home-gallery-teaser-tile">
+        <Image src={p.image} alt="" width={500} format="webp" quality={72} loading="lazy" />
+      </span>
+    ))}
+  </a>
+  <div class="actions" style="margin-top:1.25rem">
+    <a class="button button-outline" href="/gallery">View full gallery &rarr;</a>
+  </div>
+</div>
+
+<style>
+  .home-gallery-teaser {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: .6rem;
+    text-decoration: none;
+  }
+  .home-gallery-teaser-tile {
+    display: block;
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--surface-soft);
+  }
+  .home-gallery-teaser-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .3s ease;
+  }
+  .home-gallery-teaser:hover .home-gallery-teaser-tile img { transform: scale(1.06); }
+  @media (max-width: 760px) {
+    .home-gallery-teaser { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>

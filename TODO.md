@@ -58,13 +58,28 @@ second makes it harder, the third is compliance housekeeping.
 
 ### Standing constraint — do not lose this
 
-Contrast figures in 3.6 were measured against **the six hero photographs
-currently in `public/assets/heroes/`**, by compositing the overlay over actual
-image pixels. **Replacing any hero image invalidates the numbers for that page**
-— a brighter photo can push the white headline back under AA.
+Contrast figures were re-measured after the 2026 photo replacement (10 hero
+files, one per page — see below), by compositing the flat `--hero-scrim`
+overlay over actual image pixels. `--hero-scrim` was lightened from `0.62` to
+`0.45` (mobile: `0.66` → `0.49`) per a design request once the new photos were
+live. Worst case across all 10 at the new value is 7.95:1 for the headline and
+6.16:1 for the lead paragraph — still comfortably clear of the 4.5:1 AA
+threshold. **Replacing any hero image, or lightening the scrim further,
+invalidates these numbers** — a brighter photo or a lighter wash can push the
+white headline back under AA.
 
 `--hero-scrim` in `global.css` is the compensating control. After swapping a
 hero, re-check the headline and lead paragraph against the new image.
+
+**Second constraint, discovered 2026-08-14:** the rendered hero box is
+noticeably wider (~2.2:1 on typical desktop viewports) than the 2000x1150
+(1.74:1) source crop, so `object-fit: cover` crops roughly another ~20% off
+the image height beyond what the saved file shows. `object-position: center
+15%` on `.hero-bg, .page-hero-image` biases that extra crop toward the top so
+it doesn't cut through heads/faces — this is a site-wide setting, not
+per-photo. When cropping a **new** hero image, verify it in an actual browser
+tab at the live page, not just by opening the saved file — the file can look
+fine while the live page still decapitates someone.
 
 ---
 
@@ -77,12 +92,12 @@ hero, re-check the headline and lead paragraph against the new image.
 - [ ] **`EMAIL_FROM` is still `noreply@azgyl.com`.** Resend requires a verified
       sending domain, so this cannot simply become a Gmail address. Either
       verify `azgyl.com` with Resend or set up a sender that is verified.
-- [ ] **Board role addresses** — `president@`, `vicepresident@`, `treasurer@`
-      and `secretary@` on `azgyl.com` are shown on `/leadership` as `mailto:`
-      links. If those mailboxes do not exist, anyone contacting a board member
-      is emailing into a void. Decide whether to point them at the league inbox
-      or stand up real addresses.
-- [ ] **Board members are all `name: 'TBD'`** in `src/data/board.ts`.
+- [x] **Board role addresses** — resolved by pointing all four board `mailto:`
+      links at the league inbox (`azgirlsyouthlax@gmail.com`) instead of
+      per-role `@azgyl.com` addresses that may not exist. Subject line is
+      keyed off role, not name, so it survives board turnover.
+- [x] **Board members are all `name: 'TBD'`** — real names added to
+      `src/data/board.ts`.
 - [ ] **Marana Reapers in historical results.** The club is commented out of the
       directory but still appears in `schedule.ts` (4 games) and `standings.ts`
       (one 12U row). Left intact deliberately — removing them rewrites completed
@@ -91,6 +106,23 @@ hero, re-check the headline and lead paragraph against the new image.
 - [ ] **Dead per-club `contact` addresses** in `src/data/teams.ts` (9 remaining,
       e.g. `solsisters@azgyl.com`). Nothing renders this field — it is unused
       data. Either wire it into the team cards or drop it.
-- [ ] **Hero photography.** The home hero contains prominent purple opposition
-      banners that clash with the rose/olive palette. A neutral overlay does not
-      fix this; it is a photo-selection question.
+- [x] **Hero photography.** All 10 hero slots replaced with real AZGYL game
+      photos (2026 photo drop) — no more purple-banner clash, and each page
+      now has its own distinct photo instead of sharing one of 3 files across
+      up to 3 pages. See `CHANGELOG.md` for the full list.
+
+---
+
+## Gallery
+
+- [x] **Mosaic thumbnails crop photos** — resolved. Rebuilt `GalleryGrid.astro`
+      as a CSS-columns masonry layout; every thumbnail shows the full,
+      native-aspect-ratio photo with zero cropping.
+- [ ] **Photo order is EXIF-capture-date order**, encoded as numeric filename
+      prefixes in `src/assets/gallery/`. 4 photos lack EXIF (social-media
+      re-encodes) and sort to the end. To reorder, rename files — no data
+      file to edit.
+- [ ] **Section-alternation audit is only done for the homepage and
+      `/parents`.** Other pages (play, league, rules, leadership, boundaries,
+      teams, resources, contact) haven't been checked for adjacent sections
+      sharing the same `section-alt`/plain background.

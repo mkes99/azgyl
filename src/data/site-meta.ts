@@ -16,6 +16,7 @@ export const primaryNav = [
   { label: 'League',     href: '/league'    },
   { label: 'Leadership', href: '/leadership'},
   { label: 'Resources',  href: '/resources' },
+  { label: 'Gallery',    href: '/gallery'   },
   { label: 'Contact',    href: '/contact'   },
 ];
 

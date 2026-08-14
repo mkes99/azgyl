@@ -45,8 +45,13 @@
   --rose-deeper:  #9d4053;
   --rose-light:   #f5c4cf;
   --rose-bg:      rgba(215,101,123,0.08);
-  /* Hero accent — light enough to clear 3:1 over the .62 scrim */
+  /* Hero accent — light enough to clear 3:1 (large-text threshold) over the
+     hero scrim; too saturated for AA at body-text size */
   --rose-hero:    #efaebb;
+  /* Rim colour for the dark-glass hero pills/buttons (.hero-nav-pill,
+     .button-dark, .eyebrow/.section-kicker on dark backgrounds) — used as a
+     low-alpha border, not text. */
+  --rose-gold:    #f0d0bd;
 
   --charcoal:     #1a1a1a;
   --charcoal-2:   #242424;
@@ -63,8 +68,8 @@
   --cream-line:   rgba(75,76,48,0.16);
 
   /* Hero overlay — one flat black wash, no gradient */
-  --hero-scrim:    rgba(0,0,0,0.62);
-  --hero-scrim-sm: rgba(0,0,0,0.66);
+  --hero-scrim:    rgba(0,0,0,0.45);
+  --hero-scrim-sm: rgba(0,0,0,0.49);
 
   /* Surfaces */
   --bg:           #faf8f5;
@@ -134,7 +139,6 @@ h3 { font-size: clamp(1.3rem, 2.5vw, 1.9rem); font-weight: 700; }
 .lead {
   font-size: clamp(1rem, 1.5vw, 1.15rem);
   line-height: 1.75;
-  /* .84 left play-hero's lead at 4.42:1; .92 clears AA on every hero photo */
   color: rgba(232,240,250,.92);
   max-width: 60ch;
 }
@@ -157,16 +161,21 @@ h3 { font-size: clamp(1.3rem, 2.5vw, 1.9rem); font-weight: 700; }
   text-transform: uppercase;
   margin-bottom: .8rem;
 }
-/* On dark backgrounds */
+/* On dark backgrounds — dark warm-glass fill with a rose-gold rim, so the
+   pill stays legible on its own regardless of how bright the photo behind
+   it is (a translucent white fill faded out once the hero scrim was
+   lightened). Rim alpha is tuned to clear 3:1 non-text contrast (1.4.11)
+   against the busiest new hero photo; fill/text clears body-text AA with
+   wide margin, see TODO.md's standing constraint. */
 .hero-home .eyebrow,
 .hero-home .section-kicker,
 .page-hero .eyebrow,
 .page-hero .section-kicker,
 .section-dark .eyebrow,
 .section-dark .section-kicker {
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.20);
-  color: rgba(255,255,255,.90);
+  background: rgba(20,16,14,.42);
+  border-color: rgba(240,208,189,.65);
+  color: rgba(255,255,255,.92);
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -458,11 +467,13 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .button-outline:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
 .button-dark {
   padding: .82rem 1.55rem;
-  background: rgba(255,255,255,.08);
-  border: 1.5px solid rgba(255,255,255,.12);
-  color: white;
+  /* Same dark warm-glass + rose-gold rim as the hero pills, so it doesn't
+     look like a leftover from the old translucent-white treatment */
+  background: rgba(20,16,14,.42);
+  border: 1.5px solid rgba(240,208,189,.65);
+  color: rgba(255,255,255,.92);
 }
-.button-dark:hover { background: rgba(255,255,255,.14); }
+.button-dark:hover { background: rgba(20,16,14,.58); }
 .button-ghost {
   padding: .82rem 1.55rem;
   background: transparent;
@@ -485,6 +496,12 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   position: relative;
   overflow: hidden;
   background: var(--charcoal);
+  /* Contains .page-hero-inner's z-index:2 locally. Without this, the hero
+     section doesn't establish its own stacking context, so the inner
+     content's z-index leaks out and can out-stack the sticky header's
+     dropdown menu (z-index:100) despite the header's much higher value —
+     the header's context never gets a chance to bound it. */
+  z-index: 0;
 }
 .hero-home { min-height: min(82svh, 800px); }
 .page-hero { min-height: 46svh; }
@@ -497,6 +514,13 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Source crops are 2000x1150 (1.74:1); the rendered hero box is commonly
+     ~2.2:1 on typical desktop viewports, so object-fit:cover crops ~20% MORE
+     off the image than the source file shows. Default center positioning
+     splits that evenly top/bottom, which cuts through heads positioned near
+     the top of a source crop. Biasing toward the top preserves faces/heads
+     at the cost of some foreground (grass/feet) instead. */
+  object-position: center 15%;
 }
 /* Flat black overlay on bg images — one even wash, no gradient, so the
    photograph reads the same across the whole frame */
@@ -545,9 +569,11 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   gap: .45rem;
   padding: .52rem 1rem;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.16);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.85);
+  /* Dark warm-glass fill + rose-gold rim, same treatment as the eyebrow/
+     kicker pills — stays legible independent of hero photo brightness */
+  border: 1px solid rgba(240,208,189,.65);
+  background: rgba(20,16,14,.42);
+  color: rgba(255,255,255,.92);
   font-size: .78rem;
   font-weight: 600;
   letter-spacing: .03em;
@@ -585,9 +611,9 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .info-panel a:hover { color: var(--rose); }
 .info-panel .button-outline { border: 0; padding: .78rem 1rem; }
 
-.leadership-card { display: grid; gap: .7rem; align-content: start; }
+.leadership-card { display: flex; flex-direction: column; gap: .7rem; }
 .leadership-card h3 { font-size: 1.35rem; letter-spacing: -.03em; margin: 0; }
-.leadership-email { color: var(--rose-deep); font-weight: 700; display: block; }
+.leadership-email { color: var(--rose-deep); font-weight: 700; display: block; margin-top: auto; padding-top: .3rem; }
 .leadership-role { color: var(--muted); font-weight: 700; }
 
 /* Bylaws */

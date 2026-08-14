@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import SeasonHighlights from '@/components/SeasonHighlights.astro';
+import HomeGalleryTeaser from '@/components/HomeGalleryTeaser.astro';
 import FeaturedTeams from '@/components/FeaturedTeams.astro';
 import HomeSchedulePreview from '@/components/HomeSchedulePreview.astro';
 import HomeFaqPreview from '@/components/HomeFaqPreview.astro';
@@ -52,6 +53,10 @@ import HomeFaqPreview from '@/components/HomeFaqPreview.astro';
   </section>
 
   <section class="section-alt">
+    <HomeGalleryTeaser />
+  </section>
+
+  <section>
     <div class="container two-col split-balanced">
       <div class="copy stack-md">
         <div class="section-kicker">Governing body</div>
@@ -74,7 +79,7 @@ import HomeFaqPreview from '@/components/HomeFaqPreview.astro';
     </div>
   </section>
 
-  <section>
+  <section class="section-alt">
     <FeaturedTeams />
   </section>
 

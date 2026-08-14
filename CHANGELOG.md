@@ -7,6 +7,66 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.8] — 2026-08-14 — Real photos, photo gallery, board contacts
+
+### Added
+
+- **Photo gallery** (`/gallery`) — a new masonry-layout page built from the
+  2026 photo drop. `GalleryGrid.astro` reads every file in
+  `src/assets/gallery/` at build time and lays it out in filename order, so
+  adding or reordering photos is a file operation, not a code change. Each
+  photo keeps its native aspect ratio (CSS columns, no cropping) and opens in
+  a dependency-free lightbox (keyboard nav, focus trap, prev/next) built on
+  `<dialog>`. Includes 3 short video clips alongside the photos. Linked from
+  the main nav, the footer, and a new homepage teaser section
+  (`HomeGalleryTeaser.astro`).
+- **Board of directors** now has real names and a restructured card (name →
+  position → `Email {name} →` CTA) in `LeadershipGrid.astro`. All four roles
+  route to the shared league inbox (`azgirlsyouthlax@gmail.com`) with a
+  role-keyed `mailto:` subject line, so nothing needs updating when a board
+  member changes besides the `name` field in `src/data/board.ts`.
+
+### Changed
+
+- **All 10 hero photos replaced** with real AZGYL game photos, one distinct
+  photo per page instead of 3 files shared across up to 3 pages each (e.g.
+  `play-hero.jpg` used to back `/play`, `/league`, and `/rules` — each now
+  has its own). Brightness-normalized across all 10 so the overlay reads
+  consistently regardless of the source photo's natural exposure.
+- **Hero overlay lightened** (`--hero-scrim` 0.62 → 0.45, mobile 0.66 → 0.49)
+  and **`object-position: center 15%`** added to hero images site-wide — the
+  rendered hero box is proportionally wider than the source crop, so
+  `object-fit: cover` was cropping further into subjects' heads than the
+  saved files showed; biasing toward the top fixes it everywhere at once.
+  See TODO.md's standing constraint for the full explanation.
+- **Interior hero pills and dark-glass buttons** (`.hero-nav-pill`,
+  `.button-dark`, `.eyebrow`/`.section-kicker` on dark backgrounds) restyled
+  from a translucent-white chip to a dark warm-glass fill with a rose-gold
+  rim — the old treatment depended on the (now-lighter) overlay for contrast
+  and had faded out.
+- **`.page-hero`/`.hero-home` given `z-index: 0`** — without it, the hero's
+  own content could out-stack the sticky header's dropdown menus despite the
+  header's much higher `z-index`, because the hero section never established
+  its own stacking context for its children's `z-index` to be contained in.
+- **Bylaw card accent bars** (`BylawsList.astro`) switched from `--olive`
+  (read as near-black at 4px wide) to `--rose-deep`, matching the card's
+  other accents.
+- **Homepage section backgrounds** rebalanced to strictly alternate
+  plain/`section-alt` after inserting the gallery teaser — required also
+  flipping the backgrounds hardcoded inside `HomeSchedulePreview.astro` and
+  `HomeFaqPreview.astro` (both homepage-only) to keep the whole chain
+  consistent.
+- **`/parents` section backgrounds** — `#age-chart-section` and `#faq` were
+  both `section-alt` back to back; rebalanced the whole page to alternate
+  cleanly.
+
+### Note
+
+Section-alternation was only audited for the homepage and `/parents` this
+pass — other pages haven't been checked. See TODO.md.
+
+---
+
 ## [3.7] — 2026-08-09 — Team roster trimmed, officials form, league inbox
 
 ### Changed

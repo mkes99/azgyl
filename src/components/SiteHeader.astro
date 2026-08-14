@@ -31,6 +31,7 @@ const isActive = (href: string) =>
           {resourceNav.map(item => <a href={item.href}>{item.label}</a>)}
         </div>
       </details>
+      <a href="/gallery"    class:list={{ active: isActive('/gallery') }}>Gallery</a>
       <a href="/contact"    class:list={{ active: isActive('/contact') }}>Contact</a>
     </nav>
 
@@ -65,6 +66,7 @@ const isActive = (href: string) =>
           {resourceNav.map(item => <a href={item.href}>{item.label}</a>)}
         </div>
       </details>
+      <a href="/gallery">Gallery</a>
       <a href="/contact">Contact</a>
       <a class="button button-primary mobile-cta" href="/teams">Find My Team</a>
     </div>
