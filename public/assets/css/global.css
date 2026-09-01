@@ -332,7 +332,18 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   transition: background .12s, color .12s;
 }
 .nav-dropdown a:hover { background: rgba(75,76,48,.10); color: var(--olive-deep); }
-.header-actions { display: flex; align-items: center; gap: .75rem; justify-content: flex-end; }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  justify-content: flex-end;
+  /* Pin to the 3rd column explicitly. .desktop-nav (the middle column)
+     is display:none below 960px, which removes it from the grid entirely
+     — without this, auto-placement shifts header-actions into the now-
+     empty middle track, leaving the real 3rd track (and its gap) empty
+     and pushing everything left by one gap-width. */
+  grid-column: 3;
+}
 
 /* Mobile menu */
 .menu-toggle {

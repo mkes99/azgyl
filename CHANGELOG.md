@@ -7,6 +7,27 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.15] — 2026-08-31 — Fix mobile header actions sitting 32px off the right edge
+
+### Fixed
+
+- **The mobile header's CTA + hamburger sat noticeably left of the true
+  right edge** (32px short — one full grid gap). Cause: `.header-inner`
+  uses `grid-template-columns: auto 1fr auto` (brand, nav, actions) sized
+  for 3 grid items, but `.desktop-nav` is `display:none` below 960px,
+  which removes it from the grid entirely — down to 2 real items. With no
+  explicit position set, CSS Grid auto-placement then puts
+  `.header-actions` into the *middle* (nav's) track instead of the
+  intended 3rd one, leaving the real 3rd track — and the gap before it —
+  empty but still reserved, shifting everything left by one gap-width.
+  Fixed with an explicit `grid-column: 3` on `.header-actions`, which also
+  matches what auto-placement already does on desktop (all 3 items
+  present), so there's no desktop behavior change. Verified via
+  `getBoundingClientRect()` before/after at a real 500px viewport: gap
+  from the container's right edge went from 32px to 0px.
+
+---
+
 ## [3.14] — 2026-08-31 — Fix mobile menu "Find My Team" button styling
 
 ### Fixed
