@@ -31,6 +31,16 @@ Open work is tracked in [TODO.md](TODO.md).
   Verified against a local mock CSV server: overriding an existing local
   image, adding one to a venue that had none, and an unrecognized
   `venue_id` failing the build with a clear error.
+- **The doc now commits to Google Drive specifically** rather than just
+  naming the direct-vs-share-link problem and leaving the reader to
+  figure out a source — step-by-step (upload, set sharing to "Anyone with
+  the link," copy the share link, extract the file id, build the
+  `uc?export=view&id=...` URL from it), why Drive over Photos/Dropbox
+  (already have the account for the Sheet itself; the others don't have a
+  reliable direct-link option), and a reminder to test the constructed
+  URL in a browser tab before pasting it in, since the build validates
+  `venue_id` but doesn't fetch the image to confirm the link itself
+  actually works.
 
 ---
 

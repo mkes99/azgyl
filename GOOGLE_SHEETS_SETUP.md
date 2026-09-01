@@ -165,17 +165,43 @@ whatever's hardcoded in `venues.ts` (nothing, usually, until it has one).
 If a venue has both, **the sheet's link wins** — it's treated as the more
 current one.
 
-**The link has to be a direct image URL, not a share-page link.** Most
-"share" links from Google Drive, Google Photos, Dropbox, etc. open a
-viewer page, not the raw image — pasted straight into `<img src>`, they
-just fail to load. For Google Drive specifically, turn a share link into
-a direct one: take the file id out of the share URL (the part between
-`/d/` and `/view`) and use
-`https://drive.google.com/uc?export=view&id=THAT_FILE_ID`. Simplest and
-most reliable, if you have the option: upload the image straight into
-`public/assets/field-maps/` in the codebase instead of using this tab at
-all — no link-format guessing, and it can't go stale if the original
-gets moved or deleted.
+### Where the link comes from: Google Drive
+
+Use **Google Drive** for this — everyone editing the sheet already has a
+Google account for it, so there's nothing new to sign up for, and Drive
+supports a link format that actually works as a direct image URL (unlike
+Google Photos or Dropbox share links — see below).
+
+1. Upload the field-map image to Drive (any folder).
+2. Right-click it → **Share** → under "General access," change it from
+   "Restricted" to **"Anyone with the link"** → set the role to
+   **Viewer**. This step is easy to skip and the image just won't load if
+   you do — a "Restricted" file returns an error page instead of the
+   image no matter what URL format you use.
+3. Click **Copy link**. It looks like:
+   `https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing`
+4. Take the id out of it — the part between `/d/` and `/view` (in the
+   example above, `1AbCdEfGhIjKlMnOpQrStUvWxYz`) — and build the direct
+   link from it:
+   `https://drive.google.com/uc?export=view&id=1AbCdEfGhIjKlMnOpQrStUvWxYz`
+5. **That** URL — not the one Drive's "Copy link" button gives you — is
+   what goes in the `fieldMapUrl` cell.
+6. **Test it before pasting it into the sheet:** open that URL directly
+   in a new browser tab. If it shows just the image on its own (not a
+   Drive page around it), it'll work on the site too. The site's build
+   only checks that `venue_id` is recognized — it doesn't fetch the image
+   itself to confirm the link actually works, so a bad link wouldn't be
+   caught until someone opens the field map and sees it broken.
+
+**Don't use Google Photos or Dropbox for this** — their share links open
+a viewer page rather than serving the raw image, so pasted into an
+`<img>` tag they just fail to load; neither has a reliable direct-link
+option the way Drive does.
+
+If you'd rather skip the public-link workflow entirely: upload the image
+straight into `public/assets/field-maps/` in the codebase instead. No
+link-format steps, and it can't go stale if the Drive file gets moved or
+deleted later — the tradeoff is it needs a developer to do that part.
 
 This tab is **not** part of the same validate → email → deploy flow as
 `Seasons`/`Schedule` (see the Apps Script below) — it's edited rarely and
