@@ -25,9 +25,15 @@ Open work is tracked in [TODO.md](TODO.md).
   (`grid-column: 1 / -1`, still logo-beside-copy since it now has the
   whole row's width to work with) and the three nav columns drop to their
   own row below as `repeat(3, 1fr)`, rather than the previous 2-column
-  collapse. Verified by simulating the breakpoint via injected CSS in a
-  live tab, since the browser automation's window-resize wasn't taking
-  effect on the tab's actual viewport in this environment.
+  collapse.
+- **≤580px breakpoint**: logo and copy now explicitly stack
+  (`.footer-brand-block { flex-direction: column }`), instead of relying
+  on `flex-wrap`'s own width math to decide when to wrap — deterministic
+  on narrow phones rather than contingent on exact content widths.
+  Verified both breakpoints against the real rendered viewport (not just
+  simulated) once the browser automation's window-resize started taking
+  effect on a fresh tab in this environment — 579px showed logo above
+  copy as expected.
 
 ---
 
