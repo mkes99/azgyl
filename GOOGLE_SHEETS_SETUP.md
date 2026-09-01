@@ -1,5 +1,14 @@
 # Google Sheets Setup — Schedule & Season
 
+This is the technical reference — the full picture, including the parts
+that only matter for wiring the integration up or debugging it (the build
+pipeline, exact validation rules, the Apps Script source). If you just
+need to know how to actually fill in games week to week, **`SHEET_ENTRY_GUIDE.md`**
+covers the same tabs and columns in plain language, no technical
+background assumed — that's also what's rendered live at `/admin/setup`
+on the site. This doc and that one describe the same sheet; keep them in
+sync if the column headers or validation rules ever change.
+
 The game schedule *and* the season/tournament shell it belongs to (name, dates,
 which one is currently live) are both managed from one Google Sheet — not
 from code. Update the sheet → the site validates it → if it's clean, the

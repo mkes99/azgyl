@@ -7,6 +7,39 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.23] — 2026-09-01 — Split the sheet docs by audience; sheet-swapping note
+
+### Added
+
+- **New `SHEET_ENTRY_GUIDE.md`** — plain-language, non-technical reference
+  for whoever actually fills in the sheet week to week: the two tabs,
+  column-by-column what to type, the leave-repeated-cells-blank trick,
+  how venue grouping shows up on the site, getting team/venue names
+  right, and the optional `Venues` tab (Google Drive walkthrough
+  included). No mention of the build pipeline, validation internals, code
+  file paths, or anything else that reader has no reason to see.
+  `src/pages/admin/setup.astro` now renders this instead of
+  `GOOGLE_SHEETS_SETUP.md` — that page is meant to be handed to a
+  non-technical end user, so it should only ever show them the end-user
+  doc. (An earlier pass tried removing the technical schema/validation
+  detail from `GOOGLE_SHEETS_SETUP.md` and pointing it at the new guide
+  instead of restating it — reverted: that doc is the technical reference
+  a developer needs when debugging or maintaining the integration, and
+  needed to stay complete on its own. The two docs now cover the same
+  ground for two different readers, cross-referenced, kept in sync
+  manually if the schema changes.)
+- **`README.md`: switching to a different Google Sheet later documented**
+  as what it actually is — a small, isolated change (republish the new
+  sheet's tabs as CSV, swap 2–3 URL constants, commit/push) with one real
+  cost: the Apps Script validator lives inside whichever spreadsheet it
+  was pasted into, so a new sheet needs it re-added and its triggers
+  re-set by hand — everything else (deploy hook, `/valid-values.json`,
+  build-time validation) is sheet-agnostic already. Noted environment
+  variables as the upgrade path if sheet-swapping becomes routine rather
+  than occasional.
+
+---
+
 ## [3.22] — 2026-09-01 — Live admin instructions page at /admin/setup
 
 ### Added

@@ -1,15 +1,20 @@
 ---
-// Renders the repo's GOOGLE_SHEETS_SETUP.md directly — one source of
+// Renders the repo's SHEET_ENTRY_GUIDE.md directly — one source of
 // truth, no content to keep in sync between the repo doc and this page.
-// This page is meant to be gated by Cloudflare Access (see README.md,
-// "Admin instructions page") — noindex below is just a courtesy in case
-// Access isn't configured yet, it isn't the actual protection.
+// Deliberately NOT GOOGLE_SHEETS_SETUP.md — that one's the technical
+// reference (build pipeline, validation internals, Apps Script source)
+// for whoever wires the integration up; this page is purely "how do I
+// fill in the sheet," for whoever manages it day to day and has no
+// reason to see any of that. This page is meant to be gated by
+// Cloudflare Access (see README.md, "Admin instructions page") —
+// noindex below is just a courtesy in case Access isn't configured yet,
+// it isn't the actual protection.
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { Content } from '../../../GOOGLE_SHEETS_SETUP.md';
+import { Content } from '../../../SHEET_ENTRY_GUIDE.md';
 ---
 
 <BaseLayout
-  title="Schedule Setup Instructions | AZGYL"
+  title="Schedule Sheet Guide | AZGYL"
   pathname="/admin/setup"
   noindex={true}
 >
@@ -17,7 +22,7 @@ import { Content } from '../../../GOOGLE_SHEETS_SETUP.md';
     <div class="container">
       <div class="admin-doc-banner">
         <strong>Internal reference.</strong> This page mirrors
-        <code>GOOGLE_SHEETS_SETUP.md</code> in the codebase — it's meant to be
+        <code>SHEET_ENTRY_GUIDE.md</code> in the codebase — it's meant to be
         access-restricted (see the README), not linked from the public site.
       </div>
       <article class="admin-doc prose">

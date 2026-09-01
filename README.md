@@ -62,8 +62,13 @@ npm run build    # ./dist
 
 Games and seasons are **not edited in this codebase** — they live in a
 Google Sheet (two tabs: `Seasons`, `Schedule`), fetched and validated at
-build time by `src/data/schedule.ts`. Full setup and the weekly workflow are
-in **`GOOGLE_SHEETS_SETUP.md`** — start there.
+build time by `src/data/schedule.ts`. Two docs cover it, for two different
+readers: **`GOOGLE_SHEETS_SETUP.md`** is the technical setup (wiring the
+sheet up, the validation internals, the Apps Script) — start there if
+you're setting this up. **`SHEET_ENTRY_GUIDE.md`** is how to actually fill
+in games week to week, written for a non-technical reader — that's what's
+rendered live at `/admin/setup` (see below), and is the one to hand off
+to whoever manages the sheet day to day.
 
 The short version: open the sheet, add/update rows in `Seasons` and
 `Schedule`, save. A script validates the edit and either triggers a
@@ -77,10 +82,25 @@ a backstop — if the sheet's own check somehow lets something bad through,
 the build fails loudly rather than publishing it, and Cloudflare keeps
 serving the last good deploy.
 
+**Switching to a different Google Sheet later is a small, isolated
+change** — it doesn't touch the data model or any of the display logic.
+Publish the new sheet's tabs to web as CSV (same as initial setup), swap
+in the new URLs in `src/data/schedule.ts` (and `src/data/venues.ts` if
+using the `Venues` tab), commit, push. The one thing that **doesn't**
+carry over automatically: the Apps Script validator lives inside the
+specific spreadsheet it was added to (Extensions → Apps Script), so a new
+sheet needs that script pasted in and its triggers re-added — a few
+minutes, but it's manual every time. Everything else (the Cloudflare
+deploy hook, `/valid-values.json`, the site's own build-time validation)
+is sheet-agnostic and needs no changes. If you expect to swap sheets
+often rather than as a one-off, it'd be worth moving those CSV URLs into
+Cloudflare Pages environment variables instead of hardcoded constants —
+ask whoever maintains the codebase if that becomes worth doing.
+
 **`season_id`, `date`, `venue`, and `division` don't need to be retyped on
 every `Schedule` row** — leave any of those cells blank and it inherits
 whatever was in the row above (see "Leave repeated cells blank" in
-`GOOGLE_SHEETS_SETUP.md`). Only the very first row of the tab needs every
+`SHEET_ENTRY_GUIDE.md`). Only the very first row of the tab needs every
 column filled in.
 
 **The homepage shows the next unplayed date from the first active event.** The league page shows all active events (a season and a tournament can both be `active` at once) with their full schedule.
@@ -89,12 +109,15 @@ column filled in.
 
 ## Admin instructions page — `/admin/setup`
 
-`src/pages/admin/setup.astro` renders `GOOGLE_SHEETS_SETUP.md` directly on
+`src/pages/admin/setup.astro` renders `SHEET_ENTRY_GUIDE.md` directly on
 the live site (imports the file straight from the repo root, so there's
 one source of truth — editing the `.md` file updates the page too, nothing
-to keep in sync by hand). It's for whoever manages the schedule sheet day
-to day and doesn't have — or shouldn't need — GitHub access to read the
-raw markdown file.
+to keep in sync by hand). Deliberately the entry guide, not
+`GOOGLE_SHEETS_SETUP.md` — this page is purely "how do I fill in the
+sheet," for whoever manages the schedule day to day and has no reason to
+see the technical setup/validation-internals doc. It's for someone who
+doesn't have — or shouldn't need — GitHub access to read the raw
+markdown file.
 
 **This page is not meant to be public.** It isn't linked from anywhere on
 the site and is marked `noindex` so it won't turn up in search, but that's
@@ -243,8 +266,9 @@ sits within the venue. Two ways to set it:
   the optional `Venues` Sheet tab lets someone paste a link without
   touching code — it overrides whatever's hardcoded here if both exist.
   Full walkthrough (including why it has to be a Drive `uc?export=view`
-  link and not a regular share link) is in `GOOGLE_SHEETS_SETUP.md`,
-  "Venues tab".
+  link and not a regular share link) is in `SHEET_ENTRY_GUIDE.md`,
+  "Venues tab" — same content, more technical framing, is in
+  `GOOGLE_SHEETS_SETUP.md` too.
 
 ---
 
