@@ -357,9 +357,10 @@ this is still being tested, then `develop` and `main` once it's merged),
 each one needs its own hook. Repeat this per branch:
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
-2. Name it `<branch>-deploy` (e.g. `google-sheets-schedule-deploy`,
-   `develop-deploy`, `main-deploy`) — keeps the list readable once
-   there's more than one
+2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-google-sheets-schedule`,
+   `sheets-sync-develop`, `sheets-sync-main`) — names the trigger
+   (this Sheet's Apps Script) and the target together, so the purpose is
+   obvious from the name alone later, not just which branch it points at
 3. Point it at that specific branch
 4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URLS` in the Apps
    Script below, one entry per hook
@@ -390,14 +391,16 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 // ── CONFIG — fill these in ────────────────────────────────────────────────
 // One entry per branch that should rebuild when this sheet changes — each
 // Cloudflare Pages branch needs its own deploy hook (a hook only rebuilds
-// the one branch it was created for). Name each hook <branch>-deploy in
-// the Cloudflare dashboard (e.g. google-sheets-schedule-deploy,
-// develop-deploy, main-deploy) so the list stays readable as more
-// branches pick up this integration. While it's still only wired up on
-// a feature branch, this array has one entry — add more as `develop`
-// and `main` do too, no code changes needed beyond this list.
+// the one branch it was created for). Name each hook sheets-sync-<branch>
+// in the Cloudflare dashboard (e.g. sheets-sync-google-sheets-schedule,
+// sheets-sync-develop, sheets-sync-main) — names the trigger (this
+// Sheet) and the target together, so what each hook is for is obvious
+// from the name alone, not just which branch it points at. While it's
+// still only wired up on a feature branch, this array has one entry —
+// add more as `develop` and `main` do too, no code changes needed
+// beyond this list.
 const DEPLOY_HOOK_URLS  = [
-  'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // google-sheets-schedule-deploy
+  'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // sheets-sync-google-sheets-schedule
 ];
 const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // point at whichever deploy this sheet should validate against
 const FALLBACK_EMAIL    = 'azgirlsyouthlax@gmail.com'; // used only if we can't tell who made the edit
