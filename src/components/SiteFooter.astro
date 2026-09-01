@@ -11,25 +11,29 @@ const footerResourceNav = resourceNav.filter(item =>
 );
 ---
 <footer class="site-footer">
-  <div class="container footer-grid">
-
+  <div class="container footer-brand-row">
     <div class="footer-brand-block">
       <a class="footer-brand" href="/" aria-label="AZGYL home">
         <img src="/assets/brand/logo-transparent.webp" alt="AZGYL — Arizona Girls Youth Lacrosse" width="240" height="250" loading="lazy" />
       </a>
-      <p class="footer-tagline">{siteMeta.tagline}</p>
-      <p>The governing body for girls youth recreational lacrosse across Arizona — grades K through 8.</p>
-      <div class="footer-badge">
-        <span>Est. Arizona</span>
-        <span class="footer-badge-dot">·</span>
-        <span>Grades K–8</span>
-        <span class="footer-badge-dot">·</span>
-        <span>Non-profit</span>
-      </div>
-      <div class="footer-social-wrap">
-        <SocialIcons />
+      <div class="footer-brand-copy">
+        <p class="footer-tagline">{siteMeta.tagline}</p>
+        <p>The governing body for girls youth recreational lacrosse across Arizona — grades K through 8.</p>
+        <div class="footer-badge">
+          <span>Est. Arizona</span>
+          <span class="footer-badge-dot">·</span>
+          <span>Grades K–8</span>
+          <span class="footer-badge-dot">·</span>
+          <span>Non-profit</span>
+        </div>
+        <div class="footer-social-wrap">
+          <SocialIcons />
+        </div>
       </div>
     </div>
+  </div>
+
+  <div class="container footer-grid">
 
     <div>
       <div class="footer-title">Parents</div>
@@ -77,11 +81,27 @@ const footerResourceNav = resourceNav.filter(item =>
     padding-top: 4rem;
     padding-bottom: 0;
   }
+  /* Brand row and nav-link row are deliberately separate grid contexts —
+     the brand block (logo + copy + badge + social) is naturally taller than
+     a short link list, and forcing them into the same grid row left a
+     dead gap under the shorter nav columns. Stacking them as two
+     independently-sized rows means neither has to match the other's
+     height. */
+  .footer-brand-row { padding-bottom: 2.25rem; }
+  .footer-brand-block {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .footer-brand-copy { flex: 1 1 320px; min-width: 260px; }
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 3rem;
+    padding-top: 2.25rem;
     padding-bottom: 3rem;
+    border-top: 1px solid var(--cream-line);
   }
   /* The footer is now the same cream the logo was drawn on, so the mark no
      longer needs its own tile — it sits directly on the background. */
@@ -89,7 +109,6 @@ const footerResourceNav = resourceNav.filter(item =>
     height: 156px;
     width: auto;
     object-fit: contain;
-    margin-bottom: 1rem;
   }
   .footer-tagline {
     font-weight: 600;

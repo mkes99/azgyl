@@ -201,7 +201,6 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .metrics-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.25rem; }
 .team-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.25rem; }
 .leadership-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.25rem; }
-.footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem; }
 
 /* Section header patterns */
 .section-header-clean {
@@ -380,53 +379,12 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 /* ─────────────────────────────────────────────────────────
    5. FOOTER
    ───────────────────────────────────────────────────────── */
-
-.site-footer {
-  background: var(--cream);
-  color: var(--muted);
-  border-top: 1px solid var(--cream-line);
-  padding-top: 4rem;
-}
-.footer-brand-block { display: flex; flex-direction: column; gap: .75rem; }
-.footer-brand img {
-  height: 104px;
-  width: auto;
-  max-width: 300px;
-  object-fit: contain;
-}
-.footer-tagline { font-weight: 600; color: var(--olive-deep); }
-.footer-badge {
-  display: flex; align-items: center; gap: .5rem;
-  font-size: .72rem; color: var(--soft);
-  letter-spacing: .06em; text-transform: uppercase;
-  margin-top: .5rem;
-}
-.footer-badge-dot { color: var(--rose); }
-.footer-title {
-  font-size: .7rem; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
-  color: var(--olive);
-  margin-bottom: 1rem;
-}
-.footer-links { display: grid; gap: .55rem; }
-.footer-links a { color: var(--muted); font-size: .9rem; transition: color .15s; }
-.footer-links a:hover { color: var(--rose-deep); }
-.footer-divider { border: none; border-top: 1px solid var(--cream-line); margin-top: 3rem; }
-.footer-bottom {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 1rem;
-  padding: 1.2rem 0;
-  font-size: .8rem;
-  color: var(--soft);
-}
-.footer-bottom a { color: var(--muted); transition: color .15s; }
-.footer-bottom a:hover { color: var(--rose-deep); }
-.footer-legal {
-  padding-top: 1rem; margin-top: 2rem;
-  border-top: 1px solid var(--cream-line);
-  color: var(--soft);
-  font-size: .82rem;
-}
+/* Footer styling lives entirely in SiteFooter.astro's own scoped <style> —
+   this section intentionally left empty. A stale duplicate copy used to
+   live here (pre-dating that scoped block) and silently fought it on
+   properties the scoped rules didn't happen to redeclare (e.g.
+   flex-direction) — removed 2026-08-31. If you're adding footer styles,
+   they belong in the component, not here. */
 
 /* ─────────────────────────────────────────────────────────
    6. BUTTONS
@@ -1136,7 +1094,6 @@ select { cursor: pointer; }
    ───────────────────────────────────────────────────────── */
 
 @media (max-width: 1080px) {
-  .footer-grid { grid-template-columns: 1fr 1fr; }
   .section-header-clean { grid-template-columns: 1fr; }
 }
 
@@ -1165,7 +1122,5 @@ select { cursor: pointer; }
   .leadership-grid { grid-template-columns: 1fr; }
   .standings-table-shell { display: none; }
   .standings-cards { display: flex; }
-  .footer-grid { grid-template-columns: 1fr; }
-  .footer-bottom { flex-direction: column; align-items: flex-start; gap: .5rem; }
   .hsp-grid { grid-template-columns: 1fr; }
 }

@@ -7,6 +7,40 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.12] — 2026-08-31 — Footer restructure, stale duplicate CSS removed
+
+### Fixed
+
+- **Footer still had a large dead gap under the nav columns after 3.11's
+  fix.** Trimming the Resources column to match Parents' 5 links (3.11)
+  only balanced those two columns *against each other* — it didn't touch
+  the real mismatch, which is the nav columns vs. the brand block (logo +
+  tagline + description + badge + social row), which is inherently taller
+  than a short link list and always will be. Restructured the footer into
+  two independent rows instead of one shared grid row: a brand band up top
+  (logo beside the copy, not stacked above it — `.footer-brand-row` /
+  `.footer-brand-block`) and the three nav-link columns in their own row
+  below (`.footer-grid`, now `repeat(3, 1fr)` instead of the old
+  `1.6fr 1fr 1fr 1fr`). Neither row has to match the other's height, so a
+  short nav list no longer leaves a visible gap.
+- **Found and removed a stale, fully duplicate footer stylesheet in
+  `global.css`** while debugging the restructure — a "5. FOOTER" section
+  (plus a stray `.footer-grid` in the Grids utilities, plus footer rules
+  inside two of its own responsive breakpoints, 1080px/600px, that didn't
+  even match the component's own 960px/580px ones) that pre-dated
+  `SiteFooter.astro` getting its own scoped `<style>` block and was never
+  cleaned up. It silently coexisted with the component's real styles this
+  whole time, only visibly breaking when a scoped rule didn't happen to
+  redeclare a property the stale rule also set — that's exactly what
+  happened here: the stale `.footer-brand-block { flex-direction: column }`
+  won because the new scoped rule set `display/gap/align-items/flex-wrap`
+  but never touched `flex-direction`, so the old value applied uncontested
+  and stacked the logo above the text instead of beside it. Footer styling
+  now lives only in `SiteFooter.astro` — noted in a comment in `global.css`
+  so it doesn't grow back.
+
+---
+
 ## [3.11] — 2026-08-31 — Contact page redesign, footer rebalance, social links made extensible
 
 ### Changed
