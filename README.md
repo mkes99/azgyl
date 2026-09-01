@@ -85,9 +85,9 @@ serving the last good deploy.
 **Switching to a different Google Sheet later is a small, isolated
 change** — it doesn't touch the data model or any of the display logic.
 Publish the new sheet's tabs to web as CSV (same as initial setup), swap
-in the new URLs in `src/data/schedule.ts` (and `src/data/venues.ts` if
-using the `Venues` tab), commit, push. The one thing that **doesn't**
-carry over automatically: the Apps Script validator lives inside the
+in the new URLs in `src/data/schedule.ts`, commit, push. The one thing
+that **doesn't** carry over automatically: the Apps Script validator
+lives inside the
 specific spreadsheet it was added to (Extensions → Apps Script), so a new
 sheet needs that script pasted in and its triggers re-added — a few
 minutes, but it's manual every time. Everything else (the Cloudflare
@@ -262,13 +262,14 @@ sits within the venue. Two ways to set it:
   serves everything under `public/` from the site root, so
   `public/assets/field-maps/mesquite.png` on disk becomes
   `/assets/field-maps/mesquite.png` as a URL.
-- **Public link via the Sheet (no code change, needs Google Drive):**
-  the optional `Venues` Sheet tab lets someone paste a link without
-  touching code — it overrides whatever's hardcoded here if both exist.
-  Full walkthrough (including why it has to be a Drive `uc?export=view`
-  link and not a regular share link) is in `SHEET_ENTRY_GUIDE.md`,
-  "Venues tab" — same content, more technical framing, is in
-  `GOOGLE_SHEETS_SETUP.md` too.
+- **Public link via the Sheet (no code change, needs Google Drive):** an
+  optional `fieldMapUrl` column on the `Schedule` tab (same row where
+  `venue` is first given for a block, so it fills down with it) lets
+  someone paste a link without touching code — it overrides whatever's
+  hardcoded here if both exist. Full walkthrough (including why it has to
+  be a Drive `uc?export=view` link and not a regular share link) is in
+  `SHEET_ENTRY_GUIDE.md`, "Adding a field-layout picture" — same content,
+  more technical framing, is in `GOOGLE_SHEETS_SETUP.md` too.
 
 ---
 

@@ -81,7 +81,7 @@ spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
 ## Step 3 — `Schedule` tab headers (Row 1, exact spelling)
 
 ```
-season_id | date | time | arrival | home | away | division | venue | field | notes
+season_id | date | time | arrival | home | away | division | venue | field | notes | fieldMapUrl
 ```
 
 | Column | Notes |
@@ -95,35 +95,44 @@ season_id | date | time | arrival | home | away | division | venue | field | not
 | `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
 | `field` | Plain text — whatever that venue actually calls it, e.g. `Field 1`, `Field 3`, `Chuparosa Field`. Not validated against any list, since different venues label their fields differently. |
 | `notes` | Optional — e.g. `Senior night`. Leave blank if not needed. |
+| `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. See "Adding a field-map picture" below — it has to be a specific kind of link or it won't show up. |
 
 Example row:
 ```
-spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day
+spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day |
 ```
 
 ### Leave repeated cells blank
 
-`season_id`, `date`, `venue`, and `division` don't need to be retyped on
-every row. Leave any of those cells blank and it picks up whatever was in
-the row above it — so a Saturday's worth of games at one venue only needs
-that venue (and that date, and that season) typed once, at the top of the
-block:
+`season_id`, `date`, `venue`, `division`, and `fieldMapUrl` don't need to
+be retyped on every row. Leave any of those cells blank and it picks up
+whatever was in the row above it — so a Saturday's worth of games at one
+venue only needs that venue (and that date, season, and field-map link)
+typed once, at the top of the block:
 
 ```
-season_id   | date       | time     | home       | away          | division | venue    | field    | notes
-spring-2026 | 2026-02-07 | 8:00 AM  | Diamonds   | Vipers        | 8U       | mesquite | Field 2  | Opening day
-            |            | 8:45 AM  | Hawks      | Hotshots      |          |          | Field 2  |
-            |            | 9:30 AM  | Sol Sisters| Oro Valley    | 10U      |          | Field 1  |
-            |            | 10:15 AM | Tukee Lightning | Chandler Lax |     |          | Field 1  |
+season_id   | date       | time     | home       | away          | division | venue    | field    | notes       | fieldMapUrl
+spring-2026 | 2026-02-07 | 8:00 AM  | Diamonds   | Vipers        | 8U       | mesquite | Field 2  | Opening day | https://drive.google.com/uc?export=view&id=...
+            |            | 8:45 AM  | Hawks      | Hotshots      |          |          | Field 2  |             |
+            |            | 9:30 AM  | Sol Sisters| Oro Valley    | 10U      |          | Field 1  |             |
+            |            | 10:15 AM | Tukee Lightning | Chandler Lax |     |          | Field 1  |             |
 ```
 
-That's 4 games with the venue, date, and season typed once instead of
-four times each. This also matches how a vertically-merged range of cells
-actually exports to CSV (Sheets puts the value in the top cell of the
-merge and leaves the rest blank), so it works equally well if you'd
-rather select those cells and merge them for a cleaner look in the sheet
-itself. Only the very first row of the whole tab needs every column
-filled in — there's nothing above it to inherit from.
+That's 4 games with the venue, date, season, and field-map link typed
+once instead of four times each. This also matches how a
+vertically-merged range of cells actually exports to CSV (Sheets puts the
+value in the top cell of the merge and leaves the rest blank), so it
+works equally well if you'd rather select those cells and merge them for
+a cleaner look in the sheet itself. Only the very first row of the whole
+tab needs every column filled in — there's nothing above it to inherit
+from.
+
+`division` and `fieldMapUrl` specifically only fill down **within** a
+block — the moment a row gives its own `venue` or `date` (starting a new
+block), both reset, so a venue with no field-map link never accidentally
+shows the previous block's picture. `season_id`, `date`, and `venue`
+themselves aren't scoped this way — they keep inheriting across as many
+rows as you leave blank, same as always.
 
 ### How games get grouped by venue on the site
 
@@ -149,37 +158,19 @@ valid team name, division, and venue id. This is the same list the
 validator checks against, so if a name isn't in that file, the sheet will
 reject it.
 
----
+### Adding a field-map picture
 
-## Step 3½ — `Venues` tab (optional — field-map links only)
+`src/data/venues.ts` can already have a field-map picture hardcoded for a
+venue — that's the reliable, permanent default. `fieldMapUrl` on a
+Schedule row is a narrow override: it lets someone add or swap a picture
+for that block without a code change. If a game has both, **the sheet's
+link wins**. If it has neither, no "Field map" button shows up for that
+venue — nothing breaks.
 
-Everything about a venue (name, address, map link, notes) lives in
-`src/data/venues.ts` and needs a code change to update — that's the
-reliable, permanent source. This tab is a narrow exception, **only** for
-the "Field map" image link, so someone can add or swap one without
-touching code:
-
-```
-venue_id | fieldMapUrl
-```
-
-| Column | Notes |
-|---|---|
-| `venue_id` | Must match an id in `src/data/venues.ts`. |
-| `fieldMapUrl` | A direct link to an image. **Not** a share-page link — see the caveat below. |
-
-Only add a row for a venue you're actually giving a link to — a venue
-with no row here (or a row with a blank `fieldMapUrl`) just keeps
-whatever's hardcoded in `venues.ts` (nothing, usually, until it has one).
-If a venue has both, **the sheet's link wins** — it's treated as the more
-current one.
-
-### Where the link comes from: Google Drive
-
-Use **Google Drive** for this — everyone editing the sheet already has a
-Google account for it, so there's nothing new to sign up for, and Drive
-supports a link format that actually works as a direct image URL (unlike
-Google Photos or Dropbox share links — see below).
+**Use Google Drive for the link** — everyone editing the sheet already
+has a Google account for it, and Drive supports a link format that
+actually works as a direct image URL (Google Photos and Dropbox share
+links don't — they open a viewer page instead of serving the raw image).
 
 1. Upload the field-map image to Drive (any folder).
 2. Right-click it → **Share** → under "General access," change it from
@@ -198,57 +189,38 @@ Google Photos or Dropbox share links — see below).
 6. **Test it before pasting it into the sheet:** open that URL directly
    in a new browser tab. If it shows just the image on its own (not a
    Drive page around it), it'll work on the site too. The site's build
-   only checks that `venue_id` is recognized — it doesn't fetch the image
-   itself to confirm the link actually works, so a bad link wouldn't be
-   caught until someone opens the field map and sees it broken.
+   doesn't fetch the image itself to confirm the link actually works, so
+   a bad link wouldn't be caught until someone opens the field map and
+   sees it broken.
 
-**Don't use Google Photos or Dropbox for this** — their share links open
-a viewer page rather than serving the raw image, so pasted into an
-`<img>` tag they just fail to load; neither has a reliable direct-link
-option the way Drive does.
-
-If you'd rather skip the public-link workflow entirely: upload the image
-straight into `public/assets/field-maps/` in the codebase instead. No
-link-format steps, and it can't go stale if the Drive file gets moved or
-deleted later — the tradeoff is it needs a developer to do that part.
-
-This tab is **not** part of the same validate → email → deploy flow as
-`Seasons`/`Schedule` (see the Apps Script below) — it's edited rarely and
-a bad link is low-stakes (a broken image, not broken game data), so it's
-just checked at build time like everything else: an unrecognized
-`venue_id` fails the build with a clear error and Cloudflare keeps
-serving the last good deploy, same as any other bad data.
+If you'd rather skip the link workflow entirely for a given venue:
+upload the image straight into `public/assets/field-maps/` in the
+codebase instead, and set it on that venue in `venues.ts`. No link-format
+steps, and it can't go stale — the tradeoff is it needs a developer to do
+that part.
 
 ---
 
-## Step 4 — Publish all tabs to the web as CSV
+## Step 4 — Publish both tabs to the web as CSV
 
-For **each** tab you're using (`Seasons`, `Schedule`, and `Venues` if
-you're using it):
+For **each** tab (`Seasons`, then `Schedule`):
 
 1. File → Share → Publish to web
 2. Under "Link", choose the specific sheet tab (not "Entire document")
 3. Choose **Comma-separated values (.csv)**
 4. Click **Publish**, copy the URL
 
-You'll get one URL per tab.
+You'll get two different URLs, one per tab.
 
 ---
 
-## Step 5 — Add the CSV URL(s) to the codebase
+## Step 5 — Add the CSV URLs to the codebase
 
 Open `src/data/schedule.ts` and fill in:
 
 ```ts
 const SEASONS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
 const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
-```
-
-If you set up the optional `Venues` tab, also open `src/data/venues.ts`
-and fill in:
-
-```ts
-const VENUES_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
 ```
 
 Commit and push. This is a one-time step — after this, the sheet is the only
@@ -317,7 +289,7 @@ function processPendingEdit() {
 function validateAndDeploy(editorEmail) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const seasonRows = readTab(ss, 'Seasons');
-  const gameRows   = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division']);
+  const gameRows   = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division', 'fieldMapUrl']);
   const valid      = fetchValidValues();
   const errors     = validateData(seasonRows, gameRows, valid);
 
@@ -363,10 +335,20 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — must match src/data/schedule.ts's fillDown()
 // exactly, since this is what lets someone leave season_id/date/venue/
-// division blank on a block of rows instead of retyping them every time.
+// division/fieldMapUrl blank on a block of rows instead of retyping them
+// every time. `division`/`fieldMapUrl` are block-scoped: a row that
+// explicitly gives its own venue or date starts a new block, and neither
+// should reach back into the PREVIOUS block for a value it left blank —
+// otherwise a mixed-venue day, or a venue with no field-map link, can
+// silently inherit the wrong block's value.
+var BLOCK_SCOPED_COLUMNS = ['division', 'fieldMapUrl'];
+
 function fillDown(rows, columns) {
   const last = {};
   return rows.map(row => {
+    if (row.venue || row.date) {
+      BLOCK_SCOPED_COLUMNS.forEach(function (col) { delete last[col]; });
+    }
     const filled = Object.assign({}, row);
     columns.forEach(col => {
       if (filled[col]) last[col] = filled[col];

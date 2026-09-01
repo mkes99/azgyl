@@ -7,6 +7,51 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.24] — 2026-09-01 — fieldMapUrl moved onto the Schedule row; fillDown block-scoping fix
+
+### Changed
+
+- **`fieldMapUrl` moved off the separate `Venues` tab and onto the
+  `Schedule` tab itself**, on the same row where `venue` is first given
+  for a block — replacing 3.21's Venues-tab mechanism entirely.
+  `src/data/venues.ts` reverted to a plain hardcoded array (no
+  `VENUES_CSV_URL` fetch); `Game` in `schedule.ts` gained an optional
+  `fieldMapUrl`, included in `fillDown()`'s columns; `LeagueSchedule.astro`
+  now resolves the field-map link as the game's own value, falling back
+  to the venue's hardcoded default. `GOOGLE_SHEETS_SETUP.md`,
+  `SHEET_ENTRY_GUIDE.md`, `SHEET_SEED_DATA.md`, and `README.md` all
+  updated — Step 3½ removed, its content folded into Step 3.
+
+### Fixed
+
+- **`fillDown()` could leak a value across a venue/date boundary it had
+  no business crossing** — found live while testing the change above: a
+  Naranja Park row with a blank `fieldMapUrl`, sitting right after a
+  Mesquite block that had one, silently inherited Mesquite's field-map
+  link. `fillDown()` tracked each column's last-seen value completely
+  independently, with no idea that `venue` changing on a row means every
+  *other* blank column on that row belongs to a new block too — not the
+  previous one. `division` and `fieldMapUrl` are now block-scoped: any
+  row that explicitly gives its own `venue` or `date` resets both, so a
+  venue with no field-map link (or a division-block boundary) can no
+  longer silently wear the previous block's value. `season_id`, `date`,
+  and `venue` themselves are unaffected — they keep inheriting exactly as
+  before. Ported identically into the Apps Script's `fillDown()`, same as
+  every fill-down column so far — the two have to stay in lockstep or the
+  sheet-side check accepts or rejects rows the build wouldn't agree with.
+  Verified with the exact reproducing case (fixed) and a regression case
+  (division still changes correctly mid-block, unaffected by the fix).
+- This also directly informed the answer to a bigger question raised in
+  conversation — as the `Schedule` tab grows across seasons (realistically
+  into the hundreds to 1000+ rows over a couple of years), this exact
+  failure shape gets harder to catch by eye. Recommended (not yet
+  implemented): archive a season's rows out of the live tab once it ends,
+  since the site only ever renders `active` seasons anyway — historical
+  rows currently do nothing but get fetched, parsed, and validated on
+  every build for zero display benefit.
+
+---
+
 ## [3.23] — 2026-09-01 — Split the sheet docs by audience; sheet-swapping note
 
 ### Added

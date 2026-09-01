@@ -11,7 +11,7 @@
 //                 'tournament'. `active` is TRUE/FALSE — TRUE means it
 //                 shows on the homepage and /league.
 //
-//   Schedule tab: season_id | date | time | arrival | home | away | division | venue | field | notes
+//   Schedule tab: season_id | date | time | arrival | home | away | division | venue | field | notes | fieldMapUrl
 //                 One row per game. `season_id` must match a Seasons row's
 //                 `season_id` — same column name in both tabs on purpose,
 //                 so the relationship between the two is obvious at a
@@ -21,20 +21,23 @@
 //                 together on the site. `field` is plain, unvalidated
 //                 text — whatever that venue calls it ("Field 1",
 //                 "Chuparosa Field") — since different venues label their
-//                 fields differently. `arrival`/`notes` are optional —
-//                 leave the cell blank.
+//                 fields differently. `arrival`/`notes`/`fieldMapUrl` are
+//                 optional — leave the cell blank. `fieldMapUrl` overrides
+//                 the venue's hardcoded field-map image (see venues.ts) —
+//                 typed on the same row where `venue` is first set for a
+//                 block, so it fills down along with it.
 //
-//                 `season_id`, `date`, `venue`, and `division` don't need
-//                 to be retyped on every row — leave any of those blank
-//                 and it inherits whatever was in the row above (see
-//                 fillDown() below). This matches how vertically-merged
-//                 Sheet cells actually export to CSV (the value only
-//                 lands in the top row of the merge, blank cells for the
-//                 rest of it), so it works whether someone types a block
-//                 of games with those cells left blank or actually merges
-//                 the cells in the sheet. Only the very first row needs
-//                 every column filled in — there's nothing to inherit
-//                 from above it.
+//                 `season_id`, `date`, `venue`, `division`, and
+//                 `fieldMapUrl` don't need to be retyped on every row —
+//                 leave any of those blank and it inherits whatever was in
+//                 the row above (see fillDown() below). This matches how
+//                 vertically-merged Sheet cells actually export to CSV
+//                 (the value only lands in the top row of the merge, blank
+//                 cells for the rest of it), so it works whether someone
+//                 types a block of games with those cells left blank or
+//                 actually merges the cells in the sheet. Only the very
+//                 first row needs every column filled in — there's nothing
+//                 to inherit from above it.
 //
 // Both tabs are edited together, in the same sitting, in the same sheet.
 //
@@ -74,6 +77,7 @@ export interface Game {
   venue:    string;   // venue id from venues.ts — drives address/map/notes/field-map, and grouping
   field:    string;   // plain text field label at that venue — 'Field 1', 'Chuparosa Field', etc.
   notes?:   string;
+  fieldMapUrl?: string; // optional — overrides the venue's hardcoded field-map image for this game
 }
 
 export interface ScheduleEvent {
@@ -107,9 +111,24 @@ async function fetchCSV(url: string, label: string): Promise<Record<string, stri
 // without repeating that value on every single row. Row order and count
 // are untouched, so row-number-based error messages below still line up
 // with the actual sheet.
+//
+// `division` and `fieldMapUrl` are block-scoped to venue/date: whenever a
+// row explicitly gives its own venue or date (rather than leaving them
+// blank to inherit), that's a new block starting, and neither should
+// reach back into the PREVIOUS block for a value it left blank — that's
+// how a mixed-venue day (new venue, same date, different games) or a
+// venue that just doesn't have a field-map link ends up silently wearing
+// the last block's, instead of correctly having none. `season_id`,
+// `date`, and `venue` themselves keep inheriting exactly as before; only
+// the two that are meant to reset at each new block are scoped.
+const BLOCK_SCOPED_COLUMNS = ['division', 'fieldMapUrl'];
+
 function fillDown(rows: Record<string, string>[], columns: string[]): Record<string, string>[] {
   const last: Record<string, string> = {};
   return rows.map(row => {
+    if (row.venue || row.date) {
+      for (const col of BLOCK_SCOPED_COLUMNS) delete last[col];
+    }
     const filled = { ...row };
     for (const col of columns) {
       if (filled[col]) last[col] = filled[col];
@@ -125,7 +144,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
   const validDivisions = new Set(teams.flatMap(t => t.divisions));
   const venueIds = new Set(venues.map(v => v.id));
 
-  gameRows = fillDown(gameRows, ['season_id', 'date', 'venue', 'division']);
+  gameRows = fillDown(gameRows, ['season_id', 'date', 'venue', 'division', 'fieldMapUrl']);
 
   const events = new Map<string, ScheduleEvent>();
 
@@ -181,6 +200,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
       venue: row.venue,
       field: row.field,
       notes: row.notes || undefined,
+      fieldMapUrl: row.fieldMapUrl || undefined,
     });
   });
 

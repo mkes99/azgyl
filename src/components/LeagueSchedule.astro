@@ -28,7 +28,10 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   const venueAddress = (id: string) => getVenueById(id)?.address ?? '';
   const mapUrl        = (id: string) => getVenueById(id)?.mapUrl ?? '#';
   const venueNote     = (id: string) => getVenueById(id)?.notes ?? '';
-  const venueMapImg   = (id: string) => getVenueById(id)?.fieldMapUrl ?? '';
+  // `override` is a game's own fieldMapUrl, typed on the sheet alongside
+  // `venue` and filled down the same block — wins over the hardcoded
+  // venues.ts value when present, since it's the more current one.
+  const venueMapImg   = (id: string, override?: string) => override || getVenueById(id)?.fieldMapUrl || '';
 
   return { games, dates, divisions, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO };
 }
@@ -145,8 +148,8 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                       <a class="sched-day-venue" href={mapUrl(group.venue)} target="_blank" rel="noreferrer">
                         {venueName(group.venue)}
                       </a>
-                      {venueMapImg(group.venue) && (
-                        <a class="sched-day-fieldmap" href={venueMapImg(group.venue)} target="_blank" rel="noreferrer">
+                      {venueMapImg(group.venue, group.games[0]?.fieldMapUrl) && (
+                        <a class="sched-day-fieldmap" href={venueMapImg(group.venue, group.games[0]?.fieldMapUrl)} target="_blank" rel="noreferrer">
                           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M7 3.5 3 5v11.5l4-1.5 6 2 4-1.5V4l-4 1.5-6-2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
                             <path d="M7 3.5v11.5M13 5.5V17" stroke="currentColor" stroke-width="1.4"/>

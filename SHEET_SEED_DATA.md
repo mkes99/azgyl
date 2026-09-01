@@ -40,47 +40,47 @@ spring-2026	Spring 2026	season	TRUE	2026-02-07	2026-04-11
 ## Schedule sheet — `Schedule` tab
 
 ```
-season_id	date	time	arrival	home	away	division	venue	field	notes
-spring-2026	2026-02-07	9:00 AM	8:30 AM	Diamonds	Vipers	8U	mesquite	Field 1	Opening day
-		9:00 AM	8:30 AM	Hawks	Hotshots			Field 1	
-		9:45 AM	9:15 AM	Sol Sisters	Oro Valley	10U		Field 1	
-		9:45 AM	9:15 AM	Tukee Lightning	Chandler Lax			Field 1	
-		10:30 AM	10:00 AM	Diamonds	Hawks	12U		Field 1	
-		10:30 AM	10:00 AM	East Valley Bullets	Vipers			Field 1	
-		11:15 AM	10:45 AM	Hotshots	Tukee Lightning	14U		Field 1	
-		11:15 AM	10:45 AM	Chandler Lax	Sol Sisters			Field 1	
-	2026-02-14	9:00 AM	8:30 AM	Hawks	Diamonds	8U	naranja-park	Field 4	
-		9:00 AM	8:30 AM	Hotshots	Vipers			Field 4	
-		9:45 AM	9:15 AM	Oro Valley	Tukee Lightning	10U		Field 4	
-		9:45 AM	9:15 AM	Chandler Lax	Sol Sisters			Field 4	
-		10:30 AM	10:00 AM	Hawks	East Valley Bullets	12U		Field 4	
-		10:30 AM	10:00 AM	Vipers	Diamonds			Field 4	
-		11:15 AM	10:45 AM	Tukee Lightning	Chandler Lax	14U		Field 4	
-		11:15 AM	10:45 AM	Sol Sisters	Hotshots			Field 4	
-	2026-02-21	9:00 AM	8:30 AM	Vipers	Hawks	8U	mesquite	Field 3	
-		9:00 AM	8:30 AM	Diamonds	Hotshots			Field 3	
-		9:45 AM	9:15 AM	Sol Sisters	Tukee Lightning	10U		Field 3	
-		9:45 AM	9:15 AM	Oro Valley	Chandler Lax			Field 3	
-		10:30 AM	10:00 AM	Diamonds	East Valley Bullets	12U		Field 3	
-		10:30 AM	10:00 AM	Hawks	Vipers			Field 3	Rescheduled from 2/14
-		11:15 AM	10:45 AM	Hotshots	Chandler Lax	14U		Field 3	Picture day — arrive 30 min early
-		11:15 AM	10:45 AM	Tukee Lightning	Sol Sisters			Field 3	
-	2026-02-28	9:00 AM	8:30 AM	Hawks	Vipers	8U	chuparosa	Chuparosa Field	
-		9:00 AM	8:30 AM	Hotshots	Diamonds			Chuparosa Field	
-		9:45 AM	9:15 AM	Chandler Lax	Oro Valley	10U		Chuparosa Field	
-		9:45 AM	9:15 AM	Tukee Lightning	Sol Sisters			Chuparosa Field	Makeup game
-		10:30 AM	10:00 AM	East Valley Bullets	Hawks	12U		Chuparosa Field	
-		10:30 AM	10:00 AM	Vipers	Diamonds			Chuparosa Field	
-		11:15 AM	10:45 AM	Sol Sisters	Tukee Lightning	14U		Chuparosa Field	
-		11:15 AM	10:45 AM	Chandler Lax	Hotshots			Chuparosa Field	Senior night
-	2026-03-07	9:00 AM	8:30 AM	Diamonds	Hawks	8U	mohave	Mohave	
-		9:00 AM	8:30 AM	Vipers	Hotshots			Mohave	Bring extra water — high heat forecast
-		9:45 AM	9:15 AM	Oro Valley	Sol Sisters	10U		Mohave	
-		9:45 AM	9:15 AM	Chandler Lax	Tukee Lightning			Mohave	
-		10:30 AM	10:00 AM	Hawks	Diamonds	12U		Mohave	
-		10:30 AM	10:00 AM	East Valley Bullets	Vipers			Mohave	
-		11:15 AM	10:45 AM	Tukee Lightning	Hotshots	14U		Mohave	
-		11:15 AM	10:45 AM	Sol Sisters	Chandler Lax			Mohave	Regular season finale
+season_id	date	time	arrival	home	away	division	venue	field	notes	fieldMapUrl
+spring-2026	2026-02-07	9:00 AM	8:30 AM	Diamonds	Vipers	8U	mesquite	Field 1	Opening day	
+		9:00 AM	8:30 AM	Hawks	Hotshots			Field 1		
+		9:45 AM	9:15 AM	Sol Sisters	Oro Valley	10U		Field 1		
+		9:45 AM	9:15 AM	Tukee Lightning	Chandler Lax			Field 1		
+		10:30 AM	10:00 AM	Diamonds	Hawks	12U		Field 1		
+		10:30 AM	10:00 AM	East Valley Bullets	Vipers			Field 1		
+		11:15 AM	10:45 AM	Hotshots	Tukee Lightning	14U		Field 1		
+		11:15 AM	10:45 AM	Chandler Lax	Sol Sisters			Field 1		
+	2026-02-14	9:00 AM	8:30 AM	Hawks	Diamonds	8U	naranja-park	Field 4		
+		9:00 AM	8:30 AM	Hotshots	Vipers			Field 4		
+		9:45 AM	9:15 AM	Oro Valley	Tukee Lightning	10U		Field 4		
+		9:45 AM	9:15 AM	Chandler Lax	Sol Sisters			Field 4		
+		10:30 AM	10:00 AM	Hawks	East Valley Bullets	12U		Field 4		
+		10:30 AM	10:00 AM	Vipers	Diamonds			Field 4		
+		11:15 AM	10:45 AM	Tukee Lightning	Chandler Lax	14U		Field 4		
+		11:15 AM	10:45 AM	Sol Sisters	Hotshots			Field 4		
+	2026-02-21	9:00 AM	8:30 AM	Vipers	Hawks	8U	mesquite	Field 3		
+		9:00 AM	8:30 AM	Diamonds	Hotshots			Field 3		
+		9:45 AM	9:15 AM	Sol Sisters	Tukee Lightning	10U		Field 3		
+		9:45 AM	9:15 AM	Oro Valley	Chandler Lax			Field 3		
+		10:30 AM	10:00 AM	Diamonds	East Valley Bullets	12U		Field 3		
+		10:30 AM	10:00 AM	Hawks	Vipers			Field 3	Rescheduled from 2/14	
+		11:15 AM	10:45 AM	Hotshots	Chandler Lax	14U		Field 3	Picture day — arrive 30 min early	
+		11:15 AM	10:45 AM	Tukee Lightning	Sol Sisters			Field 3		
+	2026-02-28	9:00 AM	8:30 AM	Hawks	Vipers	8U	chuparosa	Chuparosa Field		
+		9:00 AM	8:30 AM	Hotshots	Diamonds			Chuparosa Field		
+		9:45 AM	9:15 AM	Chandler Lax	Oro Valley	10U		Chuparosa Field		
+		9:45 AM	9:15 AM	Tukee Lightning	Sol Sisters			Chuparosa Field	Makeup game	
+		10:30 AM	10:00 AM	East Valley Bullets	Hawks	12U		Chuparosa Field		
+		10:30 AM	10:00 AM	Vipers	Diamonds			Chuparosa Field		
+		11:15 AM	10:45 AM	Sol Sisters	Tukee Lightning	14U		Chuparosa Field		
+		11:15 AM	10:45 AM	Chandler Lax	Hotshots			Chuparosa Field	Senior night	
+	2026-03-07	9:00 AM	8:30 AM	Diamonds	Hawks	8U	mohave	Mohave		
+		9:00 AM	8:30 AM	Vipers	Hotshots			Mohave	Bring extra water — high heat forecast	
+		9:45 AM	9:15 AM	Oro Valley	Sol Sisters	10U		Mohave		
+		9:45 AM	9:15 AM	Chandler Lax	Tukee Lightning			Mohave		
+		10:30 AM	10:00 AM	Hawks	Diamonds	12U		Mohave		
+		10:30 AM	10:00 AM	East Valley Bullets	Vipers			Mohave		
+		11:15 AM	10:45 AM	Tukee Lightning	Hotshots	14U		Mohave		
+		11:15 AM	10:45 AM	Sol Sisters	Chandler Lax			Mohave	Regular season finale	
 ```
 
 40 games, 5 weeks (Feb 7 – Mar 7), all 4 divisions, all 9 current teams —

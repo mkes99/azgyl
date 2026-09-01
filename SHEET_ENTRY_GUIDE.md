@@ -19,9 +19,6 @@ website itself.
   season.
 - **Schedule** — one row per game. This is the one you'll update most.
 
-(There's also an optional **Venues** tab for adding photos of field
-layouts — see near the bottom.)
-
 ---
 
 ## Seasons tab
@@ -53,7 +50,7 @@ spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
 Row 1 needs these column names, spelled exactly like this:
 
 ```
-season_id | date | time | arrival | home | away | division | venue | field | notes
+season_id | date | time | arrival | home | away | division | venue | field | notes | fieldMapUrl
 ```
 
 | Column | What to put there |
@@ -64,35 +61,38 @@ season_id | date | time | arrival | home | away | division | venue | field | not
 | `arrival` | When teams should arrive/warm up — e.g. `9:00 AM`. Leave the cell empty if you don't need this. |
 | `home` / `away` | The two teams playing — type the team name exactly as it appears on the website (see "Getting names right," below). |
 | `division` | The age division — `8U`, `10U`, `12U`, or `14U`. |
-| `venue` | Which park/school this game is at — see "Venues," below, for the exact names to use. |
+| `venue` | Which park/school this game is at — see "Getting names right," below, for the exact names to use. |
 | `field` | Whichever specific field it's on, in whatever words that venue actually uses — `Field 1`, `Field 3`, `Chuparosa Field`. There's no fixed list for this one — type whatever the venue calls it. |
 | `notes` | Anything worth flagging about this specific game — `Senior night`, `Picture day — arrive 30 min early`. Leave empty if there's nothing to add. |
+| `fieldMapUrl` | Optional — a link to a picture of where the fields are at that venue. Leave empty if there's nothing to add. See "Adding a field-layout picture," below. |
 
 Example:
 ```
-spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day
+spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day |
 ```
 
 ---
 
 ## Save yourself the retyping
 
-You don't need to retype the season, date, venue, or division on every
-single row — if a cell is left blank, it just uses whatever was in the
-row above it. So a whole Saturday's worth of games at one park only needs
-that park (and that date, and that season) typed once, at the very top:
+You don't need to retype the season, date, venue, division, or
+field-layout picture link on every single row — if a cell is left blank,
+it just uses whatever was in the row above it. So a whole Saturday's
+worth of games at one park only needs that park (and that date, season,
+and picture link) typed once, at the very top:
 
 ```
-season_id   | date       | time     | home        | away          | division | venue    | field   | notes
-spring-2026 | 2026-02-07 | 8:00 AM  | Diamonds    | Vipers        | 8U       | mesquite | Field 2 | Opening day
-            |            | 8:45 AM  | Hawks       | Hotshots      |          |          | Field 2 |
-            |            | 9:30 AM  | Sol Sisters | Oro Valley    | 10U      |          | Field 1 |
-            |            | 10:15 AM | Tukee Lightning | Chandler Lax |     |          | Field 1 |
+season_id   | date       | time     | home        | away          | division | venue    | field   | notes       | fieldMapUrl
+spring-2026 | 2026-02-07 | 8:00 AM  | Diamonds    | Vipers        | 8U       | mesquite | Field 2 | Opening day | https://drive.google.com/uc?export=view&id=...
+            |            | 8:45 AM  | Hawks       | Hotshots      |          |          | Field 2 |             |
+            |            | 9:30 AM  | Sol Sisters | Oro Valley    | 10U      |          | Field 1 |             |
+            |            | 10:15 AM | Tukee Lightning | Chandler Lax |     |          | Field 1 |             |
 ```
 
-That's four games where the venue, date, and season only had to be typed
-once. This works exactly the same if you'd rather select those cells and
-merge them in the sheet for a tidier look — either way is fine.
+That's four games where the venue, date, season, and picture link only
+had to be typed once. This works exactly the same if you'd rather select
+those cells and merge them in the sheet for a tidier look — either way is
+fine.
 
 The only row that needs every column filled in is the very first row of
 the whole tab — there's nothing above that one to copy from.
@@ -129,21 +129,15 @@ the spelling straight from there if you're not sure.
 
 ---
 
-## Venues tab (optional) — adding a field-layout picture
+## Adding a field-layout picture
 
 If a park has multiple fields and it'd help to show people a picture of
-where each one is, you can add that here. This tab only needs a row for
-venues you're actually adding a picture for — most venues won't need one.
-
-Row 1:
-```
-venue_id | fieldMapUrl
-```
-
-| Column | What to put there |
-|---|---|
-| `venue_id` | The short venue name — the same one you use in the `venue` column on the Schedule tab (e.g. `mesquite`). |
-| `fieldMapUrl` | A link to the picture. See the steps below — it has to be set up a specific way or the picture won't show. |
+where each one is, add the link in the `fieldMapUrl` column on the
+Schedule tab, on the same row where you first type that venue for a
+block — it'll fill down with the rest of that block automatically (see
+"Save yourself the retyping," above). Most venues won't need one — leave
+the cell empty and no "Field map" button shows up for that venue,
+nothing breaks.
 
 ### Getting a picture link from Google Drive
 
