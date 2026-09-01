@@ -18,7 +18,12 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   // Current week = soonest game date on or after today.
   // Falls back to last date when season is over.
   const currentDate = dates.find(d => d >= todayISO) ?? dates[dates.length - 1];
-  const seasonOver  = dates.every(d => d < todayISO);
+  // `dates.every(...)` on an empty array is vacuously true in JS — an
+  // active event with zero games (Schedule tab has a season row but no
+  // game rows yet, or every game row failed to parse) would otherwise
+  // read as "season complete" instead of "nothing scheduled yet". Those
+  // are different states and shouldn't share a banner.
+  const seasonOver  = dates.length > 0 && dates.every(d => d < todayISO);
 
   const fmtDate     = (iso: string) =>
     new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
@@ -27,11 +32,12 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   const venueName    = (id: string) => getVenueById(id)?.name ?? id;
   const venueAddress = (id: string) => getVenueById(id)?.address ?? '';
   const mapUrl        = (id: string) => getVenueById(id)?.mapUrl ?? '#';
-  const venueNote     = (id: string) => getVenueById(id)?.notes ?? '';
-  // `override` is a game's own fieldMapUrl, typed on the sheet alongside
-  // `venue` and filled down the same block — wins over the hardcoded
-  // venues.ts value when present, since it's the more current one.
+  // `override` is a game's own fieldMapUrl/venueNotes, typed on the sheet
+  // alongside `venue` and filled down the same block — wins over the
+  // hardcoded venues.ts value when present, since it's the more current
+  // one.
   const venueMapImg   = (id: string, override?: string) => override || getVenueById(id)?.fieldMapUrl || '';
+  const venueNote     = (id: string, override?: string) => override || getVenueById(id)?.notes || '';
 
   return { games, dates, divisions, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO };
 }
@@ -68,6 +74,19 @@ const activeEvents = scheduleEvents.filter(e => e.active);
           </div>
         )}
 
+        {/* An active event with zero games — a season row exists in the
+            sheet but the Schedule tab has no game rows for it yet (or
+            none parsed) — gets its own notice instead of an empty filter
+            bar with nothing beneath it. */}
+        {dates.length === 0 && (
+          <div class="info-panel">
+            <div class="section-kicker">{event.name}</div>
+            <h3>No games scheduled yet</h3>
+            <p>This season is active but the Schedule tab doesn't have any games for it yet.</p>
+          </div>
+        )}
+
+        {dates.length > 0 && (<>
         {/* ── Filter bar ─────────────────────────── */}
         <div class="sched-filters" data-sched-filters={event.id}>
 
@@ -157,10 +176,10 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                           Field map
                         </a>
                       )}
-                      {venueNote(group.venue) && (
+                      {venueNote(group.venue, group.games[0]?.venueNotes) && (
                         <details class="sched-venue-notes">
                           <summary>Notes</summary>
-                          <p>{venueNote(group.venue)}</p>
+                          <p>{venueNote(group.venue, group.games[0]?.venueNotes)}</p>
                         </details>
                       )}
                     </div>
@@ -222,6 +241,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
             </div>
           );
         })}
+        </>)}
 
       </div>
     </section>

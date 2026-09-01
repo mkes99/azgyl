@@ -66,7 +66,7 @@ between the two data files.
 ## Step 1 — Create the sheet
 
 1. Go to sheets.google.com, create a new spreadsheet.
-2. Name it **AZGYL Schedule**.
+2. Name it **AZGYL Season Data**.
 3. Rename the first tab to `Seasons`. Add tabs named `Schedule` and
    `Standings`. Add an `Archive` tab too if you want one now — it can
    also wait until you actually have a season to archive.
@@ -97,45 +97,53 @@ spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
 ## Step 3 — `Schedule` tab headers (Row 1, exact spelling)
 
 ```
-season_id | date | time | arrival | home | away | division | venue | field | notes | fieldMapUrl
+season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | notes
 ```
+
+Column order groups the "cascading" fields first — the ones that fill
+down a block (`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`,
+`division`) — then the per-game specifics (`time`, `arrival`, `home`,
+`away`, `field`, `notes`). This order is purely cosmetic: every column is
+read by its header name, not its position, so the sheet would work
+identically in any column order — this one's just easier to scan.
 
 | Column | Notes |
 |---|---|
 | `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. Can be left blank — see "Leave repeated cells blank" below. |
 | `date` | `YYYY-MM-DD`. Can be left blank. |
+| `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
+| `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. See "Adding a field-map picture" below — it has to be a specific kind of link or it won't show up. |
+| `venueNotes` | Optional — a note about the *venue* (e.g. "No dogs allowed"), not about one specific game. Can be left blank. See "Overriding a venue's notes" below — don't confuse this with `notes`, further down, which is about one game. |
+| `division` | Must be a division one of the current teams actually plays in (8U/10U/12U/14U, etc.). Can be left blank. |
 | `time` | Game time, e.g. `9:30 AM`. |
 | `arrival` | Optional — arrival/warmup time, e.g. `9:00 AM`. Leave blank if not needed. |
 | `home` / `away` | Team name — must exactly match a team name on the site (see "Team name matching" below). |
-| `division` | Must be a division one of the current teams actually plays in (8U/10U/12U/14U, etc.). Can be left blank. |
-| `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
 | `field` | Plain text — whatever that venue actually calls it, e.g. `Field 1`, `Field 3`, `Chuparosa Field`. Not validated against any list, since different venues label their fields differently. |
-| `notes` | Optional — e.g. `Senior night`. Leave blank if not needed. |
-| `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. See "Adding a field-map picture" below — it has to be a specific kind of link or it won't show up. |
+| `notes` | Optional — about this one game specifically, e.g. `Senior night`. Leave blank if not needed. Not the same column as `venueNotes`, above. |
 
 Example row:
 ```
-spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day |
+spring-2026 | 2026-02-07 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
 ```
 
 ### Leave repeated cells blank
 
-`season_id`, `date`, `venue`, `division`, and `fieldMapUrl` don't need to
-be retyped on every row. Leave any of those cells blank and it picks up
-whatever was in the row above it — so a Saturday's worth of games at one
-venue only needs that venue (and that date, season, and field-map link)
-typed once, at the top of the block:
+`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`, and `division`
+don't need to be retyped on every row. Leave any of those cells blank and
+it picks up whatever was in the row above it — so a Saturday's worth of
+games at one venue only needs that venue (and its date, season,
+field-map link, and notes) typed once, at the top of the block:
 
 ```
-season_id   | date       | time     | home       | away          | division | venue    | field    | notes       | fieldMapUrl
-spring-2026 | 2026-02-07 | 8:00 AM  | Diamonds   | Vipers        | 8U       | mesquite | Field 2  | Opening day | https://drive.google.com/uc?export=view&id=...
-            |            | 8:45 AM  | Hawks      | Hotshots      |          |          | Field 2  |             |
-            |            | 9:30 AM  | Sol Sisters| Oro Valley    | 10U      |          | Field 1  |             |
-            |            | 10:15 AM | Tukee Lightning | Chandler Lax |     |          | Field 1  |             |
+season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field    | notes
+spring-2026 | 2026-02-07 | mesquite | https://drive.google.com/uc?export=view&id=... | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
+            |            |          |                                       |                  |          | 8:45 AM  | Hawks           | Hotshots     | Field 2  |
+            |            |          |                                       |                  | 10U      | 9:30 AM  | Sol Sisters     | Oro Valley   | Field 1  |
+            |            |          |                                       |                  |          | 10:15 AM | Tukee Lightning | Chandler Lax | Field 1  |
 ```
 
-That's 4 games with the venue, date, season, and field-map link typed
-once instead of four times each. This also matches how a
+That's 4 games with the venue, date, season, field-map link, and venue
+notes typed once instead of four times each. This also matches how a
 vertically-merged range of cells actually exports to CSV (Sheets puts the
 value in the top cell of the merge and leaves the rest blank), so it
 works equally well if you'd rather select those cells and merge them for
@@ -143,12 +151,12 @@ a cleaner look in the sheet itself. Only the very first row of the whole
 tab needs every column filled in — there's nothing above it to inherit
 from.
 
-`division` and `fieldMapUrl` specifically only fill down **within** a
-block — the moment a row gives its own `venue` or `date` (starting a new
-block), both reset, so a venue with no field-map link never accidentally
-shows the previous block's picture. `season_id`, `date`, and `venue`
-themselves aren't scoped this way — they keep inheriting across as many
-rows as you leave blank, same as always.
+`division`, `fieldMapUrl`, and `venueNotes` specifically only fill down
+**within** a block — the moment a row gives its own `venue` or `date`
+(starting a new block), all three reset, so a venue with no field-map
+link or no note never accidentally shows the previous block's. `season_id`,
+`date`, and `venue` themselves aren't scoped this way — they keep
+inheriting across as many rows as you leave blank, same as always.
 
 ### How games get grouped by venue on the site
 
@@ -173,6 +181,18 @@ Team and venue names must match **exactly** what's on the site. Check
 valid team name, division, and venue id. This is the same list the
 validator checks against, so if a name isn't in that file, the sheet will
 reject it.
+
+### Overriding a venue's notes
+
+`src/data/venues.ts` can already have a note hardcoded for a venue (e.g.
+"No dogs allowed") — that's the reliable, permanent default, shown once
+per venue behind the "Notes" button on `/league`. `venueNotes` on a
+Schedule row is a narrow override, same pattern as `fieldMapUrl`: it lets
+someone add or change a note for that block without a code change. If a
+game has both, **the sheet's note wins**. If it has neither, no "Notes"
+button shows up for that venue — nothing breaks. This is a *different*
+column from `notes` (further down the row) — that one's about a single
+game ("Senior night"), this one's about the location itself.
 
 ### Adding a field-map picture
 
@@ -351,7 +371,7 @@ function processPendingEdit() {
 function validateAndDeploy(editorEmail) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const seasonRows    = readTab(ss, 'Seasons');
-  const gameRows      = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division', 'fieldMapUrl']);
+  const gameRows      = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division', 'fieldMapUrl', 'venueNotes']);
   const standingsRows = readTab(ss, 'Standings');
   const valid         = fetchValidValues();
   const errors        = validateData(seasonRows, gameRows, standingsRows, valid);
@@ -398,13 +418,14 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — must match src/data/schedule.ts's fillDown()
 // exactly, since this is what lets someone leave season_id/date/venue/
-// division/fieldMapUrl blank on a block of rows instead of retyping them
-// every time. `division`/`fieldMapUrl` are block-scoped: a row that
-// explicitly gives its own venue or date starts a new block, and neither
-// should reach back into the PREVIOUS block for a value it left blank —
-// otherwise a mixed-venue day, or a venue with no field-map link, can
-// silently inherit the wrong block's value.
-var BLOCK_SCOPED_COLUMNS = ['division', 'fieldMapUrl'];
+// division/fieldMapUrl/venueNotes blank on a block of rows instead of
+// retyping them every time. `division`/`fieldMapUrl`/`venueNotes` are
+// block-scoped: a row that explicitly gives its own venue or date starts
+// a new block, and none of the three should reach back into the
+// PREVIOUS block for a value it left blank — otherwise a mixed-venue
+// day, or a venue with no field-map link or note, can silently inherit
+// the wrong block's value.
+var BLOCK_SCOPED_COLUMNS = ['division', 'fieldMapUrl', 'venueNotes'];
 
 function fillDown(rows, columns) {
   const last = {};

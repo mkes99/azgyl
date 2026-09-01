@@ -55,49 +55,57 @@ spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
 Row 1 needs these column names, spelled exactly like this:
 
 ```
-season_id | date | time | arrival | home | away | division | venue | field | notes | fieldMapUrl
+season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | notes
 ```
+
+The columns are ordered so the ones you usually only type once per block
+(season, date, venue, its picture link, its note, division) come first,
+then the columns that are different on every row (time, teams, field,
+that game's own note). The order doesn't actually matter to the
+website — it reads columns by name, not position — this order is just
+easier to fill in.
 
 | Column | What to put there |
 |---|---|
 | `season_id` | Which season this game belongs to — must match a `season_id` from the Seasons tab exactly (e.g. `spring-2026`). |
 | `date` | The game date, written as `2026-02-07` (year-month-day). |
+| `venue` | Which park/school this game is at — see "Getting names right," below, for the exact names to use. |
+| `fieldMapUrl` | Optional — a link to a picture of where the fields are at that venue. Leave empty if there's nothing to add. See "Adding a field-layout picture," below. |
+| `venueNotes` | Optional — a note about the *park itself*, like "No dogs allowed" — not about one particular game. Leave empty if there's nothing to add. See "Adding a venue note," below. |
+| `division` | The age division — `8U`, `10U`, `12U`, or `14U`. |
 | `time` | The game's start time — e.g. `9:30 AM`. |
 | `arrival` | When teams should arrive/warm up — e.g. `9:00 AM`. Leave the cell empty if you don't need this. |
 | `home` / `away` | The two teams playing — type the team name exactly as it appears on the website (see "Getting names right," below). |
-| `division` | The age division — `8U`, `10U`, `12U`, or `14U`. |
-| `venue` | Which park/school this game is at — see "Getting names right," below, for the exact names to use. |
 | `field` | Whichever specific field it's on, in whatever words that venue actually uses — `Field 1`, `Field 3`, `Chuparosa Field`. There's no fixed list for this one — type whatever the venue calls it. |
-| `notes` | Anything worth flagging about this specific game — `Senior night`, `Picture day — arrive 30 min early`. Leave empty if there's nothing to add. |
-| `fieldMapUrl` | Optional — a link to a picture of where the fields are at that venue. Leave empty if there's nothing to add. See "Adding a field-layout picture," below. |
+| `notes` | Anything worth flagging about this **one game** — `Senior night`, `Picture day — arrive 30 min early`. Leave empty if there's nothing to add. Different from `venueNotes` — that one's about the park, this one's about a single game. |
 
 Example:
 ```
-spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day |
+spring-2026 | 2026-02-07 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
 ```
 
 ---
 
 ## Save yourself the retyping
 
-You don't need to retype the season, date, venue, division, or
-field-layout picture link on every single row — if a cell is left blank,
-it just uses whatever was in the row above it. So a whole Saturday's
-worth of games at one park only needs that park (and that date, season,
-and picture link) typed once, at the very top:
+You don't need to retype the season, date, venue, picture link, venue
+note, or division on every single row — if a cell is left blank, it just
+uses whatever was in the row above it. So a whole Saturday's worth of
+games at one park only needs that park (and its date, season, picture
+link, and note) typed once, at the very top:
 
 ```
-season_id   | date       | time     | home        | away          | division | venue    | field   | notes       | fieldMapUrl
-spring-2026 | 2026-02-07 | 8:00 AM  | Diamonds    | Vipers        | 8U       | mesquite | Field 2 | Opening day | https://drive.google.com/uc?export=view&id=...
-            |            | 8:45 AM  | Hawks       | Hotshots      |          |          | Field 2 |             |
-            |            | 9:30 AM  | Sol Sisters | Oro Valley    | 10U      |          | Field 1 |             |
-            |            | 10:15 AM | Tukee Lightning | Chandler Lax |     |          | Field 1 |             |
+season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field   | notes
+spring-2026 | 2026-02-07 | mesquite | https://drive.google.com/uc?export=view&id=... | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2 | Opening day
+            |            |          |                                       |                  |          | 8:45 AM  | Hawks           | Hotshots     | Field 2 |
+            |            |          |                                       |                  | 10U      | 9:30 AM  | Sol Sisters     | Oro Valley   | Field 1 |
+            |            |          |                                       |                  |          | 10:15 AM | Tukee Lightning | Chandler Lax | Field 1 |
 ```
 
-That's four games where the venue, date, season, and picture link only
-had to be typed once. This works exactly the same if you'd rather select
-those cells and merge them in the sheet for a tidier look — either way is
-fine.
+That's four games where the venue, date, season, picture link, and note
+only had to be typed once. This works exactly the same if you'd rather
+select those cells and merge them in the sheet for a tidier look — either
+way is fine.
 
 The only row that needs every column filled in is the very first row of
 the whole tab — there's nothing above that one to copy from.
@@ -164,6 +172,23 @@ nothing breaks.
 
 Don't use Google Photos or Dropbox links for this — they don't work the
 same way and the picture won't show up.
+
+---
+
+## Adding a venue note
+
+Some parks already have a note on the website (things like "No dogs
+allowed"). If you need to add one, change one, or a park doesn't have one
+yet, put it in the `venueNotes` column on the Schedule tab, on the same
+row where you first type that venue for a block — it fills down with the
+rest of that block automatically (see "Save yourself the retyping,"
+above). If you leave it empty, whatever's already on the website for
+that venue keeps showing — nothing breaks.
+
+This is different from the `notes` column further down the row —
+`venueNotes` is about the park itself and shows once for the whole
+group of games there that day; `notes` is about one specific game and
+shows just for that one.
 
 ---
 

@@ -7,6 +7,59 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.26] — 2026-09-01 — venueNotes column; reordered Schedule tab; empty-tab edge case fixed; sheet renamed
+
+### Added
+
+- **`venueNotes` column on the `Schedule` tab** — same override pattern
+  as `fieldMapUrl`: a venue-wide note (e.g. "No dogs allowed"), typed on
+  the same row where `venue` is first given for a block, filling down
+  with the rest of it, overriding whatever's hardcoded in `venues.ts`
+  when present. Distinct from the existing per-game `notes` column
+  (about one game — "Senior night"), which is unaffected. `Game` gained
+  `venueNotes?: string`; `venueNote()` in `LeagueSchedule.astro` now
+  takes the same override-then-fallback shape `venueMapImg()` already
+  had for `fieldMapUrl`; `venueNotes` added to `fillDown()`'s columns
+  and to `BLOCK_SCOPED_COLUMNS` (so it resets at a new venue/date block
+  exactly like `fieldMapUrl`/`division` already do), mirrored in the
+  Apps Script.
+
+### Changed
+
+- **`Schedule` tab column order** — the "cascading" fields (the ones
+  that fill down a block: `season_id`, `date`, `venue`, `fieldMapUrl`,
+  `venueNotes`, `division`) now come first, then the per-game specifics
+  (`time`, `arrival`, `home`, `away`, `field`, `notes`). Purely cosmetic
+  — every column is read by header name, not position, verified by
+  building against a full round-trip of the reordered seed data with no
+  code changes needed and no validation errors. Updated in
+  `GOOGLE_SHEETS_SETUP.md`, `SHEET_ENTRY_GUIDE.md`, and all 40 rows of
+  `SHEET_SEED_DATA.md` (which also gained real `venueNotes` values on
+  each block's first row, matching `venues.ts`'s existing defaults, as a
+  worked example of the column).
+- **Sheet renamed** from "AZGYL Schedule" to **"AZGYL Season Data"** —
+  the old name stopped fitting once `Standings` (3.25) and `Archive`
+  joined `Seasons`/`Schedule` in the same spreadsheet.
+
+### Fixed
+
+- **An active season with zero rows in the `Schedule` tab showed a
+  misleading "Season complete" banner** instead of a "not set up yet"
+  state — `dates.every(d => d < todayISO)` is vacuously `true` on an
+  empty array in JS, so a season with no games at all read as one where
+  every game had already happened. `seasonOver` now also requires
+  `dates.length > 0`. Added a dedicated "No games scheduled yet" notice
+  for this case instead of leaving an empty filter bar with nothing
+  beneath it. Found and verified while answering a question about what
+  actually happens with a header-only `Schedule` tab — confirmed
+  separately that a `Standings` row referencing a season that doesn't
+  exist fails the build loudly (correct, already true), and that
+  `Schedule` having data while `Standings` is empty degrades cleanly
+  with no standings section rendered (also already correct) — only the
+  reverse case (active season, zero schedule rows) had the bug.
+
+---
+
 ## [3.25] — 2026-09-01 — Standings consolidated into the schedule sheet; real Sheet integration built
 
 ### Changed

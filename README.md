@@ -254,31 +254,34 @@ since different venues label their fields differently):
   address: '500 S McQueen Rd, Gilbert, AZ 85233',
   city:    'Gilbert',
   mapUrl:  'https://maps.google.com/?q=...',
-  notes:   'No dogs allowed.',
-  fieldMapUrl: '/assets/field-maps/mesquite.png', // optional, see below
+  notes:   'No dogs allowed.',                    // optional, see below
+  fieldMapUrl: '/assets/field-maps/mesquite.png',  // optional, see below
 }
 ```
 
 Venues listed on the schedule are automatically linked to Google Maps.
 
-**`fieldMapUrl`** (optional) shows a "Field map" button next to the venue
-name that opens the image in a lightbox — a diagram of where each field
-sits within the venue. Two ways to set it:
+**`notes`** and **`fieldMapUrl`** (both optional) show, respectively, a
+"Notes" button (click to reveal the text) and a "Field map" button (opens
+the image in a lightbox) next to the venue name. Both work the same way,
+each with two ways to set them:
 
-- **Local file (reliable, needs a code change):** drop the image in
-  `public/assets/field-maps/` and reference it as
+- **Local (reliable, needs a code change):** edit `notes`/`fieldMapUrl`
+  directly on the venue here in `venues.ts`. For `fieldMapUrl`, drop the
+  image in `public/assets/field-maps/` and reference it as
   `/assets/field-maps/<filename>` — **no `/public` in the path**, Astro
   serves everything under `public/` from the site root, so
   `public/assets/field-maps/mesquite.png` on disk becomes
   `/assets/field-maps/mesquite.png` as a URL.
-- **Public link via the Sheet (no code change, needs Google Drive):** an
-  optional `fieldMapUrl` column on the `Schedule` tab (same row where
-  `venue` is first given for a block, so it fills down with it) lets
-  someone paste a link without touching code — it overrides whatever's
-  hardcoded here if both exist. Full walkthrough (including why it has to
-  be a Drive `uc?export=view` link and not a regular share link) is in
-  `SHEET_ENTRY_GUIDE.md`, "Adding a field-layout picture" — same content,
-  more technical framing, is in `GOOGLE_SHEETS_SETUP.md` too.
+- **Public override via the Sheet (no code change):** optional
+  `venueNotes`/`fieldMapUrl` columns on the `Schedule` tab (same row
+  where `venue` is first given for a block, so both fill down with it)
+  let someone add or swap either without touching code — the sheet's
+  value wins if both exist. `fieldMapUrl` needs Google Drive specifically
+  (a regular share link won't work as an image source — full walkthrough,
+  including why, is in `SHEET_ENTRY_GUIDE.md`, "Adding a field-layout
+  picture"). Same content, more technical framing, for both is in
+  `GOOGLE_SHEETS_SETUP.md` too.
 
 ---
 

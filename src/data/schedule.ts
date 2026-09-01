@@ -11,24 +11,36 @@
 //                 'tournament'. `active` is TRUE/FALSE — TRUE means it
 //                 shows on the homepage and /league.
 //
-//   Schedule tab: season_id | date | time | arrival | home | away | division | venue | field | notes | fieldMapUrl
-//                 One row per game. `season_id` must match a Seasons row's
-//                 `season_id` — same column name in both tabs on purpose,
-//                 so the relationship between the two is obvious at a
-//                 glance. `home`/`away` must match a team name in teams.ts
+//   Schedule tab: season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | notes
+//                 One row per game. Column order groups the "cascading"
+//                 fields first (season_id, date, venue, fieldMapUrl,
+//                 venueNotes, division — the ones that fill down a
+//                 block), then the per-game specifics (time, arrival,
+//                 home, away, field, notes). Order is cosmetic only —
+//                 every column is read by header name, not position, so
+//                 this is purely for readability in the sheet itself.
+//
+//                 `season_id` must match a Seasons row's `season_id` —
+//                 same column name in both tabs on purpose, so the
+//                 relationship between the two is obvious at a glance.
+//                 `home`/`away` must match a team name in teams.ts
 //                 exactly. `venue` must match an id in venues.ts — it's
 //                 the only thing that determines which games get grouped
 //                 together on the site. `field` is plain, unvalidated
 //                 text — whatever that venue calls it ("Field 1",
 //                 "Chuparosa Field") — since different venues label their
-//                 fields differently. `arrival`/`notes`/`fieldMapUrl` are
-//                 optional — leave the cell blank. `fieldMapUrl` overrides
-//                 the venue's hardcoded field-map image (see venues.ts) —
-//                 typed on the same row where `venue` is first set for a
-//                 block, so it fills down along with it.
+//                 fields differently. `arrival`/`notes`/`fieldMapUrl`/
+//                 `venueNotes` are optional — leave the cell blank.
+//                 `fieldMapUrl` overrides the venue's hardcoded field-map
+//                 image, `venueNotes` overrides its hardcoded notes (both
+//                 in venues.ts) — typed on the same row where `venue` is
+//                 first set for a block, so both fill down along with it.
+//                 Don't confuse `venueNotes` (about the location — "No
+//                 dogs allowed") with `notes` (about one specific game —
+//                 "Senior night") — different columns, different scope.
 //
-//                 `season_id`, `date`, `venue`, `division`, and
-//                 `fieldMapUrl` don't need to be retyped on every row —
+//                 `season_id`, `date`, `venue`, `division`, `fieldMapUrl`,
+//                 and `venueNotes` don't need to be retyped on every row —
 //                 leave any of those blank and it inherits whatever was in
 //                 the row above (see fillDown() below). This matches how
 //                 vertically-merged Sheet cells actually export to CSV
@@ -77,7 +89,8 @@ export interface Game {
   venue:    string;   // venue id from venues.ts — drives address/map/notes/field-map, and grouping
   field:    string;   // plain text field label at that venue — 'Field 1', 'Chuparosa Field', etc.
   notes?:   string;
-  fieldMapUrl?: string; // optional — overrides the venue's hardcoded field-map image for this game
+  fieldMapUrl?: string;  // optional — overrides the venue's hardcoded field-map image for this game
+  venueNotes?: string;   // optional — overrides the venue's hardcoded notes for this game
 }
 
 export interface ScheduleEvent {
@@ -99,16 +112,16 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 // are untouched, so row-number-based error messages below still line up
 // with the actual sheet.
 //
-// `division` and `fieldMapUrl` are block-scoped to venue/date: whenever a
-// row explicitly gives its own venue or date (rather than leaving them
-// blank to inherit), that's a new block starting, and neither should
-// reach back into the PREVIOUS block for a value it left blank — that's
-// how a mixed-venue day (new venue, same date, different games) or a
-// venue that just doesn't have a field-map link ends up silently wearing
-// the last block's, instead of correctly having none. `season_id`,
-// `date`, and `venue` themselves keep inheriting exactly as before; only
-// the two that are meant to reset at each new block are scoped.
-const BLOCK_SCOPED_COLUMNS = ['division', 'fieldMapUrl'];
+// `division`, `fieldMapUrl`, and `venueNotes` are block-scoped to venue/
+// date: whenever a row explicitly gives its own venue or date (rather
+// than leaving them blank to inherit), that's a new block starting, and
+// none of the three should reach back into the PREVIOUS block for a
+// value it left blank — that's how a mixed-venue day (new venue, same
+// date, different games) or a venue that just doesn't have a field-map
+// link/notes ends up silently wearing the last block's, instead of
+// correctly having none. `season_id`, `date`, and `venue` themselves
+// keep inheriting exactly as before; only these three are scoped.
+const BLOCK_SCOPED_COLUMNS = ['division', 'fieldMapUrl', 'venueNotes'];
 
 function fillDown(rows: Record<string, string>[], columns: string[]): Record<string, string>[] {
   const last: Record<string, string> = {};
@@ -131,7 +144,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
   const validDivisions = new Set(teams.flatMap(t => t.divisions));
   const venueIds = new Set(venues.map(v => v.id));
 
-  gameRows = fillDown(gameRows, ['season_id', 'date', 'venue', 'division', 'fieldMapUrl']);
+  gameRows = fillDown(gameRows, ['season_id', 'date', 'venue', 'division', 'fieldMapUrl', 'venueNotes']);
 
   const events = new Map<string, ScheduleEvent>();
 
@@ -188,6 +201,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
       field: row.field,
       notes: row.notes || undefined,
       fieldMapUrl: row.fieldMapUrl || undefined,
+      venueNotes: row.venueNotes || undefined,
     });
   });
 
