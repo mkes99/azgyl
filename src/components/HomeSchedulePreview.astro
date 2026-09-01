@@ -15,7 +15,13 @@ const seasonComplete = !nextDate;
 
 const dayGames     = nextDate ? games.filter(g => g.date === nextDate) : [];
 const weekNum      = nextDate ? allDates.indexOf(nextDate) + 1 : 0;
-const primaryVenue = dayGames[0] ? getFieldById(dayGames[0].field) : null;
+
+// Divisions can legitimately be at different venues the same day (e.g. 8U
+// at one park, 12U at another) — only show one combined venue link when
+// every game that day really shares one venue. See LeagueSchedule.astro
+// for the same pattern on the full /league page.
+const dayVenueNames = [...new Set(dayGames.map(g => getFieldById(g.field)?.venue).filter(Boolean))];
+const primaryVenue  = dayVenueNames.length === 1 ? getFieldById(dayGames[0]?.field) : null;
 
 const fmtDate = (iso: string) =>
   new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
@@ -81,9 +87,13 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
                         <span class="hsp-away">{g.away}</span>
                       </div>
                       {field && (
-                        <a class="hsp-field" href={field.mapUrl} target="_blank" rel="noreferrer">
-                          {field.label ?? field.name}
-                        </a>
+                        primaryVenue ? (
+                          <span class="hsp-field">{field.label}</span>
+                        ) : (
+                          <a class="hsp-field hsp-field-link" href={field.mapUrl} target="_blank" rel="noreferrer">
+                            {field.venue} — {field.label}
+                          </a>
+                        )
                       )}
                     </div>
                   );
@@ -146,8 +156,9 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
   .hsp-home       { font-weight: 700; color: var(--text); }
   .hsp-vs         { font-size: .68rem; color: var(--soft); text-transform: uppercase; font-weight: 700; }
   .hsp-away       { color: var(--muted); }
-  .hsp-field      { font-size: .75rem; color: var(--rose-deep); text-decoration: none; }
-  .hsp-field:hover { text-decoration: underline; }
+  .hsp-field      { font-size: .75rem; color: var(--muted); }
+  .hsp-field-link { color: var(--rose-deep); text-decoration: none; }
+  .hsp-field-link:hover { text-decoration: underline; }
 
   .hsp-footer {
     display: flex; align-items: center;

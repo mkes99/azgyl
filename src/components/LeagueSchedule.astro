@@ -24,11 +24,13 @@ function buildEventData(event: typeof scheduleEvents[0]) {
     new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric',
     });
-  const fieldName = (id: string) => getFieldById(id)?.label ?? getFieldById(id)?.name ?? id;
-  const mapUrl    = (id: string) => getFieldById(id)?.mapUrl ?? '#';
-  const fieldNote = (id: string) => getFieldById(id)?.notes ?? '';
+  const fieldLabel   = (id: string) => getFieldById(id)?.label ?? id;
+  const fieldVenue   = (id: string) => getFieldById(id)?.venue ?? '';
+  const mapUrl       = (id: string) => getFieldById(id)?.mapUrl ?? '#';
+  const fieldNote    = (id: string) => getFieldById(id)?.notes ?? '';
+  const fieldMapImg  = (id: string) => getFieldById(id)?.fieldMapUrl ?? '';
 
-  return { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldName, mapUrl, fieldNote, todayISO };
+  return { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, mapUrl, fieldNote, fieldMapImg, todayISO };
 }
 
 const activeEvents = scheduleEvents.filter(e => e.active);
@@ -47,7 +49,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
 )}
 
 {activeEvents.map(event => {
-  const { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldName, mapUrl, fieldNote, todayISO } = buildEventData(event);
+  const { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, mapUrl, fieldNote, fieldMapImg, todayISO } = buildEventData(event);
 
   return (
     <section class="league-sched-section">
@@ -102,8 +104,15 @@ const activeEvents = scheduleEvents.filter(e => e.active);
         {/* ── One panel per week ─────────────────── */}
         {dates.map((date, weekIdx) => {
           const dayGames = games.filter(g => g.date === date);
-          const venue    = getFieldById(dayGames[0]?.field)?.venue ?? '';
           const isPast   = date < todayISO;
+
+          // Divisions CAN legitimately be at different venues the same day
+          // (e.g. 8U at one park, 12U at another) — only show the single
+          // combined venue link when every game that day really does share
+          // one venue. Otherwise fall back to a per-game venue link/warning
+          // below, rather than showing a heading that's wrong for some rows.
+          const dayVenueNames = [...new Set(dayGames.map(g => fieldVenue(g.field)).filter(Boolean))];
+          const singleVenueField = dayVenueNames.length === 1 ? dayGames[0]?.field : null;
 
           return (
             <div
@@ -117,7 +126,24 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                     {isPast && <span class="week-status-past">Past</span>}
                   </span>
                   <h3 class="sched-day-date">{fmtDate(date)}</h3>
-                  {venue && <span class="sched-day-venue">{venue}</span>}
+                  {singleVenueField && (
+                    <div class="sched-day-venue-row">
+                      <a class="sched-day-venue" href={mapUrl(singleVenueField)} target="_blank" rel="noreferrer">
+                        {fieldVenue(singleVenueField)}
+                      </a>
+                      {fieldNote(singleVenueField).startsWith('⚠️') && (
+                        <span class="field-warn" title={fieldNote(singleVenueField)}>⚠️</span>
+                      )}
+                      {fieldMapImg(singleVenueField) && (
+                        <a class="sched-day-fieldmap" href={fieldMapImg(singleVenueField)} target="_blank" rel="noreferrer">
+                          Field map
+                        </a>
+                      )}
+                    </div>
+                  )}
+                  {!singleVenueField && dayVenueNames.length > 1 && (
+                    <span class="sched-day-venue sched-day-venue--mixed">Multiple locations today — see each game below</span>
+                  )}
                 </div>
               </div>
 
@@ -143,11 +169,17 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                       {g.notes && <span class="game-note">{g.notes}</span>}
                     </span>
                     <span class="sl-field">
-                      <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="sl-field-link">
-                        {fieldName(g.field)}
-                      </a>
-                      {fieldNote(g.field).startsWith('⚠️') && (
-                        <span class="field-warn" title={fieldNote(g.field)}>⚠️</span>
+                      {singleVenueField ? (
+                        fieldLabel(g.field)
+                      ) : (
+                        <>
+                          <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="sl-field-link">
+                            {fieldVenue(g.field)} — {fieldLabel(g.field)}
+                          </a>
+                          {fieldNote(g.field).startsWith('⚠️') && (
+                            <span class="field-warn" title={fieldNote(g.field)}>⚠️</span>
+                          )}
+                        </>
                       )}
                     </span>
                   </div>
@@ -170,9 +202,14 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                       <span class="scard-vs">vs</span>
                       <span class="scard-away">{g.away}</span>
                     </div>
-                    <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="scard-field field-link">
-                      📍 {fieldName(g.field)}
-                    </a>
+                    {singleVenueField ? (
+                      <span class="scard-field">{fieldLabel(g.field)}</span>
+                    ) : (
+                      <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="scard-field field-link">
+                        📍 {fieldVenue(g.field)} — {fieldLabel(g.field)}
+                        {fieldNote(g.field).startsWith('⚠️') && ' ⚠️'}
+                      </a>
+                    )}
                     {g.notes && <div class="scard-note">{g.notes}</div>}
                   </div>
                 ))}
@@ -290,7 +327,24 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     vertical-align: middle; border: 1px solid var(--line);
   }
   .sched-day-date  { margin: 0 0 .2rem; font-size: 1.3rem; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
-  .sched-day-venue { font-size: .88rem; color: var(--muted); }
+  .sched-day-venue-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .sched-day-venue {
+    font-size: .88rem;
+    color: var(--rose-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .sched-day-venue:hover { text-decoration: underline; }
+  .sched-day-venue--mixed { color: var(--muted); font-weight: 500; font-style: italic; }
+  .sched-day-fieldmap {
+    font-size: .78rem;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: .15rem .6rem;
+  }
+  .sched-day-fieldmap:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
 
   /* ── Game list ───────────────────────────────── */
   .sched-list {
