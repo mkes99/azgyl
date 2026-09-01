@@ -90,10 +90,12 @@ export const scheduleEvents: ScheduleEvent[] = [
       // Copy the pattern above: w3-8u-g01, w3-10u-g01, etc.
       // Add each week's games when you receive the CSV from the scheduler.
       // ── Week 2 · Feb 14 · Mesquite HS (host: Chandler)
-      // Same venue, different matchups
-      { id:'w2-8u-g01',  date:'2026-02-14', time:'8:00 AM',  arrival:'7:30 AM',  division:'8U',  field:'mesquite-f2', home:'Diamonds',              away:'Tukee Lightning 1' },
-      { id:'w2-8u-g02',  date:'2026-02-14', time:'8:45 AM',  arrival:'8:15 AM',  division:'8U',  field:'mesquite-f2', home:'Tukee Lightning 1',     away:'Hotshots/Chandler/Oro' },
-      { id:'w2-8u-g03',  date:'2026-02-14', time:'9:30 AM',  arrival:'9:00 AM',  division:'8U',  field:'mesquite-f2', home:'Tukee Lightning 2',     away:'Vipers' },
+      // 8U hosted at Naranja Park this week instead — different venue than
+      // the rest of the day, to exercise the mixed-venue fallback (see
+      // LeagueSchedule.astro: "Multiple locations today").
+      { id:'w2-8u-g01',  date:'2026-02-14', time:'8:00 AM',  arrival:'7:30 AM',  division:'8U',  field:'naranja-park', home:'Diamonds',              away:'Tukee Lightning 1' },
+      { id:'w2-8u-g02',  date:'2026-02-14', time:'8:45 AM',  arrival:'8:15 AM',  division:'8U',  field:'naranja-park', home:'Tukee Lightning 1',     away:'Hotshots/Chandler/Oro' },
+      { id:'w2-8u-g03',  date:'2026-02-14', time:'9:30 AM',  arrival:'9:00 AM',  division:'8U',  field:'naranja-park', home:'Tukee Lightning 2',     away:'Vipers' },
 
       { id:'w2-10u-g01', date:'2026-02-14', time:'8:00 AM',  arrival:'7:30 AM',  division:'10U', field:'mesquite-f3', home:'Tukee Lightning 2',     away:'Hotshots' },
       { id:'w2-10u-g02', date:'2026-02-14', time:'8:45 AM',  arrival:'8:15 AM',  division:'10U', field:'mesquite-f3', home:'Vipers',                away:'Chandler/Sol Sisters' },

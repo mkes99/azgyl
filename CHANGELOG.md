@@ -11,6 +11,15 @@ Open work is tracked in [TODO.md](TODO.md).
 
 Ported from the `google-sheets-schedule` branch (there: 3.15).
 
+### Data
+
+- **Week 2's 8U games moved to `naranja-park`**, while the rest of that
+  day stays at Mesquite HS — a real, deliberate mixed-venue date in the
+  live schedule data (not a mock), demonstrating the "Multiple locations
+  today" fallback above with actual production data: 8U now shows
+  "Naranja Park — Field 4" with no warning icon, while 10U/12U/14U that
+  same day still show "Mesquite HS — Field 2/3" with the ⚠️.
+
 ### Changed
 
 - **Venue name, map link, and ⚠️ warning moved from every game row to one
