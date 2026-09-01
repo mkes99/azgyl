@@ -53,7 +53,7 @@ npm run build    # ./dist
 | `src/data/resource-cards.ts` | Resources page quick links | Nav changes |
 | `src/data/expansion-areas.ts` | Growth market chips | Market changes |
 | `src/data/official-links.ts` | USA Lacrosse external links | Rarely |
-| `src/data/site-meta.ts` | Site name, nav structure, social links | Rarely |
+| `src/data/site-meta.ts` | Site name, nav structure, social links | Rarely — see below for adding a social platform |
 | `src/data/announcement.ts` | Site-wide announcement banner (copy, link, schedule) | New promo, sale, or campaign |
 
 ---
@@ -127,6 +127,23 @@ export const announcement = {
 - **`dismissible: true`** adds a close (×) button that hides the banner for the visitor's current browser session (`sessionStorage`) — it comes back on their next visit. `false` removes the button entirely.
 - Set **`enabled: false`** to pull the banner down immediately without waiting on a date.
 - To turn it off entirely between campaigns, either set `enabled: false` or just leave `endDate` in the past — nothing needs to be removed from `BaseLayout.astro`.
+
+---
+
+## Social links — how to add a platform
+
+Currently just Instagram, but built to grow. Two steps:
+
+1. Add an entry to `socialLinks` in `src/data/site-meta.ts`:
+   ```ts
+   export const socialLinks = [
+     { platform: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/arizonagirlsyouthlacrosse/' },
+     { platform: 'facebook',  label: 'Facebook',   href: 'https://facebook.com/...' },
+   ];
+   ```
+2. Add a matching icon to the `icons` map in `src/components/SocialIcons.astro` (24×24 viewBox, `currentColor` stroke, keyed by the same `platform` string).
+
+That's it — `SocialIcons.astro` (used in the footer) renders however many platforms are in the array, no markup to duplicate. The header deliberately doesn't show social icons — its action area is already tight with the "Find My Team" button and the mobile menu toggle.
 
 ---
 

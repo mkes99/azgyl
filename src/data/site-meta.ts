@@ -10,10 +10,12 @@ export const siteMeta = {
   tagline:     'Statewide rec girls lacrosse, built for real families.',
 };
 
-// Social links — referenced from the footer and the contact page
-export const socialLinks = {
-  instagram: 'https://www.instagram.com/arizonagirlsyouthlacrosse/',
-};
+// Social links — referenced from SocialIcons.astro (footer) and the contact
+// page. To add a platform: add an entry here, then add a matching icon to
+// the `icons` map in SocialIcons.astro.
+export const socialLinks = [
+  { platform: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/arizonagirlsyouthlacrosse/' },
+];
 
 // Desktop nav (top-level links + dropdown groups)
 export const primaryNav = [

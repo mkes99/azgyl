@@ -32,16 +32,22 @@ const topics = [
     title: 'Follow along',
     desc:  'Game photos, schedule updates, and league news, posted first on Instagram.',
     label: 'Follow @arizonagirlsyouthlacrosse',
-    href:  socialLinks.instagram,
+    href:  socialLinks.find(s => s.platform === 'instagram')?.href,
     external: true,
   },
 ];
 ---
 
-<div class="contact-aside-title-wrap">
-  <h2 class="contact-aside-title">Common topics</h2>
+<div class="section-header-clean">
+  <div>
+    <div class="section-kicker">Get in touch</div>
+    <h2>Common topics</h2>
+  </div>
+  <div class="section-header-copy">
+    <p>Quick links for the most common questions — reach out above if yours isn't here.</p>
+  </div>
 </div>
-<div class="stack-lg" style="margin-top:1.25rem">
+<div class="topics-grid">
   {topics.map(item => (
     <div class="info-panel">
       <strong>{item.title}</strong>

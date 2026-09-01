@@ -1,0 +1,40 @@
+---
+// SocialIcons — icon-only social link row. Used in the footer.
+// To add a platform: add an entry to `socialLinks` in src/data/site-meta.ts,
+// then add a matching case below (24x24 viewBox, currentColor stroke).
+import { socialLinks } from '@/data/site-meta';
+
+const icons: Record<string, string> = {
+  instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/>',
+};
+---
+
+<div class="social-icons">
+  {socialLinks.map(social => (
+    <a href={social.href} target="_blank" rel="noreferrer" aria-label={`AZGYL on ${social.label}`}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[social.platform] || ''} />
+    </a>
+  ))}
+</div>
+
+<style>
+  .social-icons {
+    display: flex;
+    gap: .6rem;
+  }
+  .social-icons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid var(--cream-line);
+    color: var(--olive-deep);
+    transition: color .15s, border-color .15s;
+  }
+  .social-icons a:hover {
+    color: var(--rose-deep);
+    border-color: var(--rose-deep);
+  }
+</style>

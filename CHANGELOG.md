@@ -7,6 +7,40 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.11] — 2026-08-31 — Contact page redesign, footer rebalance, social links made extensible
+
+### Changed
+
+- **`/contact` restructured from a 2-column layout to a stacked one.**
+  `.contact-layout` (`1fr 320px` grid, `align-items:start`) let the "Common
+  topics" sidebar grow taller than the form with nothing forcing them to
+  match — after adding a 5th topic card (Instagram) it left a large empty
+  gap under the form. The form is now full-width (capped at 720px via the
+  new `.contact-form-wrap`) in its own section; "Common topics" moved to a
+  full-width `section-alt` below it as a responsive 3-column card grid
+  (`.topics-grid`, 3 → 2 → 1 columns), matching the card-grid pattern
+  already used on `/resources`. New topics now wrap to another row instead
+  of stretching one narrow column taller — this scales instead of degrading.
+- **Footer `Resources` column trimmed from 7 links to 5.** Age chart and
+  Code of conduct were listed twice — once here, once in the `Parents`
+  column right next to it — which was the main driver of the two columns'
+  height mismatch (and made the brand column's Instagram icon look
+  orphaned in the leftover white space below it). Both links still exist,
+  in the `Parents` column and the nav dropdown; only the duplicate footer
+  entry is gone.
+- **`socialLinks` changed from a single-platform object to an array**
+  (`src/data/site-meta.ts`), and the footer's icon markup extracted into a
+  new shared `SocialIcons.astro` component with a small `icons` registry
+  keyed by platform. Adding Facebook/TikTok/etc. later is now: one line in
+  `socialLinks`, one SVG entry in `SocialIcons.astro`'s `icons` map — no
+  markup duplication, and the row lays out however many platforms exist.
+  Discussed and deliberately **did not** add an icon to the header — the
+  action area there is already tight (Find My Team button + mobile menu
+  toggle) and doesn't have room to grow the same way the footer does as
+  more platforms get added.
+
+---
+
 ## [3.10] — 2026-08-31 — Announcement banner, Instagram, boundaries takedown, broken links
 
 ### Added
