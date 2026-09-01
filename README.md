@@ -40,7 +40,7 @@ npm run build    # ./dist
 |------|-----------------|-----------|
 | `src/data/schedule.ts` | Game schedule (all seasons + tournaments) | Adding/updating games |
 | `src/data/standings.ts` | Division standings | After each game day |
-| `src/data/fields.ts` | Field locations + map links | Venues change |
+| `src/data/venues.ts` | Venue locations + map links | Venues change |
 | `src/data/teams.ts` | Member club directory | Clubs change |
 | `src/data/board.ts` | Board member names + roles | Annual election |
 | `src/data/committees.ts` | Standing committees | Governance changes |
@@ -78,9 +78,8 @@ Open `src/data/schedule.ts`. Each **event** is a season or tournament:
       home:     'Diamonds',          // must match a name in teams.ts
       away:     'Tukee Lightning',
       division: '12U',
-      field:    'mesquite',          // must match an id in fields.ts
-      result:   'upcoming',          // 'upcoming' | 'W' | 'L' | 'T' | 'cancelled'
-      score:    '8-5',               // home score first, omit if upcoming
+      venue:    'mesquite',          // must match an id in venues.ts — drives grouping, address, map, notes
+      field:    'Field 2',           // plain text, whatever that venue calls it — not validated
       notes:    'Senior night',      // optional
     },
   ],
@@ -184,22 +183,25 @@ To remove a team without losing history (e.g. a club folds mid-season), comment 
 
 ---
 
-## Fields
+## Venues
 
-Open `src/data/fields.ts`. Each field has an `id` that matches the `field` value in `schedule.ts`:
+Open `src/data/venues.ts`. Each venue has an `id` that matches the `venue`
+value on a game in `schedule.ts` (the `field` value on that same game is
+just plain text — "Field 1", "Chuparosa Field" — not looked up anywhere,
+since different venues label their fields differently):
 
 ```ts
 {
   id:      'mesquite',
-  name:    'Mesquite Athletic Complex',
-  address: '6100 S. 80th St, Chandler, AZ 85249',
-  city:    'Chandler',
+  name:    'Mesquite High School',
+  address: '500 S McQueen Rd, Gilbert, AZ 85233',
+  city:    'Gilbert',
   mapUrl:  'https://maps.google.com/?q=...',
-  notes:   'Fields 4–5 for AZGYL games.',
+  notes:   'No dogs allowed.',
 }
 ```
 
-Fields listed on the schedule are automatically linked to Google Maps.
+Venues listed on the schedule are automatically linked to Google Maps.
 
 ---
 
