@@ -351,7 +351,7 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .menu-toggle span { display: block; width: 18px; height: 2px; background: var(--olive); border-radius: 2px; }
 .mobile-menu { background: var(--cream-soft); border-top: 1px solid var(--cream-line); }
 .mobile-menu-inner { display: grid; gap: .2rem; padding: 1rem 0 1.25rem; }
-.mobile-menu a,
+.mobile-menu a:not(.button),
 .mobile-group summary {
   color: var(--olive);
   font-weight: 600;
@@ -363,7 +363,7 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   transition: color .12s;
 }
 .mobile-group summary::-webkit-details-marker { display: none; }
-.mobile-menu a:hover,
+.mobile-menu a:not(.button):hover,
 .mobile-group summary:hover { color: var(--rose-deep); }
 .mobile-subnav { padding-left: 1rem; display: grid; gap: .15rem; }
 .mobile-subnav a { color: var(--muted); font-weight: 500; padding: .5rem 0; font-size: .88rem; }

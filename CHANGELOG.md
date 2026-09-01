@@ -7,6 +7,23 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.14] — 2026-08-31 — Fix mobile menu "Find My Team" button styling
+
+### Fixed
+
+- **The mobile menu's "Find My Team" button had dark olive text with no
+  horizontal padding**, instead of the white, comfortably-padded pill
+  every other primary button on the site uses. Cause: CSS specificity, not
+  a missing style — `.mobile-menu a` (specificity 0,1,1, since it combines
+  a class with the `a` element) was beating `.button-primary` (0,1,0) on
+  `color`, `padding`, and `display` for this one link, since it's both a
+  plain mobile-nav `<a>` and a `.button.button-primary`. Fixed by scoping
+  the generic mobile-nav-link rules to `.mobile-menu a:not(.button)`
+  (base and `:hover`) so they no longer touch anything that's also a
+  button. Verified live in a real ~500px viewport, menu open.
+
+---
+
 ## [3.13] — 2026-08-31 — Footer merged back to a single 4-column row
 
 ### Changed
