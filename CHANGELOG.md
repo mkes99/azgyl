@@ -7,6 +7,28 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.31] — 2026-09-01 — Admin always notified; VALID_VALUES_URL migration path documented
+
+### Changed
+
+- **`FALLBACK_EMAIL` → `ADMIN_EMAIL`, and it's no longer just a
+  fallback** — previously the shared board inbox only got emailed when
+  the editor's Google account couldn't be determined; now `ADMIN_EMAIL`
+  gets every validation error, unconditionally, with the actual editor
+  (if known) added as an additional recipient rather than the only one.
+  Set to `mike@formativewebsolutions.com`. Updated the "How it fits
+  together" diagram and the notification-behavior explainer to match.
+
+- **`VALID_VALUES_URL` documented as a moving target** — unlike
+  `DEPLOY_HOOK_URLS` (fans out to every active branch), this has to stay
+  a single URL, since it's the one source of truth for valid team/
+  division/venue names. Added an explicit migration note: branch preview
+  now (`azgyl.com` isn't live yet) → `develop`'s preview once merged
+  (and `google-sheets-schedule` deleted) → `azgyl.com` permanently once
+  merged to `main`. Found via a real DNS error hitting the live script.
+
+---
+
 ## [3.30] — 2026-09-01 — Apps Script supports multiple deploy hooks (one per branch)
 
 ### Changed

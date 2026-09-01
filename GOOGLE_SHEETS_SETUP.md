@@ -49,7 +49,7 @@ One sheet, four tabs:
      └─────┬─────┘                          │ hook → site rebuilds │
            │ not clean                      │ from the sheet's CSV │
            ▼                                └────────────────────┘
-   Email to whoever edited it
+   Email to admin + editor
    (nothing goes live)
 ```
 
@@ -403,8 +403,20 @@ const DEPLOY_HOOK_URLS  = [
   // 'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop — uncomment once develop has its own hook
   // 'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main — uncomment once main has its own hook
 ];
-const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // point at whichever deploy this sheet should validate against
-const FALLBACK_EMAIL    = 'azgirlsyouthlax@gmail.com'; // used only if we can't tell who made the edit
+// Unlike DEPLOY_HOOK_URLS (fan out to every active branch), this stays a
+// SINGLE url — it's the one source of truth for which team/division/
+// venue names are currently valid, so it has to point at whichever
+// deployment is "current," not several possibly-disagreeing ones at
+// once. It moves as the branch does, and needs updating by hand at each
+// stage — nothing automatic:
+//   1. NOW: the google-sheets-schedule branch's Cloudflare Pages preview
+//      URL (azgyl.com isn't live yet)
+//   2. Once merged into `develop` (and google-sheets-schedule is
+//      deleted, as planned): develop's preview URL
+//   3. Once merged into `main`: https://azgyl.com/valid-values.json,
+//      permanently — the value below is what it'll end up as
+const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // TEMPORARY — see note above; swap for the branch preview URL until merged to main
+const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
 
 // ── ENTRY POINTS ─────────────────────────────────────────────────────────
@@ -595,16 +607,21 @@ function validateData(seasonRows, gameRows, standingsRows, valid) {
 }
 
 function notifyError(editorEmail, errors) {
-  const to = editorEmail || FALLBACK_EMAIL;
+  // ADMIN_EMAIL always gets notified — the editor (if known) is added on
+  // top of that, not instead of it, so they get direct actionable
+  // feedback on their own mistake without the admin missing an error.
+  const recipients = [ADMIN_EMAIL];
+  if (editorEmail && editorEmail !== ADMIN_EMAIL) recipients.push(editorEmail);
+
   const subject = 'AZGYL sheet: ' + errors.length + ' problem(s) found — not published';
   let body =
     'The sheet has ' + errors.length + ' problem(s), so the site was NOT updated:\n\n' +
     errors.map(function (e) { return '- ' + e; }).join('\n') +
     '\n\nFix these in the sheet — it will automatically try again after your next edit.';
   if (!editorEmail) {
-    body += '\n\n(Could not tell who made this edit, so this went to the shared board inbox instead.)';
+    body += '\n\n(Could not tell who made this edit.)';
   }
-  MailApp.sendEmail(to, subject, body);
+  MailApp.sendEmail(recipients.join(','), subject, body);
 }
 
 // ── DEBOUNCE TRIGGER MANAGEMENT ──────────────────────────────────────────
@@ -634,15 +651,17 @@ automatically by the script itself — you don't need to add it by hand.
 
 ---
 
-## A note on "whoever edited it" notifications
+## A note on error notifications
 
-The script tries to email whichever Google account made the edit
-(`e.user.getEmail()`). This is **best-effort** — depending on how the sheet
-is shared and Google's own privacy rules, it can come back empty, in which
-case the email goes to the shared board inbox (`azgirlsyouthlax@gmail.com`)
-instead. If notifications seem to be going to the wrong place, that's why —
-it's a known limitation of Apps Script's editor detection, not a bug in this
-script.
+`ADMIN_EMAIL` gets every validation error, no exceptions — that's the
+one guaranteed recipient. The script also tries to email whichever
+Google account actually made the edit (`e.user.getEmail()`), added on
+top of the admin notification, so whoever made the mistake gets direct
+feedback too. That part is **best-effort** — depending on how the sheet
+is shared and Google's own privacy rules, it can come back empty, in
+which case only `ADMIN_EMAIL` gets notified. If the editor's own
+notification seems to be missing sometimes, that's why — it's a known
+limitation of Apps Script's editor detection, not a bug in this script.
 
 ---
 
