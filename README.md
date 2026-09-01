@@ -27,7 +27,7 @@ npm run build    # ./dist
 | `/rules` | `src/pages/rules.astro` | Full bylaws + rules FAQ |
 | `/resources` | `src/pages/resources.astro` | Age chart + code of conduct + resource links |
 | `/leadership` | `src/pages/leadership.astro` | Board + committees |
-| `/boundaries` | `src/pages/boundaries.astro` | Boundary map |
+| `/boundaries` | *disabled* — `/boundaries` redirects to `/teams` | Hidden site-wide since 2026-08-31, not back on the table until spring. Source lives at `src/pages/_disabled/boundaries.astro` (see comment at the top of that file to restore it). |
 | `/contact` | `src/pages/contact.astro` | Contact form (Resend) |
 | `/play` | `src/pages/play.astro` | How AZGYL works |
 | `/404` | `src/pages/404.astro` | 404 page |
@@ -53,7 +53,8 @@ npm run build    # ./dist
 | `src/data/resource-cards.ts` | Resources page quick links | Nav changes |
 | `src/data/expansion-areas.ts` | Growth market chips | Market changes |
 | `src/data/official-links.ts` | USA Lacrosse external links | Rarely |
-| `src/data/site-meta.ts` | Site name, nav structure | Rarely |
+| `src/data/site-meta.ts` | Site name, nav structure, social links | Rarely |
+| `src/data/announcement.ts` | Site-wide announcement banner (copy, link, schedule) | New promo, sale, or campaign |
 
 ---
 
@@ -103,6 +104,66 @@ Open `src/data/standings.ts`. Find the matching `eventId` and division, update t
 ```
 
 Standings are sorted automatically by points (W=3, T=1), then goal differential.
+
+---
+
+## Announcement banner — how to update
+
+Open `src/data/announcement.ts`:
+
+```ts
+export const announcement = {
+  enabled:     true,
+  message:     'New: the AZGYL × State Forty Eight tee just dropped — $30, pre-order by 9/30.',
+  linkLabel:   'Shop the Tee',
+  linkHref:    'https://arizona-girls-youth-lacrosse.square.site/',
+  dismissible: false,
+  startDate:   null,                            // null = visible immediately
+  endDate:     '2026-10-01T00:00:00-07:00',      // null = never expires
+};
+```
+
+- **`startDate`/`endDate`** are evaluated in the visitor's browser, not at build time — this is a static site, so a build-time check would only be correct until the next deploy. Write them in Arizona time using an explicit `-07:00` offset (Arizona doesn't observe DST, so this is safe year-round) — e.g. `'2026-09-01T00:00:00-07:00'`.
+- **`dismissible: true`** adds a close (×) button that hides the banner for the visitor's current browser session (`sessionStorage`) — it comes back on their next visit. `false` removes the button entirely.
+- Set **`enabled: false`** to pull the banner down immediately without waiting on a date.
+- To turn it off entirely between campaigns, either set `enabled: false` or just leave `endDate` in the past — nothing needs to be removed from `BaseLayout.astro`.
+
+---
+
+## Teams — requirements for adding a team
+
+Open `src/data/teams.ts` and add an entry with the following fields. The
+directory and team card always need the "Yes" fields to render correctly —
+omitting one of those either breaks the build or leaves a card visibly
+incomplete.
+
+**Don't add a `slug` field.** It's derived automatically from `name` —
+lowercased, with anything that isn't `a-z`/`0-9` collapsed into a hyphen
+(e.g. `'Sol Sisters'` → `'sol-sisters'`). See `slugify()` at the bottom of
+`teams.ts`. It isn't currently read anywhere else in the code (no team
+detail pages, no list keys) — same as `contact` below, reserved for future
+use — but since it's computed for free, every team gets one automatically
+either way.
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `name` | Yes | Display name on the card, and the source of the auto-generated `slug`. |
+| `divisions` | Yes | Array of divisions offered, from `['8U','10U','12U','14U']`. |
+| `href` | Yes | The club's own external site/registration link — AZGYL doesn't handle registration. |
+| `city` | Yes | Shown on the card; used by the team finder's text search when the filter is active. |
+| `logo` | Yes | Path under `/assets/team-logos/` — add the image file first. |
+| `color` | Yes | Hex color, used as the card's accent. |
+| `notes` | No | One-sentence description shown on the card when present. |
+| `area` | No | Neighborhood/region description (e.g. `'Ahwatukee / South Phoenix'`). Only used by the team finder, which is currently hidden — see `TODO.md`. |
+| `district` | No | School district(s) served. Shown on the card when present; also used by the finder. |
+| `zipcode` | No | Array of zip codes served. Only powers the finder's zip search — **required again once the filter is turned back on**, since a team with no zip codes just won't match any zip search. |
+| `contact` | No | Email address for the club. Not currently rendered anywhere — flagged as unused in `TODO.md`. |
+
+`notes`, `area`, `district`, and `zipcode` were made optional 2026-08-31 —
+the fields still exist in the directory/card components and will render
+correctly if present, they're just not required to add a team right now.
+
+To remove a team without losing history (e.g. a club folds mid-season), comment the block out rather than deleting it — see the note at the top of `teams.ts` for the existing precedent (Marana Reapers, Cave Creek, Vail) and why past schedule/standings results are left untouched.
 
 ---
 

@@ -110,6 +110,26 @@ fine while the live page still decapitates someone.
       photos (2026 photo drop) — no more purple-banner clash, and each page
       now has its own distinct photo instead of sharing one of 3 files across
       up to 3 pages. See `CHANGELOG.md` for the full list.
+- [ ] **Age chart division mismatch.** `AgeChart.astro` (the on-page table at
+      `/resources#age-chart`) only shows 4 grade-based rows, K–2 through 7–8
+      (8U–14U) — matching the "Grades K–8 only" language stated as policy
+      elsewhere on the site (README's bylaw list, homepage, `/resources`,
+      `/parents`). The downloadable chart (`azgyl-age-chart-2026.pdf`/`.jpg`)
+      goes further — a birth-year grid covering 6U through **18U**. Confirmed
+      2026-08-31 that the graphic is correct and the league now goes past 8th
+      grade; the on-page table and the K–8 bylaw text were deliberately left
+      unchanged pending the real grade/age mapping for the added divisions
+      (15U–18U) — grade doesn't translate to birth-year cleanly (redshirting,
+      cutoffs), and a birth-year table would need updating every year, so
+      don't just transcribe the PDF's rows without checking with the board
+      first. Needs: the real mapping, and updated bylaw wording, before either
+      is edited.
+- [x] **Boundaries hidden site-wide** (2026-08-31) — not back on the table
+      until spring. All links removed (nav, footer, resource cards,
+      committees); `/boundaries` now redirects to `/teams`
+      (`astro.config.mjs`). Page source preserved at
+      `src/pages/_disabled/boundaries.astro` — see the comment at the top of
+      that file for how to restore it.
 
 ---
 

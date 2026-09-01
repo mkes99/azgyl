@@ -1,0 +1,110 @@
+---
+// AnnouncementBanner — site-wide promo bar above the header.
+// Content and scheduling live in src/data/announcement.ts — edit that file,
+// not this one, to change copy, the link, or the start/end dates.
+import { announcement } from '@/data/announcement';
+const { enabled, message, linkLabel, linkHref, dismissible, startDate, endDate } = announcement;
+---
+
+{enabled && (
+  <div
+    class="site-announcement"
+    data-announcement
+    data-start={startDate || ''}
+    data-end={endDate || ''}
+    data-dismissible={String(dismissible)}
+    hidden
+  >
+    <div class="container announcement-inner">
+      <p class="announcement-text">
+        {message}
+        <a class="announcement-cta" href={linkHref} target="_blank" rel="noreferrer">{linkLabel} →</a>
+      </p>
+      {dismissible && (
+        <button class="announcement-dismiss" type="button" data-announcement-dismiss aria-label="Dismiss announcement">
+          &times;
+        </button>
+      )}
+    </div>
+  </div>
+)}
+
+{enabled && (
+  <script is:inline>
+    (() => {
+      const el = document.querySelector('[data-announcement]');
+      if (!el) return;
+      const start = el.dataset.start;
+      const end = el.dataset.end;
+      const dismissible = el.dataset.dismissible === 'true';
+      const now = Date.now();
+      if (start && now < new Date(start).getTime()) return;
+      if (end && now >= new Date(end).getTime()) return;
+      if (dismissible && sessionStorage.getItem('azgyl-announcement-dismissed') === '1') return;
+      el.hidden = false;
+      const dismissBtn = el.querySelector('[data-announcement-dismiss]');
+      dismissBtn?.addEventListener('click', () => {
+        el.hidden = true;
+        sessionStorage.setItem('azgyl-announcement-dismissed', '1');
+      });
+    })();
+  </script>
+)}
+
+<style>
+  .site-announcement {
+    background: var(--rose-deep);
+    color: var(--cream);
+  }
+  .announcement-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: .7rem 2.5rem;
+    text-align: center;
+    position: relative;
+  }
+  .announcement-text {
+    margin: 0;
+    font-size: .92rem;
+    font-weight: 500;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem .75rem;
+  }
+  .announcement-cta {
+    display: inline-flex;
+    align-items: center;
+    color: var(--rose-deep);
+    background: var(--cream);
+    font-weight: 700;
+    font-size: .82rem;
+    padding: .3rem .85rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background .15s;
+  }
+  .announcement-cta:hover { background: #ffffff; }
+  .announcement-dismiss {
+    position: absolute;
+    right: .75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--cream);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: .25rem .5rem;
+    opacity: .8;
+  }
+  .announcement-dismiss:hover { opacity: 1; }
+  @media (max-width: 640px) {
+    .announcement-inner { padding: .65rem 2.75rem .65rem 1rem; }
+    .announcement-text { font-size: .85rem; }
+  }
+</style>

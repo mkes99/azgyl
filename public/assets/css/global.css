@@ -981,6 +981,8 @@ select { cursor: pointer; }
 .team-finder-inline { padding: 0; background: transparent; border: 0; box-shadow: none; }
 .team-finder-inline .team-finder-form { padding: 0 1.2rem 1.2rem; border: 0; background: transparent; }
 .team-finder-inline + .team-grid { margin-top: .5rem; }
+/* Directory filter hidden for the time being — remove this rule to bring it back */
+.team-finder-inline { display: none; }
 .team-finder-head { margin-bottom: 1.25rem; }
 .team-finder-title { font-size: 1rem; font-weight: 700; margin-bottom: .2rem; }
 .team-finder-intro { color: var(--muted); font-size: .88rem; }
@@ -1070,6 +1072,7 @@ select { cursor: pointer; }
 }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item summary:hover { background: var(--surface-soft); }
+.faq-item[open] summary:hover { background: transparent; }
 .faq-item summary span { flex: 1; }
 .faq-item summary::after {
   content: '+';

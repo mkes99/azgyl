@@ -1,4 +1,11 @@
 ---
+// DISABLED 2026-08-31 — moved out of src/pages/ (any folder starting with
+// `_` is excluded from Astro's file-based routing) so /boundaries stops
+// serving. Not back on the table until spring. To restore:
+//   1. git mv this file back to src/pages/boundaries.astro
+//   2. remove the '/boundaries' entry from `redirects` in astro.config.mjs
+//   3. restore the 'Boundaries' row in resourceNav (src/data/site-meta.ts)
+//      and the links removed from resource-cards.ts / committees.ts
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import ExpansionChips from '@/components/ExpansionChips.astro';

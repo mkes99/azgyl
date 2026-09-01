@@ -1,5 +1,6 @@
 ---
 import { siteMeta } from '@/data/site-meta';
+import AnnouncementBanner from '@/components/AnnouncementBanner.astro';
 import SiteHeader from '@/components/SiteHeader.astro';
 import SiteFooter from '@/components/SiteFooter.astro';
 
@@ -52,6 +53,7 @@ const fullTitle = title.includes('AZGYL') ? title : `${title} | AZGYL`;
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
+    <AnnouncementBanner />
     <SiteHeader pathname={pathname} />
     <main id="content">
       <slot />

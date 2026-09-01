@@ -1,12 +1,12 @@
 ---
 interface Team {
   name: string;
-  notes: string;
+  notes?: string;
   city: string;
-  district: string;
+  district?: string;
   area?: string;
   divisions: string[];
-  zipcode: string[];
+  zipcode?: string[];
   href: string;
 }
 interface Props {
@@ -143,8 +143,8 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
       results.innerHTML = items.slice(0, 3).map((team) => `
         <article class="finder-match">
           <strong>${team.name}</strong>
-          <div class="team-meta">${team.city} · ${team.district}</div>
-          <p>${team.notes}</p>
+          <div class="team-meta">${team.district ? `${team.city} · ${team.district}` : team.city}</div>
+          ${team.notes ? `<p>${team.notes}</p>` : ''}
         </article>`).join('');
     };
 
@@ -157,7 +157,7 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
       const matches = teams.filter((team) => {
         const haystack = [team.name, team.area, team.city, team.district].join(' ').toLowerCase();
         const queryOk = !query || haystack.includes(query);
-        const zipOk = !zip || team.zipcode.some((code) => code.startsWith(zip) || zip.startsWith(code));
+        const zipOk = !zip || (team.zipcode || []).some((code) => code.startsWith(zip) || zip.startsWith(code));
         const divisionOk = !division || team.divisions.includes(division);
         return queryOk && zipOk && divisionOk;
       });

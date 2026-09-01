@@ -23,7 +23,7 @@ const isActive = (href: string) =>
       <a href="/league"     class:list={{ active: isActive('/league') }}>League</a>
       <a href="/leadership" class:list={{ active: isActive('/leadership') }}>Leadership</a>
       <details class="nav-group">
-        <summary class:list={{ active: isActive('/resources') || isActive('/rules') || isActive('/boundaries') }}>
+        <summary class:list={{ active: isActive('/resources') || isActive('/rules') }}>
           Resources
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </summary>

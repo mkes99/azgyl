@@ -7,6 +7,93 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.10] — 2026-08-31 — Announcement banner, Instagram, boundaries takedown, broken links
+
+### Added
+
+- **Site-wide announcement banner** — a promo bar above the header, rose-deep
+  background, cream text/CTA. Content and scheduling live in the new
+  `src/data/announcement.ts`, rendered by the new `AnnouncementBanner.astro`
+  in `BaseLayout.astro`. First use: the AZGYL × State Forty Eight tee
+  pre-order ($30, closes 9/30), linking out to the Square storefront.
+  - `startDate`/`endDate` are evaluated **client-side**, not at build time —
+    the site is a fully static build, so a build-time check would only stay
+    correct until the next deploy. Dates are written with an explicit
+    `-07:00` offset (Arizona doesn't observe DST, so this is safe
+    year-round) rather than resolved through the visitor's own timezone.
+    This banner: no start date (visible immediately), expires 2026-10-01
+    00:00 Phoenix time.
+  - Supports an optional dismiss (×) button, session-scoped via
+    `sessionStorage` — built but **not activated** for this campaign
+    (`dismissible: false`) at the requester's preference, to keep the tee
+    announcement visible for the full pre-order window.
+- **Instagram** (`@arizonagirlsyouthlacrosse`) linked from the footer's brand
+  column (icon, the conventional social-icon spot) and from a new "Follow
+  along" card on `/contact` alongside the existing common-topics panels. The
+  header's action area was deliberately left alone — it's already tight with
+  the "Find My Team" CTA and the mobile menu toggle. URL centralized as
+  `socialLinks.instagram` in `src/data/site-meta.ts` rather than duplicated
+  across both components.
+
+### Fixed
+
+- **Two dead links on `/resources`.** `resource-cards.ts` linked the Age
+  Chart and Code of Conduct cards to `/resources/age-chart` and
+  `/resources/code-of-conduct` — routes that don't exist. Both now point to
+  the real anchors, `/resources#age-chart` and `/resources#code-of-conduct`,
+  where that content has lived all along. Same fix applied to the "Conduct"
+  link under the Rules & Discipline committee in `committees.ts`. The nav
+  dropdown links were already correct — only these two other spots were
+  stale.
+
+### Changed
+
+- **Team directory filter hidden** on `/teams` (`display:none` via
+  `.team-finder-inline` in `global.css`) — temporary, per request. The
+  directory's search/results JS is untouched; only the filter UI is hidden.
+- **Boundaries hidden site-wide**, not back on the table until spring. Every
+  link removed — the Resources nav dropdown and footer, the `/resources`
+  card grid, and the Eligibility & Boundaries committee's "Placement review"
+  link. `/boundaries` itself now redirects to `/teams`
+  (`redirects` in `astro.config.mjs`) rather than 404ing for anyone with an
+  old link or bookmark. The page's source is preserved, unrouted, at
+  `src/pages/_disabled/boundaries.astro` — Astro excludes any
+  underscore-prefixed folder under `src/pages/` from routing, so nothing was
+  deleted. Restore instructions are commented at the top of that file.
+- **`teams.ts` slug is now auto-derived, not hand-entered.** Every team's
+  `slug` used to be typed manually and wasn't read anywhere in the code — a
+  free-floating field that could silently drift from `name` with no way to
+  notice. `teams.ts` now exports a computed `teams` array: the raw entries
+  (`teamsRaw`) no longer carry a `slug` field at all, and a `slugify(name)`
+  helper (lowercase, non-alphanumeric collapsed to hyphens) derives it at
+  module load — e.g. `'Sol Sisters'` → `'sol-sisters'`. Verified it produces
+  the exact same value for all 9 existing teams as the hand-typed slugs it
+  replaced. New team entries must not include a `slug` line.
+- **`notes`, `area`, `district`, `zipcode` made optional** on team entries
+  (`TeamCard.astro`, `TeamFinder.astro` prop types). The filter's zip search
+  (`TeamFinder.astro`'s client script) now guards against a missing
+  `zipcode` array instead of throwing; the card skips the "· district"
+  segment cleanly when `district` isn't set instead of leaving a trailing
+  separator; and both the card and the finder's results panel only render a
+  notes paragraph when `notes` is actually present, instead of printing a
+  blank `<p>` or the literal word "undefined".
+- **Accordion open-state hover** (`.faq-item[open] summary:hover`) no longer
+  applies the `--surface-soft` tint — it read as a brownish highlight
+  sitting over an already-expanded item and looked like a stray hover state.
+  Closed items keep the hover background as an affordance.
+
+### Noted, not changed
+
+- **Age chart division mismatch.** The downloadable chart
+  (`azgyl-age-chart-2026.pdf`/`.jpg`) covers 6U–18U by birth year; the
+  on-page table (`AgeChart.astro`) only covers 8U–14U by grade, matching the
+  site's stated "Grades K–8 only" policy. Confirmed the graphic is correct —
+  the league now goes further than K–8 — but the real grade/age mapping for
+  the added divisions and the replacement bylaw wording are still needed
+  before either gets edited. See `TODO.md`.
+
+---
+
 ## [3.9] — 2026-08-14 — Gallery video fixes
 
 ### Fixed
