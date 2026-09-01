@@ -7,6 +7,40 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.20] — 2026-09-01 — Notes popover no longer overflows the viewport on narrow screens
+
+### Fixed
+
+- **The notes popover could run off the right edge of the screen on
+  mobile**, pushing the whole page into horizontal scroll — the box was
+  anchored to the "Notes" button's left edge, but a button positioned
+  anywhere past the box's own width from the right edge (common on narrow
+  viewports, since the button's horizontal position varies with venue
+  name length) meant the box just kept extending off-screen. Fixed with a
+  `toggle` listener that measures the box on open and, if it would
+  overflow, shifts it left by exactly the overflow amount via
+  `transform: translateX()` — this is provably safe (the shifted box's
+  left edge always lands at `viewport width − box width`, which can't go
+  negative since the box's `max-width` is already capped below the
+  viewport width) and needed no change to the desktop behavior, where the
+  box already fits. The caret shifts the same amount in the opposite
+  direction so it still points at the button.
+
+### Added
+
+- **Mesquite High School field map** — first field-map image added,
+  wired up to all three Mesquite fields via `fieldMapUrl` in
+  `src/data/fields.ts`. Image lives at
+  `public/assets/field-maps/mesquite.png`.
+
+### Changed
+
+- **Chuparosa Park's address corrected** to `2400 S Dobson Rd, Chandler,
+  AZ 85286` (was previously listed under an Oro Valley address, which was
+  wrong).
+
+---
+
 ## [3.19] — 2026-08-31 — Notes popover no longer relocates the button; venue address added
 
 Ported from the `google-sheets-schedule` branch (there: 3.17).
