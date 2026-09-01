@@ -7,6 +7,30 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.16] — 2026-08-31 — Fix desktop schedule table never showing game notes
+
+### Fixed
+
+- **Per-game `notes` never rendered on the desktop schedule table**, only
+  on mobile cards. The styling (`.game-note`) already existed in
+  `LeagueSchedule.astro` — it was written but never wired into the desktop
+  row markup, so a game's notes column was silently invisible to anyone
+  not on mobile. Added `{g.notes && <span class="game-note">{g.notes}</span>}`
+  inside `.sl-matchup`, with `flex-basis: 100%` so it drops to its own
+  line under the matchup within the existing wrapping flex row — no new
+  grid column needed. Distinct from, and independent of, the ⚠️
+  field-warning icon (a `fields.ts` venue note, not a per-game one).
+  Currently latent on `develop` — the local schedule data has no games
+  with `notes` set yet — but the same defect was live on the
+  `google-sheets-schedule` branch, which is what surfaced it. Found a
+  second confirmed instance of 3.12's stale-duplicate-CSS pattern while
+  investigating (`global.css`'s "10. Schedule & Standings" section still
+  duplicates several of this component's scoped rules) — logged in
+  `TODO.md` rather than cleaned up now, since it isn't causing a second
+  bug yet.
+
+---
+
 ## [3.15] — 2026-08-31 — Fix mobile header actions sitting 32px off the right edge
 
 ### Fixed

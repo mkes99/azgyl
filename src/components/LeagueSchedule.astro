@@ -140,6 +140,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                       <span class="sl-home">{g.home}</span>
                       <span class="sl-vs">vs</span>
                       <span class="sl-away">{g.away}</span>
+                      {g.notes && <span class="game-note">{g.notes}</span>}
                     </span>
                     <span class="sl-field">
                       <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="sl-field-link">
@@ -347,7 +348,10 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sl-field-link  { font-size: .84rem; color: var(--rose-deep); text-decoration: none; font-weight: 600; white-space: nowrap; }
   .sl-field-link:hover { text-decoration: underline; }
   .field-warn     { cursor: help; flex-shrink: 0; }
-  .game-note      { font-size: .7rem; color: var(--soft); font-style: italic; }
+  /* flex-basis:100% forces this onto its own line within .sl-matchup's
+     wrapping flex row, below the home/vs/away, without needing a separate
+     grid column — was styled but never rendered until now (see CHANGELOG). */
+  .game-note      { font-size: .7rem; color: var(--soft); font-style: italic; flex-basis: 100%; margin-top: .1rem; }
 
   /* ── Mobile cards ────────────────────────────── */
   .sched-cards { display: none; flex-direction: column; gap: .6rem; }

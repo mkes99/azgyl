@@ -106,6 +106,19 @@ fine while the live page still decapitates someone.
 - [ ] **Dead per-club `contact` addresses** in `src/data/teams.ts` (9 remaining,
       e.g. `solsisters@azgyl.com`). Nothing renders this field — it is unused
       data. Either wire it into the team cards or drop it.
+- [ ] **Stale duplicate CSS in `global.css` for components that now have
+      their own scoped `<style>`.** Confirmed twice so far: `SiteFooter.astro`
+      (found + removed in 3.12 — it's what caused the logo-stacking bug
+      during that fix) and `LeagueSchedule.astro` (found 2026-08-31 while
+      adding desktop game-notes rendering — global.css's "10. Schedule &
+      Standings" section still duplicates `.sched-list-header`, `.sl-matchup`,
+      `.game-note`, etc., with slightly different values in places). Hasn't
+      caused a second visible bug yet, but it's the exact same landmine
+      shape — a scoped rule that doesn't happen to redeclare every property
+      the stale global rule sets will silently inherit the stale value.
+      Worth an actual audit: check every component with its own `<style>`
+      block against global.css for a leftover duplicate section, not just
+      react to the next one that bites.
 - [x] **Hero photography.** All 10 hero slots replaced with real AZGYL game
       photos (2026 photo drop) — no more purple-banner clash, and each page
       now has its own distinct photo instead of sharing one of 3 files across
