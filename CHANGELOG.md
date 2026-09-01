@@ -7,6 +7,35 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.19] — 2026-08-31 — Notes popover no longer relocates the button; venue address added
+
+Ported from the `google-sheets-schedule` branch (there: 3.17).
+
+### Fixed
+
+- **The "Notes" button visibly moved to a new line when clicked.** The
+  previous disclosure used `flex-basis: 100%` on the `<details>` element
+  itself to push the revealed text onto a full-width line — but that meant
+  the whole element, summary/button included, jumped position when opened
+  (from sitting inline next to the venue name, to alone on its own row
+  below it). Redesigned as a floating popover instead: `position: relative`
+  on the `<details>`, `position: absolute` on the revealed `<p>`, small
+  caret pointing back at the button. The button's position is now
+  completely independent of open/closed state — only a small card with a
+  shadow appears near it. Added a chevron that flips on open for a clearer
+  affordance. Verified live: clicked "Notes" repeatedly, button never
+  moved, popover appeared/disappeared cleanly without shifting anything
+  else on the page.
+
+### Added
+
+- **Venue address shown as plain text under the venue name/link** — `Field`
+  already had `address`, it just wasn't displayed anywhere on `/league`.
+  New `fieldAddress()` helper, rendered once per venue group alongside the
+  existing venue link/notes/field-map row.
+
+---
+
 ## [3.18] — 2026-08-31 — Group games by venue; venue notes redesigned as a click-to-open disclosure
 
 Ported from the `google-sheets-schedule` branch (there: 3.16).

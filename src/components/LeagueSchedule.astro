@@ -26,11 +26,12 @@ function buildEventData(event: typeof scheduleEvents[0]) {
     });
   const fieldLabel   = (id: string) => getFieldById(id)?.label ?? id;
   const fieldVenue   = (id: string) => getFieldById(id)?.venue ?? '';
+  const fieldAddress = (id: string) => getFieldById(id)?.address ?? '';
   const mapUrl       = (id: string) => getFieldById(id)?.mapUrl ?? '#';
   const fieldNote    = (id: string) => getFieldById(id)?.notes ?? '';
   const fieldMapImg  = (id: string) => getFieldById(id)?.fieldMapUrl ?? '';
 
-  return { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, mapUrl, fieldNote, fieldMapImg, todayISO };
+  return { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, fieldAddress, mapUrl, fieldNote, fieldMapImg, todayISO };
 }
 
 const activeEvents = scheduleEvents.filter(e => e.active);
@@ -49,7 +50,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
 )}
 
 {activeEvents.map(event => {
-  const { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, mapUrl, fieldNote, fieldMapImg, todayISO } = buildEventData(event);
+  const { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, fieldAddress, mapUrl, fieldNote, fieldMapImg, todayISO } = buildEventData(event);
 
   return (
     <section class="league-sched-section">
@@ -156,6 +157,9 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                         </details>
                       )}
                     </div>
+                  )}
+                  {fieldAddress(group.field) && (
+                    <p class="sched-day-address">{fieldAddress(group.field)}</p>
                   )}
 
                   {/* Game list — CSS grid rows, no table */}
@@ -323,7 +327,8 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   /* One block per venue that day — almost always just one, but can be more
      when divisions are hosted at different parks the same day. */
   .sched-venue-group + .sched-venue-group { margin-top: 2rem; }
-  .sched-day-venue-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .85rem; }
+  .sched-day-venue-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .3rem; }
+  .sched-day-address { font-size: .82rem; color: var(--soft); margin-bottom: .85rem; }
   .sched-day-venue {
     font-size: .88rem;
     color: var(--rose-deep);
@@ -341,35 +346,71 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   }
   .sched-day-fieldmap:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
   /* Click-to-open, not a hover tooltip — shows for any venue note, not
-     just ones that happen to sound like a warning. Sits compact next to
-     the venue/field-map links when closed; flex-basis:100% pushes it (and
-     its revealed text) onto its own full-width line once opened, rather
-     than squeezing the note into a narrow shared-row column. */
-  .sched-venue-notes[open] { flex-basis: 100%; }
+     just ones that happen to sound like a warning. The revealed text is a
+     floating popover anchored to the button (position:relative on the
+     <details>, position:absolute on the <p>) rather than part of normal
+     flex flow — the button's own position never changes between closed
+     and open, only a small card appears near it. */
+  .sched-venue-notes { position: relative; }
   .sched-venue-notes summary {
     cursor: pointer;
     list-style: none;
     display: inline-flex;
     align-items: center;
+    gap: .3rem;
     font-size: .78rem;
     font-weight: 600;
     color: var(--muted);
     border: 1px solid var(--line-strong);
     border-radius: 999px;
-    padding: .15rem .6rem;
+    padding: .15rem .6rem .15rem .7rem;
+    transition: color .15s, border-color .15s, background .15s;
   }
   .sched-venue-notes summary::-webkit-details-marker { display: none; }
+  .sched-venue-notes summary::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-1px);
+    transition: transform .15s;
+  }
+  .sched-venue-notes[open] summary::after { transform: rotate(-135deg) translateY(1px); }
   .sched-venue-notes summary:hover,
-  .sched-venue-notes[open] summary { color: var(--rose-deep); border-color: var(--rose-deep); }
+  .sched-venue-notes[open] summary {
+    color: var(--rose-deep);
+    border-color: var(--rose-deep);
+    background: var(--rose-bg);
+  }
   .sched-venue-notes p {
-    margin-top: .5rem;
-    padding: .65rem .85rem;
-    background: var(--surface-soft);
+    position: absolute;
+    top: calc(100% + .65rem);
+    left: 0;
+    z-index: 5;
+    margin: 0;
+    width: max-content;
+    max-width: min(340px, 80vw);
+    padding: .7rem .9rem;
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
     font-size: .82rem;
+    line-height: 1.55;
     color: var(--muted);
-    max-width: 480px;
+  }
+  /* Caret pointing back up at the button, so the popover reads as
+     anchored to it rather than a stray floating box. */
+  .sched-venue-notes p::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 16px;
+    width: 11px; height: 11px;
+    background: var(--surface);
+    border-left: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+    transform: rotate(45deg);
   }
 
   /* ── Game list ───────────────────────────────── */
