@@ -7,6 +7,75 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.25] — 2026-09-01 — Standings consolidated into the schedule sheet; real Sheet integration built
+
+### Changed
+
+- **Standings moved into the same Google Sheet as `Seasons`/`Schedule`**,
+  as a `Standings` tab, instead of "a separate spreadsheet" as
+  `STANDINGS_SETUP.md` previously framed it (that file is deleted — its
+  content lives in `GOOGLE_SHEETS_SETUP.md`/`SHEET_ENTRY_GUIDE.md` now).
+  One sheet, one login, one thing to remember, not two.
+- **`Standings` rows now carry a `season_id`**, same linkage as
+  `Schedule` — the previous format (`division | team | W | L | T | GF |
+  GA`, no season column at all) could only ever represent *one* season's
+  standings at a time; a new season would just silently overwrite the
+  last one with no way to look back. Schema is now `season_id | division
+  | team | W | L | T | GF | GA`.
+- **Actually built the Sheet-fetch/validate pipeline for standings** —
+  turns out this was never really implemented. `STANDINGS_CSV_URL`
+  existed as a placeholder, but the only fetch code that existed at all
+  was a hand-rolled, unvalidated comma-split sitting inside
+  `StandingsTable.astro` (not `standings.ts`, where every other Sheet
+  integration on this project lives) — no shared `parseCSV`, no
+  validation of any kind, a silent try/catch that fell back to stale
+  local data on any fetch error (the opposite of the fail-loud approach
+  used everywhere else), and it always wrapped everything into one fake
+  event using `localStandings[0]`'s id/name as a guess, regardless of
+  what the sheet actually said. Rewrote `standings.ts` to mirror
+  `schedule.ts`'s exact pattern: validate `season_id` against real
+  `Seasons` rows, `team`/`division` against `teams.ts`, `W`/`L`/`T`/`GF`/
+  `GA` as real non-negative numbers (blank = 0, anything else invalid is
+  a hard error), fail loud on any problem, keep serving the last good
+  deploy otherwise. `StandingsTable.astro` now just renders the already-
+  resolved data — all the fetch/parse logic that didn't belong in a
+  component is gone from it.
+- **Fixed a real bug found while rewriting this**: `LeagueStandings.astro`
+  decided which seasons to show standings for by checking
+  `localStandings.some(...)` — *always*, even when a Sheet was connected
+  — so a season with standings only in the Sheet (nothing matching in the
+  unused local fallback) would have silently shown no standings section
+  at all. Now checks the resolved `standings` export instead.
+- **`fetchCSV()` extracted to `src/lib/csv.ts`**, shared by `schedule.ts`
+  and `standings.ts` instead of each keeping its own copy — one fetch/
+  fail-loud implementation for both to import, not two to keep in sync.
+- **Apps Script now validates all three tabs together** (`Seasons`,
+  `Schedule`, `Standings`) in one combined pass — one clean-or-not
+  decision, one email if something's wrong, instead of `Standings`
+  having no automated validation at all (previously: manual "click
+  Redeploy in Cloudflare," no on-edit check, no error email).
+
+### Added
+
+- **Optional `Archive` tab**, documented in both `GOOGLE_SHEETS_SETUP.md`
+  and `SHEET_ENTRY_GUIDE.md` — nowhere the site reads from, just a place
+  to move a completed season's `Schedule`/`Standings` rows once it's
+  over. Came out of a conversation about the `Schedule` tab's realistic
+  growth (into the hundreds, potentially 1000+ rows, across a couple of
+  years): the site only ever renders `active` seasons, so historical rows
+  sitting in the live tabs do nothing but get fetched, parsed, and
+  validated on every edit and every build for zero display benefit — and
+  add more surface for a `fillDown()` boundary mistake (see 3.24) to go
+  unnoticed. No automation for archiving; it's a manual, infrequent step,
+  and Sheets' own version history is the backstop regardless of whether
+  it's ever done.
+- Verified end to end against a full mock CSV round-trip covering all
+  three tabs together (not just standings in isolation): real seed data
+  parses and validates cleanly, all 4 divisions render, a `season_id` not
+  matching any `Seasons` row fails the build with a clear error.
+
+---
+
 ## [3.24] — 2026-09-01 — fieldMapUrl moved onto the Schedule row; fillDown block-scoping fix
 
 ### Changed

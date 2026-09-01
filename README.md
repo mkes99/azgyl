@@ -144,13 +144,22 @@ automatically, no additional Cloudflare configuration needed.
 
 ## Standings — how to update
 
-Open `src/data/standings.ts`. Find the matching `eventId` and division, update the numbers:
+Same Google Sheet as the schedule (see above) — a `Standings` tab,
+`season_id`-linked to `Seasons` the same way `Schedule` rows are, so
+more than one season's standings can exist without one overwriting the
+other. Set `STANDINGS_CSV_URL` in `src/data/standings.ts` to use it; full
+column reference is in `GOOGLE_SHEETS_SETUP.md`/`SHEET_ENTRY_GUIDE.md`.
+
+Leave `STANDINGS_CSV_URL` empty to skip the Sheet and edit
+`localStandings` in `standings.ts` directly instead — same optional,
+code-only fallback pattern as the schedule:
 
 ```ts
 { team:'Diamonds', W:4, L:1, T:0, GF:38, GA:22 },
 ```
 
-Standings are sorted automatically by points (W=3, T=1), then goal differential.
+Standings are sorted automatically by points (W=3, T=1), then goal
+differential — never sort either the sheet or the local array yourself.
 
 ---
 

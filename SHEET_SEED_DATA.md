@@ -112,35 +112,33 @@ notes show inline under each matchup. Swap in other valid ids from
 
 ## Standings sheet
 
-The standings automation isn't built yet (`STANDINGS_CSV_URL` in
-`standings.ts` is still an unused placeholder — see the note at the top of
-`STANDINGS_SETUP.md`). This sheet is for reference/editing convenience
-only right now; to actually show these numbers on the site, copy them into
-the `localStandings` array in `src/data/standings.ts` by hand. Column
-format matches what `STANDINGS_SETUP.md` already documents — no
-`season_id` column, since the current standings code doesn't group by
-season yet.
+Same spreadsheet as `Seasons`/`Schedule` — a `Standings` tab, with
+`season_id` linking each row to a season the same way `Schedule` rows do.
+Paste this into the `Standings` tab the same way as the other two.
 
 ```
-division	team	W	L	T	GF	GA
-8U	Diamonds	4	1	0	32	14
-8U	Hawks	3	2	0	24	20
-8U	Vipers	2	3	0	19	23
-8U	Hotshots	1	4	0	13	31
-10U	Sol Sisters	4	1	0	28	12
-10U	Oro Valley	3	1	1	22	15
-10U	Tukee Lightning	2	2	1	18	19
-10U	Chandler Lax	0	5	0	9	31
-12U	Hawks	4	1	0	30	16
-12U	Diamonds	3	2	0	26	21
-12U	Vipers	2	3	0	20	25
-12U	East Valley Bullets	1	4	0	15	29
-14U	Tukee Lightning	4	0	1	29	13
-14U	Chandler Lax	2	2	1	21	20
-14U	Sol Sisters	2	3	0	18	22
-14U	Hotshots	1	4	0	14	27
+season_id	division	team	W	L	T	GF	GA
+spring-2026	8U	Diamonds	4	1	0	32	14
+spring-2026	8U	Hawks	3	2	0	24	20
+spring-2026	8U	Vipers	2	3	0	19	23
+spring-2026	8U	Hotshots	1	4	0	13	31
+spring-2026	10U	Sol Sisters	4	1	0	28	12
+spring-2026	10U	Oro Valley	3	1	1	22	15
+spring-2026	10U	Tukee Lightning	2	2	1	18	19
+spring-2026	10U	Chandler Lax	0	5	0	9	31
+spring-2026	12U	Hawks	4	1	0	30	16
+spring-2026	12U	Diamonds	3	2	0	26	21
+spring-2026	12U	Vipers	2	3	0	20	25
+spring-2026	12U	East Valley Bullets	1	4	0	15	29
+spring-2026	14U	Tukee Lightning	4	0	1	29	13
+spring-2026	14U	Chandler Lax	2	2	1	21	20
+spring-2026	14U	Sol Sisters	2	3	0	18	22
+spring-2026	14U	Hotshots	1	4	0	14	27
 ```
 
 Each row's W+L+T sums to 5 — consistent with the 5-week schedule above —
 not that it matters for validation, just so it doesn't look obviously fake
-if someone cross-checks.
+if someone cross-checks. If you'd rather skip the Sheet for standings
+entirely: leave `STANDINGS_CSV_URL` empty in `standings.ts` and edit the
+`localStandings` array there directly instead — same optional pattern as
+the schedule.

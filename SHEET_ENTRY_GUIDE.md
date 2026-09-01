@@ -1,8 +1,9 @@
-# How to Fill Out the Schedule Sheet
+# How to Fill Out the Schedule & Standings Sheet
 
-This is everything you need to know to add or update games in the Google
-Sheet. It doesn't cover any of the technical setup — someone's already
-done that part. This is just: open the sheet, type things in, save.
+This is everything you need to know to add or update games and
+standings in the Google Sheet. It doesn't cover any of the technical
+setup — someone's already done that part. This is just: open the sheet,
+type things in, save.
 
 **You can't break anything permanently.** If something you typed doesn't
 match up (a team name spelled differently, a date in the wrong format),
@@ -12,12 +13,16 @@ website itself.
 
 ---
 
-## The two tabs you'll use
+## The tabs you'll use
 
 - **Seasons** — one row per season or tournament (e.g. "Spring 2026").
   You'll rarely touch this one — usually just once at the start of a
   season.
-- **Schedule** — one row per game. This is the one you'll update most.
+- **Schedule** — one row per game. You'll update this one most.
+- **Standings** — one row per team, per division, per season. Update
+  this after each game day.
+- **Archive** (if there is one) — see "Archiving a past season" near the
+  end. Nothing you need to touch week to week.
 
 ---
 
@@ -159,6 +164,48 @@ nothing breaks.
 
 Don't use Google Photos or Dropbox links for this — they don't work the
 same way and the picture won't show up.
+
+---
+
+## Standings tab
+
+Update this after each game day. Row 1 needs these column names, spelled
+exactly like this:
+
+```
+season_id | division | team | W | L | T | GF | GA
+```
+
+| Column | What to put there |
+|---|---|
+| `season_id` | Which season these standings are for — must match a `season_id` from the Seasons tab exactly, same as on the Schedule tab. |
+| `division` | The age division — `8U`, `10U`, `12U`, or `14U`. |
+| `team` | The team name — type it exactly as it appears on the website (see "Getting names right," above). |
+| `W` / `L` / `T` | Wins, losses, ties — whole numbers. |
+| `GF` / `GA` | Goals for / goals against — whole numbers. |
+
+Example:
+```
+spring-2026 | 8U | Diamonds | 3 | 1 | 0 | 20 | 10
+```
+
+One row per team, per division, per season — update the numbers as
+results come in. You never need to sort this yourself; the website
+always shows the current standings order (points, then goal
+differential) automatically, however the rows are ordered in the sheet.
+
+---
+
+## Archiving a past season
+
+Once a season is completely over, its rows can be moved out of `Schedule`
+and `Standings` into the `Archive` tab (select the rows, cut, paste into
+`Archive`) — that just keeps the tabs you're actively using smaller and
+easier to scan. There's no particular format for `Archive`; it's not
+read by the website at all, it's just a place to put things. This isn't
+something you need to do often — maybe once or twice a year — and
+nothing is ever really "gone" even without it, since Google Sheets keeps
+its own history of every change (File → Version history) regardless.
 
 ---
 

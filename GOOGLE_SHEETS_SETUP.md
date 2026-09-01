@@ -1,21 +1,32 @@
-# Google Sheets Setup — Schedule & Season
+# Google Sheets Setup — Schedule, Season & Standings
 
 This is the technical reference — the full picture, including the parts
 that only matter for wiring the integration up or debugging it (the build
 pipeline, exact validation rules, the Apps Script source). If you just
-need to know how to actually fill in games week to week, **`SHEET_ENTRY_GUIDE.md`**
-covers the same tabs and columns in plain language, no technical
-background assumed — that's also what's rendered live at `/admin/setup`
-on the site. This doc and that one describe the same sheet; keep them in
-sync if the column headers or validation rules ever change.
+need to know how to actually fill in games and standings week to week,
+**`SHEET_ENTRY_GUIDE.md`** covers the same tabs and columns in plain
+language, no technical background assumed — that's also what's rendered
+live at `/admin/setup` on the site. This doc and that one describe the
+same sheet; keep them in sync if the column headers or validation rules
+ever change.
 
-The game schedule *and* the season/tournament shell it belongs to (name, dates,
-which one is currently live) are both managed from one Google Sheet — not
-from code. Update the sheet → the site validates it → if it's clean, the
-site rebuilds automatically within a couple of minutes. If it's not clean,
-nothing goes live and whoever made the edit gets an email explaining why.
+The game schedule, the season/tournament shell it belongs to (name,
+dates, which one is currently live), *and* division standings are all
+managed from **one Google Sheet** — not from code, and not from separate
+spreadsheets. Update the sheet → the site validates it → if it's clean,
+the site rebuilds automatically within a couple of minutes. If it's not
+clean, nothing goes live and whoever made the edit gets an email
+explaining why.
 
-**Standings are a separate sheet, not covered here** — see `STANDINGS_SETUP.md`.
+One sheet, four tabs:
+
+- **`Seasons`** — one row per season/tournament.
+- **`Schedule`** — one row per game.
+- **`Standings`** — one row per team per division per season.
+- **`Archive`** (optional) — nowhere the site reads from; just a place to
+  move a completed season's `Schedule`/`Standings` rows once it's over,
+  so the tabs the site actually fetches stay small. No fixed format —
+  see "Archiving a completed season" near the end.
 
 ---
 
@@ -26,8 +37,9 @@ nothing goes live and whoever made the edit gets an email explaining why.
  ┌────────────────────┐           ┌─────────────────────────────┐
  │ Seasons tab         │           │ /valid-values.json           │
  │ Schedule tab        │──edit──▶  │  (current team/division/     │
- └─────────┬───────────┘           │   venue names, always live)  │
-           │                       └───────────────┬───────────────┘
+ │ Standings tab       │           │   venue names, always live)  │
+ └─────────┬───────────┘           └───────────────┬───────────────┘
+           │                                       │
            │ Apps Script                            │ fetched by
            │ validates against ──────────────────────┘ the script
            │ /valid-values.json
@@ -42,10 +54,12 @@ nothing goes live and whoever made the edit gets an email explaining why.
 ```
 
 The site's build also re-validates independently when it fetches the sheet
-(`src/data/schedule.ts`) — if something slips past the sheet's own check,
-the build fails loudly rather than publishing bad data, and Cloudflare keeps
-serving the last good deploy. The sheet-side check is the fast path; the
-build-side check is the backstop.
+(`src/data/schedule.ts`, `src/data/standings.ts`) — if something slips past
+the sheet's own check, the build fails loudly rather than publishing bad
+data, and Cloudflare keeps serving the last good deploy. The sheet-side
+check is the fast path; the build-side check is the backstop. Both share
+one `fetchCSV()` helper (`src/lib/csv.ts`) so that behavior can't drift
+between the two data files.
 
 ---
 
@@ -53,7 +67,9 @@ build-side check is the backstop.
 
 1. Go to sheets.google.com, create a new spreadsheet.
 2. Name it **AZGYL Schedule**.
-3. Rename the first tab to `Seasons`. Add a second tab named `Schedule`.
+3. Rename the first tab to `Seasons`. Add tabs named `Schedule` and
+   `Standings`. Add an `Archive` tab too if you want one now — it can
+   also wait until you actually have a season to archive.
 
 ---
 
@@ -201,20 +217,48 @@ that part.
 
 ---
 
-## Step 4 — Publish both tabs to the web as CSV
+## Step 4 — `Standings` tab headers (Row 1, exact spelling)
 
-For **each** tab (`Seasons`, then `Schedule`):
+```
+season_id | division | team | W | L | T | GF | GA
+```
+
+| Column | Notes |
+|---|---|
+| `season_id` | Must exactly match a `season_id` from the `Seasons` tab — same linkage as `Schedule` rows. This is what lets more than one season's standings live in this tab at once without one overwriting another. |
+| `division` | Must be a division one of the current teams actually plays in. |
+| `team` | Must exactly match a team name on the site (see "Team name matching" above). |
+| `W` / `L` / `T` / `GF` / `GA` | Whole numbers. Leave a cell blank for `0` (a team that hasn't played yet) — anything else has to actually be a number, or the row fails validation. |
+
+Example row:
+```
+spring-2026 | 8U | Diamonds | 3 | 1 | 0 | 20 | 10
+```
+
+One row per team per division per season — there's no `game_id` or
+anything tying a row to an individual `Schedule` game; it's a running
+total you update as results come in, the same way it always has been.
+Standings are sorted automatically on the site (points, then goal
+differential) — never sort the sheet yourself.
+
+---
+
+## Step 5 — Publish all three tabs to the web as CSV
+
+For **each** tab (`Seasons`, `Schedule`, then `Standings`):
 
 1. File → Share → Publish to web
 2. Under "Link", choose the specific sheet tab (not "Entire document")
 3. Choose **Comma-separated values (.csv)**
 4. Click **Publish**, copy the URL
 
-You'll get two different URLs, one per tab.
+You'll get three different URLs, one per tab. Skip `Standings` for now if
+you'd rather keep editing standings straight in `standings.ts` — see Step
+6, `STANDINGS_CSV_URL`.
 
 ---
 
-## Step 5 — Add the CSV URLs to the codebase
+## Step 6 — Add the CSV URLs to the codebase
 
 Open `src/data/schedule.ts` and fill in:
 
@@ -223,12 +267,23 @@ const SEASONS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...
 const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
 ```
 
+If you're using the `Standings` tab, also open `src/data/standings.ts`
+and fill in:
+
+```ts
+export const STANDINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
+```
+
+Leave it as `''` to keep editing `localStandings` in that file directly
+instead — same optional, code-only fallback pattern as everything else
+here.
+
 Commit and push. This is a one-time step — after this, the sheet is the only
 thing that needs updating.
 
 ---
 
-## Step 6 — Set up the Cloudflare deploy hook
+## Step 7 — Set up the Cloudflare deploy hook
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
 2. Point it at the branch that should be rebuilt when the sheet changes (usually your production branch)
@@ -236,7 +291,14 @@ thing that needs updating.
 
 ---
 
-## Step 7 — Add the Apps Script (validation + notify + deploy)
+## Step 8 — Add the Apps Script (validation + notify + deploy)
+
+**All three tabs (`Seasons`, `Schedule`, `Standings`) need to exist before
+this script runs** — even an empty `Standings` tab is fine (zero rows
+just means zero standings errors), but the script reads all three every
+time and throws if any of them is missing entirely. If you skipped
+creating one back in Step 1, add it now before installing the trigger
+below.
 
 **Where this lives:** Apps Script is built into Google Sheets itself — not a
 separate tool you need to install or sign up for. With the spreadsheet open
@@ -288,10 +350,11 @@ function processPendingEdit() {
 // ── CORE LOGIC ───────────────────────────────────────────────────────────
 function validateAndDeploy(editorEmail) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const seasonRows = readTab(ss, 'Seasons');
-  const gameRows   = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division', 'fieldMapUrl']);
-  const valid      = fetchValidValues();
-  const errors     = validateData(seasonRows, gameRows, valid);
+  const seasonRows    = readTab(ss, 'Seasons');
+  const gameRows      = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division', 'fieldMapUrl']);
+  const standingsRows = readTab(ss, 'Standings');
+  const valid         = fetchValidValues();
+  const errors        = validateData(seasonRows, gameRows, standingsRows, valid);
 
   if (errors.length) {
     notifyError(editorEmail, errors);
@@ -358,7 +421,7 @@ function fillDown(rows, columns) {
   });
 }
 
-function validateData(seasonRows, gameRows, valid) {
+function validateData(seasonRows, gameRows, standingsRows, valid) {
   const errors = [];
   const teamNames  = new Set(valid.teamNames);
   const divisions  = new Set(valid.divisions);
@@ -394,14 +457,30 @@ function validateData(seasonRows, gameRows, valid) {
     if (!row.field) errors.push('Schedule row ' + row.__row + ': missing field');
   });
 
+  standingsRows.forEach(row => {
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push('Standings row ' + row.__row + ': missing season_id'); return; }
+    if (!seasonIds.has(seasonId)) { errors.push('Standings row ' + row.__row + ': season_id "' + seasonId + '" doesn\'t match any Seasons row'); return; }
+    if (!row.division) errors.push('Standings row ' + row.__row + ': missing division');
+    else if (!divisions.has(row.division)) errors.push('Standings row ' + row.__row + ': division "' + row.division + '" not recognized');
+    if (!row.team) errors.push('Standings row ' + row.__row + ': missing team');
+    else if (!teamNames.has(row.team)) errors.push('Standings row ' + row.__row + ': team "' + row.team + '" not recognized — check /valid-values.json');
+    ['W', 'L', 'T', 'GF', 'GA'].forEach(function (key) {
+      const raw = row[key];
+      if (raw === '') return; // blank means 0, always fine
+      const n = Number(raw);
+      if (!isFinite(n) || n < 0) errors.push('Standings row ' + row.__row + ': ' + key + ' "' + raw + '" isn\'t a valid non-negative number');
+    });
+  });
+
   return errors;
 }
 
 function notifyError(editorEmail, errors) {
   const to = editorEmail || FALLBACK_EMAIL;
-  const subject = 'AZGYL schedule sheet: ' + errors.length + ' problem(s) found — not published';
+  const subject = 'AZGYL sheet: ' + errors.length + ' problem(s) found — not published';
   let body =
-    'The schedule sheet has ' + errors.length + ' problem(s), so the site was NOT updated:\n\n' +
+    'The sheet has ' + errors.length + ' problem(s), so the site was NOT updated:\n\n' +
     errors.map(function (e) { return '- ' + e; }).join('\n') +
     '\n\nFix these in the sheet — it will automatically try again after your next edit.';
   if (!editorEmail) {
@@ -449,9 +528,36 @@ script.
 
 ---
 
+## Archiving a completed season
+
+The site only ever renders `active` seasons — once a season's `active`
+cell in the `Seasons` tab is `FALSE`, its `Schedule` and `Standings` rows
+are still fetched, parsed, and validated on every single edit and every
+build, for zero display benefit. As a season's row count adds up across
+a year or several, that's pure downside: a slower-to-scan sheet, and more
+surface for a fill-down mistake (leaving a cell blank near a boundary
+between two different seasons) to silently pull in the wrong value —
+this is exactly what `fillDown()`'s block-scoping (see "Leave repeated
+cells blank" above) protects against, but less data in the live tabs is
+still the simplest way to keep that risk low.
+
+Once a season's over: select its rows in `Schedule` and `Standings`, cut,
+paste into `Archive` (create the tab first if you skipped it in Step 1).
+`Archive` has no fixed format, isn't fetched by anything, and isn't part
+of the validate/deploy flow — it's just off to the side. Nothing is ever
+actually at risk of being lost even without this: Google Sheets keeps
+its own version history regardless (File → Version history), so
+archiving is about keeping the *live* tabs lean, not about preventing
+data loss.
+
+There's no automation for this — it's a manual step, realistically a
+couple of times a year.
+
+---
+
 ## Done. Weekly workflow:
 
-1. Open the sheet, update `Seasons` and/or `Schedule`.
+1. Open the sheet, update `Seasons`, `Schedule`, and/or `Standings`.
 2. Wait ~2 minutes after your last edit.
 3. If everything checks out, the site rebuilds automatically — no email, no action needed.
 4. If something's off, you'll get an email listing exactly what's wrong and where. Fix it, save, and it tries again automatically.

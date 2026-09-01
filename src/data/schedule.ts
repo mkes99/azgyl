@@ -56,7 +56,7 @@
 // (src/pages/valid-values.json.ts) so there's one source of truth.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { parseCSV } from '@/lib/csv';
+import { fetchCSV } from '@/lib/csv';
 import { teams } from './teams';
 import { venues } from './venues';
 
@@ -91,19 +91,6 @@ export interface ScheduleEvent {
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-async function fetchCSV(url: string, label: string): Promise<Record<string, string>[]> {
-  let res: Response;
-  try {
-    res = await fetch(url);
-  } catch (err) {
-    throw new Error(`[schedule.ts] Could not reach the ${label} sheet: ${(err as Error).message}\nURL: ${url}`);
-  }
-  if (!res.ok) {
-    throw new Error(`[schedule.ts] ${label} sheet fetch failed: HTTP ${res.status}. Check it's still published to web as CSV (File → Share → Publish to web).\nURL: ${url}`);
-  }
-  return parseCSV(await res.text());
-}
 
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — lets a block of games at the same venue/date/
@@ -217,8 +204,8 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
 export const scheduleEvents: ScheduleEvent[] =
   SEASONS_CSV_URL && SCHEDULE_CSV_URL
     ? buildEvents(
-        await fetchCSV(SEASONS_CSV_URL, 'Seasons'),
-        await fetchCSV(SCHEDULE_CSV_URL, 'Schedule'),
+        await fetchCSV(SEASONS_CSV_URL, 'schedule.ts', 'Seasons'),
+        await fetchCSV(SCHEDULE_CSV_URL, 'schedule.ts', 'Schedule'),
       )
     : [];
 

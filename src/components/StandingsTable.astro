@@ -1,10 +1,10 @@
 ---
 // StandingsTable
-// Reads from Google Sheets CSV when STANDINGS_CSV_URL is set in standings.ts.
-// Falls back to localStandings otherwise.
+// `standings` is already fully resolved by src/data/standings.ts (fetched
+// + validated from the Sheet if STANDINGS_CSV_URL is set, localStandings
+// otherwise) — this component just picks which event/division to render.
 // Responsive: table on desktop, stacked cards on mobile.
-import { localStandings, sortedRows, STANDINGS_CSV_URL } from '@/data/standings';
-import type { EventStandings } from '@/data/standings';
+import { standings, sortedRows } from '@/data/standings';
 
 interface Props {
   eventId?:  string;
@@ -12,46 +12,9 @@ interface Props {
 }
 const { eventId, division } = Astro.props;
 
-// ── Fetch from Google Sheets if URL is set ────────────────────────────────
-let allStandings: EventStandings[] = localStandings;
-
-if (STANDINGS_CSV_URL) {
-  try {
-    const res  = await fetch(STANDINGS_CSV_URL);
-    const text = await res.text();
-
-    // Parse CSV: division,team,W,L,T,GF,GA
-    const rows = text.trim().split('\n').slice(1); // skip header row
-    const divMap = new Map<string, typeof localStandings[0]['divisions'][0]['rows']>();
-
-    for (const raw of rows) {
-      const [div, team, W, L, T, GF, GA] = raw.split(',').map(c => c.replace(/"/g,'').trim());
-      if (!div || !team) continue;
-      if (!divMap.has(div)) divMap.set(div, []);
-      divMap.get(div)!.push({
-        team,
-        W: Number(W) || 0, L: Number(L) || 0, T: Number(T) || 0,
-        GF: Number(GF) || 0, GA: Number(GA) || 0,
-      });
-    }
-
-    // Wrap in the same EventStandings shape — eventId from first local entry
-    const baseEventId = localStandings[0]?.eventId ?? 'spring-2026';
-    allStandings = [{
-      eventId:   baseEventId,
-      eventName: localStandings[0]?.eventName ?? 'Spring 2026',
-      divisions: [...divMap.entries()].map(([div, rows]) => ({ division: div, rows })),
-    }];
-  } catch (e) {
-    // Sheet fetch failed — silently fall back to local data
-    allStandings = localStandings;
-  }
-}
-
-// ── Resolve which event + divisions to show ───────────────────────────────
 const event = eventId
-  ? allStandings.find(s => s.eventId === eventId)
-  : allStandings[0];
+  ? standings.find(s => s.eventId === eventId)
+  : standings[0];
 
 const divs = event
   ? (division ? event.divisions.filter(d => d.division === division) : event.divisions)

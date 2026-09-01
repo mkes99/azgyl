@@ -2,27 +2,30 @@
 // STANDINGS DATA  ·  src/data/standings.ts
 // ─────────────────────────────────────────────────────────────────────────
 //
-// TWO WAYS TO UPDATE STANDINGS:
+// Sourced from the same Google Sheet as the schedule — see
+// GOOGLE_SHEETS_SETUP.md — as a `Standings` tab alongside `Seasons` and
+// `Schedule`:
 //
-// OPTION A — Google Sheets (recommended, no code required):
-//   See GOOGLE_SHEETS_SETUP.md for full instructions.
-//   Short version: publish your standings sheet as CSV, paste the URL
-//   into STANDINGS_CSV_URL below, and trigger a Cloudflare redeploy.
-//   After that, just update the sheet and click "Redeploy" in Cloudflare.
+//   Standings tab: season_id | division | team | W | L | T | GF | GA
+//                  One row per team per division per season. `season_id`
+//                  must match a `season_id` from the `Seasons` tab — same
+//                  linkage as `Schedule` rows use, so multiple seasons'
+//                  standings can coexist without one overwriting another.
+//                  `team` must match a name in teams.ts; `division` must
+//                  be one a team actually plays in. `W`/`L`/`T`/`GF`/`GA`
+//                  are whole numbers — leave a cell blank for 0.
 //
-// OPTION B — Edit this file directly:
-//   Find the division rows below and update W / L / T / GF / GA numbers.
-//   Then push to GitHub (Cloudflare auto-deploys on push).
-//
+// Leave STANDINGS_CSV_URL empty to use localStandings below instead (no
+// Sheet needed) — same empty-by-default pattern as SEASONS_CSV_URL/
+// SCHEDULE_CSV_URL in schedule.ts. Validated and fetched at build time,
+// same fail-loud approach as the schedule: a bad row throws, which fails
+// the build, and Cloudflare keeps serving the last good deploy rather
+// than publishing bad data.
 // ─────────────────────────────────────────────────────────────────────────
-//
-// GOOGLE SHEETS FORMAT (if using Option A):
-//   Sheet name: Standings
-//   Columns:    division | team | W | L | T | GF | GA
-//   Example:    12U | Diamonds | 4 | 1 | 0 | 38 | 22
-//
-// Leave STANDINGS_CSV_URL as empty string ('') to use the local data below.
-// ─────────────────────────────────────────────────────────────────────────
+
+import { fetchCSV } from '@/lib/csv';
+import { teams } from './teams';
+import { scheduleEvents } from './schedule';
 
 export const STANDINGS_CSV_URL = '';
 // Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Standings'
@@ -47,8 +50,7 @@ export interface EventStandings {
   divisions: DivisionStandings[];
 }
 
-// ── LOCAL STANDINGS — edit these numbers after each game day ──────────────
-// (only used when STANDINGS_CSV_URL is empty)
+// ── LOCAL STANDINGS — used only when STANDINGS_CSV_URL is empty ───────────
 
 export const localStandings: EventStandings[] = [
   {
@@ -102,6 +104,73 @@ export const localStandings: EventStandings[] = [
     ],
   },
 ];
+
+// ── SHEET PARSING ──────────────────────────────────────────────────────────
+
+// Blank means 0 (a team that hasn't played yet) — anything else has to be
+// a real non-negative number, or it's a validation error.
+function parseStat(raw: string): number | null {
+  if (raw === '') return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function buildStandings(rows: Record<string, string>[]): EventStandings[] {
+  const errors: string[] = [];
+  const teamNames = new Set(teams.map(t => t.name));
+  const validDivisions = new Set(teams.flatMap(t => t.divisions));
+  const eventsById = new Map(scheduleEvents.map(e => [e.id, e]));
+
+  // eventId -> division -> rows
+  const byEvent = new Map<string, Map<string, StandingRow[]>>();
+
+  rows.forEach((row, i) => {
+    const rowNum = i + 2; // header is row 1
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push(`Standings row ${rowNum}: missing season_id`); return; }
+    if (!eventsById.has(seasonId)) { errors.push(`Standings row ${rowNum}: season_id "${seasonId}" doesn't match any Seasons row`); return; }
+
+    if (!row.division) errors.push(`Standings row ${rowNum}: missing division`);
+    else if (!validDivisions.has(row.division)) errors.push(`Standings row ${rowNum}: division "${row.division}" isn't used by any team in teams.ts`);
+
+    if (!row.team) errors.push(`Standings row ${rowNum}: missing team`);
+    else if (!teamNames.has(row.team)) errors.push(`Standings row ${rowNum}: team "${row.team}" doesn't match a name in teams.ts`);
+
+    const stats = { W: parseStat(row.W), L: parseStat(row.L), T: parseStat(row.T), GF: parseStat(row.GF), GA: parseStat(row.GA) };
+    for (const [key, val] of Object.entries(stats)) {
+      if (val === null) errors.push(`Standings row ${rowNum}: ${key} "${row[key as keyof typeof row]}" isn't a valid non-negative number`);
+    }
+
+    if (!byEvent.has(seasonId)) byEvent.set(seasonId, new Map());
+    const divisions = byEvent.get(seasonId)!;
+    if (!divisions.has(row.division)) divisions.set(row.division, []);
+    divisions.get(row.division)!.push({
+      team: row.team,
+      W:  stats.W  ?? 0,
+      L:  stats.L  ?? 0,
+      T:  stats.T  ?? 0,
+      GF: stats.GF ?? 0,
+      GA: stats.GA ?? 0,
+    });
+  });
+
+  if (errors.length) {
+    throw new Error(
+      `[standings.ts] ${errors.length} problem(s) in the standings sheet — fix these and rebuild:\n` +
+      errors.map(e => ` - ${e}`).join('\n')
+    );
+  }
+
+  return [...byEvent.entries()].map(([eventId, divisions]) => ({
+    eventId,
+    eventName: eventsById.get(eventId)?.name ?? eventId,
+    divisions: [...divisions.entries()].map(([division, rows]) => ({ division, rows })),
+  }));
+}
+
+export const standings: EventStandings[] = STANDINGS_CSV_URL
+  ? buildStandings(await fetchCSV(STANDINGS_CSV_URL, 'standings.ts', 'Standings'))
+  : localStandings;
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 export function sortedRows(rows: StandingRow[]) {
