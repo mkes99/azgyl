@@ -7,6 +7,51 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.14] — 2026-08-31 — Desktop game notes, richer seed data
+
+### Fixed
+
+- **Per-game `notes` never rendered on the desktop schedule table**, only
+  on mobile cards. The styling (`.game-note`) already existed — it was
+  written but never wired into the desktop row markup, so a game's notes
+  column was silently invisible to anyone not on mobile. Added
+  `{g.notes && <span class="game-note">{g.notes}</span>}` inside
+  `.sl-matchup` in `LeagueSchedule.astro`, with `flex-basis: 100%` so it
+  drops to its own line under the matchup within the existing wrapping
+  flex row — no new grid column needed. Distinct from, and independent of,
+  the ⚠️ field-warning icon (that's a `fields.ts` venue note, not a
+  per-game one — the spreadsheet has no control over it).
+- Found (but did not yet clean up) another instance of the stale-duplicate-
+  CSS pattern from 3.12's footer fix: `global.css` still has its own "10.
+  Schedule & Standings" section duplicating `LeagueSchedule.astro`'s scoped
+  styles (`.sched-list-header`, `.sl-matchup`, `.game-note`, etc., with
+  slightly different values in places — e.g. `.game-note` font-size `.72rem`
+  there vs `.7rem` in the component). Didn't bite this time since the new
+  `flex-basis` property isn't contested by the stale copy, but it's the
+  same landmine shape. Logged in `TODO.md`.
+
+### Changed
+
+- **Seed data (`SHEET_SEED_DATA.md`) expanded from 2 weeks to 5** (16 → 40
+  games) — 2 weeks wasn't enough to actually exercise the `/league` page's
+  Week filter. Added 8 per-game notes at a realistic density (not every
+  row) and rebalanced the Standings numbers to match each team's 5 games
+  played.
+- **One field per week instead of mixed within a date** — the whole league
+  now plays at one venue per Saturday (`mesquite-f1` → `naranja-park` →
+  `mesquite-f3` → `chuparosa` → `mohave`), alternating between fields that
+  carry a ⚠️ warning note in `fields.ts` and ones that don't. This means
+  the seed data now demonstrates the two independent note systems clearly
+  instead of the field-warning icon just appearing on every single game by
+  coincidence (all 40 rows previously used Mesquite fields, which all
+  happen to have warnings). Re-verified the full data against the real
+  fetch/parse/validate pipeline via a local mock server, then confirmed
+  live in a browser: Week 3 (Mesquite Field 3) shows both a per-game note
+  and the field-warning icon on the same date; Week 5 (Mohave) shows a
+  per-game note with no icon.
+
+---
+
 ## [3.13] — 2026-08-31 — Schedule & season now sourced from Google Sheets
 
 ### Changed
