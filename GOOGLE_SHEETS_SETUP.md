@@ -351,10 +351,9 @@ thing that needs updating.
 
 ## Step 7 — Set up the Cloudflare deploy hook(s)
 
-A deploy hook only rebuilds the one branch it's created for — if more
-than one branch should respond to sheet edits (`develop` now, `main`
-once this is merged there too), each one needs its own hook. Repeat
-this per branch:
+A deploy hook only rebuilds the one branch it's created for — both
+`develop` and `main` carry the Sheets integration now, so both need a
+hook to respond to sheet edits. Repeat this per branch:
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
 2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-develop`,
@@ -395,33 +394,22 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 // in the Cloudflare dashboard — names the trigger (this Sheet) and the
 // target together, so what each hook is for is obvious from the name
 // alone, not just which branch it points at. google-sheets-schedule was
-// merged into `develop` and deleted (as planned) — develop is the
-// active branch now. main is commented out below as a placeholder —
-// uncomment and fill in once main gets its own hook (Step 7), no other
-// code changes needed.
+// merged into `develop`, `develop` was merged into `main`, and the
+// feature branch was deleted (as planned) — both develop and main carry
+// the Sheets integration now, so both get a hook.
 const DEPLOY_HOOK_URLS  = [
-  'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // sheets-sync-develop
-  // 'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main — uncomment once main has its own hook
+  'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop
+  'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main
 ];
 // Unlike DEPLOY_HOOK_URLS (fan out to every active branch), this stays a
 // SINGLE url — it's the one source of truth for which team/division/
-// venue names are currently valid, so it has to point at whichever
-// deployment currently represents "live" for this repo, not several
-// possibly-disagreeing ones at once. There's no way to make this
-// permanently stable until the azgyl.com custom domain is actually
-// attached in Cloudflare Pages — which happens at real launch, a
-// separate, later, deliberate step, NOT automatically at "merged to
-// main." Until launch, azgyl.com resolves nowhere, so this has to
-// track whichever Cloudflare Pages deployment is currently relevant by
-// hand, checked fresh every time that changes — a branch merge, a
-// branch deletion, or launch itself:
-//   - NOW (google-sheets-schedule merged + deleted, develop active):
-//     https://develop.azgyl.pages.dev/valid-values.json — confirmed live
-//   - Once merged into `main`, before launch: main's own Cloudflare
-//     Pages URL (still not azgyl.com — that's not attached yet)
-//   - At actual launch (azgyl.com attached as the custom domain):
-//     https://azgyl.com/valid-values.json, permanently
-const VALID_VALUES_URL  = 'https://develop.azgyl.pages.dev/valid-values.json';
+// venue names are currently valid. Use the bare <project>.pages.dev
+// domain (no branch prefix) — Cloudflare always points that at whichever
+// branch is set as the project's Production branch (main), so this
+// value doesn't need to change again even at real launch: azgyl.com
+// just becomes a second custom domain pointed at that same production
+// branch, not a replacement for pages.dev. Confirmed live.
+const VALID_VALUES_URL  = 'https://azgyl.pages.dev/valid-values.json';
 const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
 
