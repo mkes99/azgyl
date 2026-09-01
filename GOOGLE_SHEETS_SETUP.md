@@ -406,16 +406,25 @@ const DEPLOY_HOOK_URLS  = [
 // Unlike DEPLOY_HOOK_URLS (fan out to every active branch), this stays a
 // SINGLE url — it's the one source of truth for which team/division/
 // venue names are currently valid, so it has to point at whichever
-// deployment is "current," not several possibly-disagreeing ones at
-// once. It moves as the branch does, and needs updating by hand at each
-// stage — nothing automatic:
-//   1. NOW: the google-sheets-schedule branch's Cloudflare Pages preview
-//      URL (azgyl.com isn't live yet)
-//   2. Once merged into `develop` (and google-sheets-schedule is
-//      deleted, as planned): develop's preview URL
-//   3. Once merged into `main`: https://azgyl.com/valid-values.json,
-//      permanently — the value below is what it'll end up as
-const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // TEMPORARY — see note above; swap for the branch preview URL until merged to main
+// deployment currently represents "live" for this repo, not several
+// possibly-disagreeing ones at once. There's no way to make this
+// permanently stable until the azgyl.com custom domain is actually
+// attached in Cloudflare Pages — which happens at real launch, a
+// separate, later, deliberate step, NOT automatically at "merged to
+// main." Until launch, azgyl.com resolves nowhere, so this has to
+// track whichever Cloudflare Pages deployment is currently relevant by
+// hand, checked fresh every time that changes — a branch merge, a
+// branch deletion, or launch itself:
+//   - NOW: google-sheets-schedule's Cloudflare Pages preview URL
+//   - The moment it's merged into `develop`: that branch is deleted
+//     immediately (as planned) — swap to develop's preview URL right
+//     then, there's no overlap window
+//   - Once merged into `main`, before launch: main's own Cloudflare
+//     Pages URL (still not azgyl.com — that's not attached yet)
+//   - At actual launch (azgyl.com attached as the custom domain):
+//     https://azgyl.com/valid-values.json, permanently — the value
+//     below is what it'll end up as, not what it should be right now
+const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // WRONG until launch — see note above; use the current Cloudflare Pages deployment URL for whichever branch is live right now
 const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
 

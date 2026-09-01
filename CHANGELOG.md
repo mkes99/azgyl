@@ -7,6 +7,23 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.32] — 2026-09-01 — Correction: VALID_VALUES_URL doesn't settle at merge-to-main
+
+### Fixed
+
+- **3.31's migration note for `VALID_VALUES_URL` was wrong** — it
+  assumed `azgyl.com` becomes valid the moment `google-sheets-schedule`
+  merges into `main`. It doesn't: the `azgyl.com` custom domain isn't
+  attached in Cloudflare Pages until actual launch, a separate, later,
+  deliberate step — merging to `main` and launching are not the same
+  event, and there can be a real gap between them. Corrected to
+  describe the actual pattern (track whichever Cloudflare Pages
+  deployment is currently live by hand, checked fresh at every branch
+  merge/deletion, with `azgyl.com` only becoming correct at launch
+  itself) rather than a fixed three-stage timeline.
+
+---
+
 ## [3.31] — 2026-09-01 — Admin always notified; VALID_VALUES_URL migration path documented
 
 ### Changed
