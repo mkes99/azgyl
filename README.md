@@ -87,6 +87,38 @@ column filled in.
 
 ---
 
+## Admin instructions page — `/admin/setup`
+
+`src/pages/admin/setup.astro` renders `GOOGLE_SHEETS_SETUP.md` directly on
+the live site (imports the file straight from the repo root, so there's
+one source of truth — editing the `.md` file updates the page too, nothing
+to keep in sync by hand). It's for whoever manages the schedule sheet day
+to day and doesn't have — or shouldn't need — GitHub access to read the
+raw markdown file.
+
+**This page is not meant to be public.** It isn't linked from anywhere on
+the site and is marked `noindex` so it won't turn up in search, but that's
+just a courtesy — the actual gate has to be **Cloudflare Access**, set up
+once in the Cloudflare dashboard (no code involved):
+
+1. Cloudflare dashboard → your account → **Zero Trust** → **Access** →
+   **Applications** → **Add an application** → **Self-hosted**.
+2. Application domain: your production domain, path `/admin/*` (covers
+   this page and anything else added under `/admin/` later).
+3. Add a policy — for a small group, **Allow**, rule type **Emails**,
+   list the specific email addresses that should have access (board
+   members, whoever manages the sheet). They'll sign in with a one-time
+   code sent to that email, or "Sign in with Google" if you set that
+   identity provider up — no separate password to create or share.
+4. Save. `https://azgyl.com/admin/setup` now prompts for that login
+   before showing anything — everything else on the site is unaffected.
+
+If more admin-only pages get added later, they can go under
+`src/pages/admin/` too and the same `/admin/*` Access rule covers them
+automatically, no additional Cloudflare configuration needed.
+
+---
+
 ## Standings — how to update
 
 Open `src/data/standings.ts`. Find the matching `eventId` and division, update the numbers:

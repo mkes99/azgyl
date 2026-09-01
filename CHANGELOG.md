@@ -7,6 +7,36 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.22] — 2026-09-01 — Live admin instructions page at /admin/setup
+
+### Added
+
+- **`src/pages/admin/setup.astro` renders `GOOGLE_SHEETS_SETUP.md` directly
+  on the live site**, for whoever manages the schedule sheet day to day
+  and doesn't have (or shouldn't need) GitHub access to read the raw
+  markdown file. Imports the `.md` file straight from the repo root via
+  Astro's built-in markdown-import support (`import { Content } from
+  '../../../GOOGLE_SHEETS_SETUP.md'`) — one source of truth, no content
+  duplicated into the page by hand, so it can't drift from the repo doc.
+  Wrapped in a `prose`-styled `<article>` matching the site's existing
+  colors/typography (headings, tables, code blocks, the ASCII diagram —
+  code blocks get a visible scrollbar since Shiki's syntax highlighting
+  wraps them in a dark theme where the site's default border color is
+  invisible, and macOS hides scrollbars until touched, so a wide block
+  would otherwise just look cut off).
+- **`BaseLayout.astro` gained an optional `noindex` prop** — `true` on
+  this page, keeps it out of search as a courtesy. Not the actual
+  protection: this page has no content that couldn't already be read in
+  the repo, but it's meant to be access-restricted so it doesn't show up
+  for casual visitors either. Actual access control is **Cloudflare
+  Access**, configured entirely in the Cloudflare dashboard against the
+  `/admin/*` path — no code involved, and it covers any future page added
+  under `src/pages/admin/` automatically. `README.md` documents the setup
+  steps (Zero Trust → Access → add a `/admin/*` self-hosted application,
+  an email-allowlist policy, done).
+
+---
+
 ## [3.21] — 2026-09-01 — Optional Venues sheet tab for field-map links
 
 ### Added

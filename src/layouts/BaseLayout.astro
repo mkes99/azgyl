@@ -9,12 +9,14 @@ interface Props {
   description?:    string;
   pathname?:       string;
   recaptchaSiteKey?: string;   // pass to enable reCAPTCHA on that page
+  noindex?:        boolean;    // pass true for internal/admin pages — keeps them out of search
 }
 const {
   title,
   description = siteMeta.description,
   pathname = '/',
   recaptchaSiteKey,
+  noindex = false,
 } = Astro.props;
 const fullTitle = title.includes('AZGYL') ? title : `${title} | AZGYL`;
 ---
@@ -26,7 +28,7 @@ const fullTitle = title.includes('AZGYL') ? title : `${title} | AZGYL`;
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
     <meta name="theme-color" content="#fbeed0" />
     <!-- Open Graph -->
     <meta property="og:title"       content={fullTitle} />
