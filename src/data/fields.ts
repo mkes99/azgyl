@@ -30,14 +30,16 @@ export interface Field {
   address:      string;
   city:         string;
   mapUrl:       string;
-  notes?:       string;    // venue-level note (e.g. a warning) — shown once per day, not per game
+  notes?:       string;    // venue-level note, shown once per day (not per game) behind a
+                            // click-to-open "Notes" disclosure — plain text, no emoji prefix
+                            // needed or wanted; shows for any note, not just safety warnings
   fieldMapUrl?: string;    // optional — see note above
 }
 
 export const fields: Field[] = [
 
   // ── MESQUITE HIGH SCHOOL — Gilbert ────────────────────────────────────
-  // ⚠️  NO DOGS ALLOWED at Mesquite HS
+  // No dogs allowed at Mesquite HS
   // Note: edge of Field 3 has a busted pipe / wet area — avoid
   {
     id:      'mesquite-f1',
@@ -46,7 +48,7 @@ export const fields: Field[] = [
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
     mapUrl:  'https://maps.google.com/?q=500+S+McQueen+Rd+Gilbert+AZ+85233',
-    notes:   '⚠️ NO DOGS ALLOWED. Main competition field.',
+    notes:   'No dogs allowed. Main competition field.',
   },
   {
     id:      'mesquite-f2',
@@ -55,7 +57,7 @@ export const fields: Field[] = [
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
     mapUrl:  'https://maps.google.com/?q=500+S+McQueen+Rd+Gilbert+AZ+85233',
-    notes:   '⚠️ NO DOGS ALLOWED.',
+    notes:   'No dogs allowed.',
   },
   {
     id:      'mesquite-f3',
@@ -64,7 +66,7 @@ export const fields: Field[] = [
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
     mapUrl:  'https://maps.google.com/?q=500+S+McQueen+Rd+Gilbert+AZ+85233',
-    notes:   '⚠️ NO DOGS ALLOWED. Busted pipe near edge — wet area, avoid that section. Field shifted to compensate.',
+    notes:   'No dogs allowed. Busted pipe near edge — wet area, avoid that section. Field shifted to compensate.',
   },
 
   // ── NARANJA PARK — Oro Valley ──────────────────────────────────────────

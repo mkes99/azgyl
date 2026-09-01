@@ -7,6 +7,44 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.18] — 2026-08-31 — Group games by venue; venue notes redesigned as a click-to-open disclosure
+
+Ported from the `google-sheets-schedule` branch (there: 3.16).
+
+### Changed
+
+- **Mixed-venue days now render as one section per venue, not a flat list
+  with a "Multiple locations" caveat.** 3.17's fallback (single flat list,
+  per-row "Venue — Field" links, "Multiple locations today — see each game
+  below") technically worked but still repeated the venue name on every
+  row for a mixed day. Restructured so a day's games are grouped by venue
+  first — almost always one group, occasionally more — and *every* group
+  gets its own venue heading (map link + notes) shown exactly once,
+  however many games are in it. A day with 8U at Naranja Park and
+  10U/12U/14U at Mesquite now renders as two clearly separated sections,
+  each internally identical to the simple single-venue case. This
+  eliminated the `singleVenueField`/"Location" vs. "Field" header
+  special-casing entirely — every row's field cell is now always just the
+  plain short label, full stop.
+- **Venue notes redesigned from a hover-tooltip ⚠️ icon to a click-to-open
+  "Notes" disclosure** (`<details>`/`<summary>`, the same accordion
+  pattern already used for the site's FAQ sections). Three real problems
+  with the icon: it was the same visual weight (a bright warning triangle)
+  regardless of whether the note was actually a safety warning or routine
+  logistics info; the native `title` tooltip has a slow hover delay and
+  doesn't work on touch at all; and a note only ever showed if someone had
+  manually prefixed it with "⚠️" in the data, so purely informational notes
+  (e.g. "Field 4 for 10U–14U, Chuparosa Park used for 8U") were invisible
+  everywhere on the site, always, with no way to see them. Now: the
+  "Notes" button shows for **any** venue note, click reveals the full text
+  inline (no delay, works on touch), and `fields.ts` notes are plain text —
+  no emoji convention to remember or get wrong.
+- **`fields.ts` notes stripped of the `⚠️` prefix** — kept as plain
+  descriptive text ("No dogs allowed. Main competition field.") now that
+  visibility isn't gated on the emoji being present.
+
+---
+
 ## [3.17] — 2026-08-31 — Venue moved to the day heading, short field labels, field-map slot
 
 Ported from the `google-sheets-schedule` branch (there: 3.15).
@@ -16,9 +54,10 @@ Ported from the `google-sheets-schedule` branch (there: 3.15).
 - **Week 2's 8U games moved to `naranja-park`**, while the rest of that
   day stays at Mesquite HS — a real, deliberate mixed-venue date in the
   live schedule data (not a mock), demonstrating the "Multiple locations
-  today" fallback above with actual production data: 8U now shows
-  "Naranja Park — Field 4" with no warning icon, while 10U/12U/14U that
-  same day still show "Mesquite HS — Field 2/3" with the ⚠️.
+  today" fallback above with actual production data (superseded by 3.18's
+  venue grouping, below): 8U showed "Naranja Park — Field 4" with no
+  warning icon, while 10U/12U/14U that same day showed "Mesquite HS —
+  Field 2/3" with the ⚠️.
 
 ### Changed
 

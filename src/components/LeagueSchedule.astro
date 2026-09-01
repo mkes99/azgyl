@@ -42,7 +42,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       <div class="info-panel">
         <div class="section-kicker">No active events</div>
         <h3>Schedule coming soon</h3>
-        <p>Open <code>src/data/schedule.ts</code>, add games, and set <code>active: true</code>.</p>
+        <p>Add a season and its games in the Schedule Google Sheet and mark it <code>active</code> — see <code>GOOGLE_SHEETS_SETUP.md</code>.</p>
       </div>
     </div>
   </section>
@@ -106,13 +106,21 @@ const activeEvents = scheduleEvents.filter(e => e.active);
           const dayGames = games.filter(g => g.date === date);
           const isPast   = date < todayISO;
 
-          // Divisions CAN legitimately be at different venues the same day
-          // (e.g. 8U at one park, 12U at another) — only show the single
-          // combined venue link when every game that day really does share
-          // one venue. Otherwise fall back to a per-game venue link/warning
-          // below, rather than showing a heading that's wrong for some rows.
-          const dayVenueNames = [...new Set(dayGames.map(g => fieldVenue(g.field)).filter(Boolean))];
-          const singleVenueField = dayVenueNames.length === 1 ? dayGames[0]?.field : null;
+          // Group by venue — usually one group (the whole league at one
+          // host site), but divisions can legitimately be at different
+          // venues the same day. Each group gets its own venue heading
+          // (map link + warning + field map) shown once, however many
+          // games are in it — never repeated per row.
+          const venueGroups: { venue: string; field: string; games: typeof dayGames }[] = [];
+          for (const g of dayGames) {
+            const venue = fieldVenue(g.field);
+            let group = venueGroups.find(vg => vg.venue === venue);
+            if (!group) {
+              group = { venue, field: g.field, games: [] };
+              venueGroups.push(group);
+            }
+            group.games.push(g);
+          }
 
           return (
             <div
@@ -126,94 +134,79 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                     {isPast && <span class="week-status-past">Past</span>}
                   </span>
                   <h3 class="sched-day-date">{fmtDate(date)}</h3>
-                  {singleVenueField && (
+                </div>
+              </div>
+
+              {venueGroups.map(group => (
+                <div class="sched-venue-group">
+                  {group.venue && (
                     <div class="sched-day-venue-row">
-                      <a class="sched-day-venue" href={mapUrl(singleVenueField)} target="_blank" rel="noreferrer">
-                        {fieldVenue(singleVenueField)}
+                      <a class="sched-day-venue" href={mapUrl(group.field)} target="_blank" rel="noreferrer">
+                        {group.venue}
                       </a>
-                      {fieldNote(singleVenueField).startsWith('⚠️') && (
-                        <span class="field-warn" title={fieldNote(singleVenueField)}>⚠️</span>
-                      )}
-                      {fieldMapImg(singleVenueField) && (
-                        <a class="sched-day-fieldmap" href={fieldMapImg(singleVenueField)} target="_blank" rel="noreferrer">
+                      {fieldMapImg(group.field) && (
+                        <a class="sched-day-fieldmap" href={fieldMapImg(group.field)} target="_blank" rel="noreferrer">
                           Field map
                         </a>
                       )}
-                    </div>
-                  )}
-                  {!singleVenueField && dayVenueNames.length > 1 && (
-                    <span class="sched-day-venue sched-day-venue--mixed">Multiple locations today — see each game below</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Game list — CSS grid rows, no table */}
-              <div class="sched-list" role="list" aria-label={`Week ${weekIdx + 1} schedule`}>
-                <div class="sched-list-header" aria-hidden="true">
-                  <span>Div</span>
-                  <span>Start</span>
-                  <span>Matchup</span>
-                  <span class="sl-field-head">{singleVenueField ? 'Field' : 'Location'}</span>
-                </div>
-                {dayGames.map(g => (
-                  <div class="sched-row" role="listitem" data-division={g.division}>
-                    <span class="sl-div"><span class="div-chip">{g.division}</span></span>
-                    <span class="sl-time">
-                      <strong>{g.time}</strong>
-                      {g.arrival && <span class="sl-arrive">{g.arrival} arrival</span>}
-                    </span>
-                    <span class="sl-matchup">
-                      <span class="sl-home">{g.home}</span>
-                      <span class="sl-vs">vs</span>
-                      <span class="sl-away">{g.away}</span>
-                      {g.notes && <span class="game-note">{g.notes}</span>}
-                    </span>
-                    <span class="sl-field">
-                      {singleVenueField ? (
-                        fieldLabel(g.field)
-                      ) : (
-                        <>
-                          <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="sl-field-link">
-                            {fieldVenue(g.field)} — {fieldLabel(g.field)}
-                          </a>
-                          {fieldNote(g.field).startsWith('⚠️') && (
-                            <span class="field-warn" title={fieldNote(g.field)}>⚠️</span>
-                          )}
-                        </>
+                      {fieldNote(group.field) && (
+                        <details class="sched-venue-notes">
+                          <summary>Notes</summary>
+                          <p>{fieldNote(group.field)}</p>
+                        </details>
                       )}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  )}
 
-              {/* Mobile cards */}
-              <div class="sched-cards">
-                {dayGames.map(g => (
-                  <div class="sched-card" data-division={g.division}>
-                    <div class="scard-top">
-                      <div class="scard-meta">
-                        <span class="div-chip">{g.division}</span>
-                        <span class="scard-time">{g.time}</span>
-                        {g.arrival && <span class="scard-arrive">Arrive {g.arrival}</span>}
+                  {/* Game list — CSS grid rows, no table */}
+                  <div class="sched-list" role="list" aria-label={`Week ${weekIdx + 1} schedule, ${group.venue}`}>
+                    <div class="sched-list-header" aria-hidden="true">
+                      <span>Div</span>
+                      <span>Start</span>
+                      <span>Matchup</span>
+                      <span class="sl-field-head">Field</span>
+                    </div>
+                    {group.games.map(g => (
+                      <div class="sched-row" role="listitem" data-division={g.division}>
+                        <span class="sl-div"><span class="div-chip">{g.division}</span></span>
+                        <span class="sl-time">
+                          <strong>{g.time}</strong>
+                          {g.arrival && <span class="sl-arrive">{g.arrival} arrival</span>}
+                        </span>
+                        <span class="sl-matchup">
+                          <span class="sl-home">{g.home}</span>
+                          <span class="sl-vs">vs</span>
+                          <span class="sl-away">{g.away}</span>
+                          {g.notes && <span class="game-note">{g.notes}</span>}
+                        </span>
+                        <span class="sl-field">{fieldLabel(g.field)}</span>
                       </div>
-                    </div>
-                    <div class="scard-matchup">
-                      <span class="scard-home">{g.home}</span>
-                      <span class="scard-vs">vs</span>
-                      <span class="scard-away">{g.away}</span>
-                    </div>
-                    {singleVenueField ? (
-                      <span class="scard-field">{fieldLabel(g.field)}</span>
-                    ) : (
-                      <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="scard-field field-link">
-                        📍 {fieldVenue(g.field)} — {fieldLabel(g.field)}
-                        {fieldNote(g.field).startsWith('⚠️') && ' ⚠️'}
-                      </a>
-                    )}
-                    {g.notes && <div class="scard-note">{g.notes}</div>}
+                    ))}
                   </div>
-                ))}
-              </div>
+
+                  {/* Mobile cards */}
+                  <div class="sched-cards">
+                    {group.games.map(g => (
+                      <div class="sched-card" data-division={g.division}>
+                        <div class="scard-top">
+                          <div class="scard-meta">
+                            <span class="div-chip">{g.division}</span>
+                            <span class="scard-time">{g.time}</span>
+                            {g.arrival && <span class="scard-arrive">Arrive {g.arrival}</span>}
+                          </div>
+                        </div>
+                        <div class="scard-matchup">
+                          <span class="scard-home">{g.home}</span>
+                          <span class="scard-vs">vs</span>
+                          <span class="scard-away">{g.away}</span>
+                        </div>
+                        <span class="scard-field">{fieldLabel(g.field)}</span>
+                        {g.notes && <div class="scard-note">{g.notes}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
             </div>
           );
@@ -327,7 +320,10 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     vertical-align: middle; border: 1px solid var(--line);
   }
   .sched-day-date  { margin: 0 0 .2rem; font-size: 1.3rem; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
-  .sched-day-venue-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  /* One block per venue that day — almost always just one, but can be more
+     when divisions are hosted at different parks the same day. */
+  .sched-venue-group + .sched-venue-group { margin-top: 2rem; }
+  .sched-day-venue-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .85rem; }
   .sched-day-venue {
     font-size: .88rem;
     color: var(--rose-deep);
@@ -335,7 +331,6 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     text-decoration: none;
   }
   .sched-day-venue:hover { text-decoration: underline; }
-  .sched-day-venue--mixed { color: var(--muted); font-weight: 500; font-style: italic; }
   .sched-day-fieldmap {
     font-size: .78rem;
     color: var(--muted);
@@ -345,6 +340,37 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     padding: .15rem .6rem;
   }
   .sched-day-fieldmap:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
+  /* Click-to-open, not a hover tooltip — shows for any venue note, not
+     just ones that happen to sound like a warning. Sits compact next to
+     the venue/field-map links when closed; flex-basis:100% pushes it (and
+     its revealed text) onto its own full-width line once opened, rather
+     than squeezing the note into a narrow shared-row column. */
+  .sched-venue-notes[open] { flex-basis: 100%; }
+  .sched-venue-notes summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: .15rem .6rem;
+  }
+  .sched-venue-notes summary::-webkit-details-marker { display: none; }
+  .sched-venue-notes summary:hover,
+  .sched-venue-notes[open] summary { color: var(--rose-deep); border-color: var(--rose-deep); }
+  .sched-venue-notes p {
+    margin-top: .5rem;
+    padding: .65rem .85rem;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: .82rem;
+    color: var(--muted);
+    max-width: 480px;
+  }
 
   /* ── Game list ───────────────────────────────── */
   .sched-list {
@@ -398,10 +424,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sl-vs      { font-size: .68rem; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
   .sl-away    { color: var(--text); font-size: .9rem; }
 
-  .sl-field       { display: flex; align-items: center; justify-content: flex-end; gap: .3rem; }
-  .sl-field-link  { font-size: .84rem; color: var(--rose-deep); text-decoration: none; font-weight: 600; white-space: nowrap; }
-  .sl-field-link:hover { text-decoration: underline; }
-  .field-warn     { cursor: help; flex-shrink: 0; }
+  .sl-field       { font-size: .84rem; color: var(--muted); text-align: right; white-space: nowrap; }
   /* flex-basis:100% forces this onto its own line within .sl-matchup's
      wrapping flex row, below the home/vs/away, without needing a separate
      grid column — was styled but never rendered until now (see CHANGELOG). */
