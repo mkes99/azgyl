@@ -7,6 +7,21 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.37] — 2026-09-01 — Fix homepage's vacuous-truth "Season Complete" gap
+
+### Fixed
+
+- **`HomeSchedulePreview.astro`'s `seasonComplete = !nextDate` was
+  vacuously true for an active season with zero `Schedule` rows too**,
+  not just a genuinely finished one — the same class of bug
+  `LeagueSchedule.astro`'s `seasonOver` had before it was fixed. Added a
+  separate `noGamesYet` check (`allDates.length === 0`) with its own "No
+  games scheduled yet" state; `seasonComplete` now requires
+  `!noGamesYet && !nextDate`. Verified against a mock active-season-
+  zero-rows sheet before and after the fix.
+
+---
+
 ## [3.36] — 2026-09-01 — Correction: VALID_VALUES_URL doesn't settle at merge-to-main
 
 ### Fixed

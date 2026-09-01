@@ -11,7 +11,13 @@ const allDates = [...new Set(games.map(g => g.date))].sort();
 // Current week = first game date on or after today — purely date-driven.
 const todayISO     = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 const nextDate     = allDates.find(d => d >= todayISO) ?? null;
-const seasonComplete = !nextDate;
+// `!nextDate` alone is vacuously true for an active season with zero
+// Schedule rows too (allDates.length === 0), not just a genuinely
+// finished one — same bug LeagueSchedule.astro's seasonOver had before
+// it required dates.length > 0. noGamesYet is checked separately so the
+// two states don't share a banner.
+const noGamesYet      = allDates.length === 0;
+const seasonComplete  = !noGamesYet && !nextDate;
 
 const dayGames     = nextDate ? games.filter(g => g.date === nextDate) : [];
 const weekNum      = nextDate ? allDates.indexOf(nextDate) + 1 : 0;
@@ -35,6 +41,15 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
 <section>
   <div class="container">
 
+    {/* ── No games scheduled yet ────────────────── */}
+    {noGamesYet && (
+      <div class="hsp-complete">
+        <div class="section-kicker">{event.name}</div>
+        <h2 class="hsp-title">No games scheduled yet</h2>
+        <p>This season is active but games haven't been added yet — check back soon.</p>
+      </div>
+    )}
+
     {/* ── Season complete state ─────────────────── */}
     {seasonComplete && (
       <div class="hsp-complete">
@@ -48,7 +63,7 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
     )}
 
     {/* ── Active schedule ───────────────────────── */}
-    {!seasonComplete && (
+    {!noGamesYet && !seasonComplete && (
       <Fragment>
         <div class="hsp-head">
           <div>
