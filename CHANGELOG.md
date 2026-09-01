@@ -7,6 +7,24 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.30] — 2026-09-01 — Apps Script supports multiple deploy hooks (one per branch)
+
+### Changed
+
+- **`DEPLOY_HOOK_URL` → `DEPLOY_HOOK_URLS`** in the Apps Script
+  (`GOOGLE_SHEETS_SETUP.md`, Step 8) — a Cloudflare deploy hook only
+  rebuilds the one branch it was created for, and this integration needs
+  to follow the code across branches (currently just
+  `google-sheets-schedule`, then `develop` and `main` once merged). Now
+  an array; `validateAndDeploy()` fires every configured hook on a clean
+  validation, one deploy per branch, `muteHttpExceptions` so one stale
+  hook failing doesn't block the rest. Step 7 updated with a
+  `<branch>-deploy` naming convention (`google-sheets-schedule-deploy`,
+  `develop-deploy`, `main-deploy`) so the hook list stays readable as
+  more branches pick this up.
+
+---
+
 ## [3.29] — 2026-09-01 — Real sheet wired in; Team filter; field-map CDN switch; league page polish
 
 ### Added

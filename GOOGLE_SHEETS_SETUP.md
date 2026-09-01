@@ -349,11 +349,20 @@ thing that needs updating.
 
 ---
 
-## Step 7 — Set up the Cloudflare deploy hook
+## Step 7 — Set up the Cloudflare deploy hook(s)
+
+A deploy hook only rebuilds the one branch it's created for — if more
+than one branch should respond to sheet edits (a feature branch while
+this is still being tested, then `develop` and `main` once it's merged),
+each one needs its own hook. Repeat this per branch:
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
-2. Point it at the branch that should be rebuilt when the sheet changes (usually your production branch)
-3. Copy the webhook URL
+2. Name it `<branch>-deploy` (e.g. `google-sheets-schedule-deploy`,
+   `develop-deploy`, `main-deploy`) — keeps the list readable once
+   there's more than one
+3. Point it at that specific branch
+4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URLS` in the Apps
+   Script below, one entry per hook
 
 ---
 
@@ -379,7 +388,17 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 
 ```javascript
 // ── CONFIG — fill these in ────────────────────────────────────────────────
-const DEPLOY_HOOK_URL   = 'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL';
+// One entry per branch that should rebuild when this sheet changes — each
+// Cloudflare Pages branch needs its own deploy hook (a hook only rebuilds
+// the one branch it was created for). Name each hook <branch>-deploy in
+// the Cloudflare dashboard (e.g. google-sheets-schedule-deploy,
+// develop-deploy, main-deploy) so the list stays readable as more
+// branches pick up this integration. While it's still only wired up on
+// a feature branch, this array has one entry — add more as `develop`
+// and `main` do too, no code changes needed beyond this list.
+const DEPLOY_HOOK_URLS  = [
+  'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // google-sheets-schedule-deploy
+];
 const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // point at whichever deploy this sheet should validate against
 const FALLBACK_EMAIL    = 'azgirlsyouthlax@gmail.com'; // used only if we can't tell who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
@@ -426,7 +445,12 @@ function validateAndDeploy(editorEmail) {
     notifyError(editorEmail, errors);
     return;
   }
-  UrlFetchApp.fetch(DEPLOY_HOOK_URL, { method: 'post', muteHttpExceptions: true });
+  // Fire every configured hook — one deploy per branch. muteHttpExceptions
+  // so one hook failing (a stale/deleted one, say) doesn't stop the rest
+  // from firing.
+  DEPLOY_HOOK_URLS.forEach(function (url) {
+    UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true });
+  });
 }
 
 function readTab(ss, tabName) {
