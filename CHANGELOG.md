@@ -7,6 +7,29 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.39] — 2026-09-01 — Notes popover rebuilt on manual JS toggle, not native `<details>`
+
+### Fixed
+
+- **3.38's `[open]`-driven CSS fix wasn't enough — confirmed live on a
+  real iPhone that the popover still wouldn't close.** The CSS was
+  correctly deployed (verified in the live bundle), so the actual
+  problem wasn't the display rule at all — it's that `<summary>` tap-to-
+  toggle itself is unreliable in this context on iOS Safari, not just
+  the rendering of its content. Converted `.sched-venue-notes` from a
+  native `<details>`/`<summary>` disclosure to a plain
+  `<div>`/`<button>` with the `<p>` shown/hidden via the `hidden`
+  attribute, toggled entirely in JS on click — the same pattern already
+  used successfully for the field-map lightbox elsewhere in this file.
+  No native disclosure behavior involved at all now, so there's nothing
+  for a browser-specific `<details>` quirk to break. Also: opening one
+  venue's Notes now closes any other one already open, so a day with
+  several venue groups can't show two overlapping popovers. Verified
+  through a full open→close cycle via real `.click()` calls (aria-
+  expanded, `hidden`, and rendered height all correct at each step).
+
+---
+
 ## [3.38] — 2026-09-01 — Fix mobile: Team filter matched nothing, Notes popover wouldn't close
 
 ### Fixed
