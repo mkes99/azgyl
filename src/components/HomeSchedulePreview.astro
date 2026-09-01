@@ -3,9 +3,16 @@ import { scheduleEvents } from '@/data/schedule';
 import { getVenueById }   from '@/data/venues';
 
 const event = scheduleEvents.find(e => e.active);
-if (!event) return;
 
-const games    = event.games;
+// No active season at all is a distinct state from an active season
+// with zero games — same distinction /league's LeagueSchedule.astro
+// makes ("Schedule coming soon" vs. "No games scheduled yet"). Without
+// this, `games`/`allDates` below would just be empty arrays and this
+// component would render the "No games scheduled yet" message even
+// when there's no season to speak of in the first place.
+const noActiveSeason = !event;
+
+const games    = event?.games ?? [];
 const allDates = [...new Set(games.map(g => g.date))].sort();
 
 // Current week = first game date on or after today — purely date-driven.
@@ -16,8 +23,8 @@ const nextDate     = allDates.find(d => d >= todayISO) ?? null;
 // finished one — same bug LeagueSchedule.astro's seasonOver had before
 // it required dates.length > 0. noGamesYet is checked separately so the
 // two states don't share a banner.
-const noGamesYet      = allDates.length === 0;
-const seasonComplete  = !noGamesYet && !nextDate;
+const noGamesYet      = !noActiveSeason && allDates.length === 0;
+const seasonComplete  = !noActiveSeason && !noGamesYet && !nextDate;
 
 const dayGames     = nextDate ? games.filter(g => g.date === nextDate) : [];
 const weekNum      = nextDate ? allDates.indexOf(nextDate) + 1 : 0;
@@ -41,6 +48,15 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
 <section>
   <div class="container">
 
+    {/* ── No active season at all ───────────────── */}
+    {noActiveSeason && (
+      <div class="hsp-complete">
+        <div class="section-kicker">League</div>
+        <h2 class="hsp-title">Schedule coming soon</h2>
+        <p>Check back soon for the next season's game schedule.</p>
+      </div>
+    )}
+
     {/* ── No games scheduled yet ────────────────── */}
     {noGamesYet && (
       <div class="hsp-complete">
@@ -63,7 +79,7 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
     )}
 
     {/* ── Active schedule ───────────────────────── */}
-    {!noGamesYet && !seasonComplete && (
+    {!noActiveSeason && !noGamesYet && !seasonComplete && (
       <Fragment>
         <div class="hsp-head">
           <div>

@@ -7,6 +7,31 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.40] — 2026-09-01 — Homepage widget: "Schedule coming soon" state added
+
+### Added
+
+- **`HomeSchedulePreview.astro` had no state at all for "no active
+  season"** — it just rendered nothing (a bare `if (!event) return;`),
+  unlike `/league`'s explicit "Schedule coming soon" panel for the same
+  scenario. Added a matching `noActiveSeason` state with plain,
+  visitor-facing copy (not `/league`'s current dev-facing "see
+  GOOGLE_SHEETS_SETUP.md" text). All three states (`noActiveSeason`,
+  `noGamesYet`, `seasonComplete`) are now mutually exclusive and
+  verified against mocks for each scenario, plus the real season data
+  unaffected.
+
+### Fixed
+
+- **Introducing `noActiveSeason` initially left `seasonComplete`
+  computed wrong** — it excluded `noGamesYet` but not `noActiveSeason`,
+  so with no active season at all `seasonComplete` would still evaluate
+  `true` (both states rendering at once, and `event.name` throwing since
+  `event` is undefined in that branch). Caught during testing, before
+  committing.
+
+---
+
 ## [3.39] — 2026-09-01 — Notes popover rebuilt on manual JS toggle, not native `<details>`
 
 ### Fixed
