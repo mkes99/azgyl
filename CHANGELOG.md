@@ -7,6 +7,51 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.15] — 2026-08-31 — Venue moved to the day heading, short field labels, field-map slot
+
+### Changed
+
+- **Venue name, map link, and ⚠️ warning moved from every game row to one
+  place per day.** Previously each game repeated the full venue name as
+  its own "Get directions" link (e.g. "Mesquite HS — Field 1" eight times
+  on a day with 8 games, each an identical map link to the same address).
+  When every game on a date resolves to the same venue, the day heading
+  now shows that venue once as the map link
+  (`.sched-day-venue`/`.hsp-venue`), with the ⚠️ warning next to it, and
+  each game row shows just its short field label as plain text (`Field 1`,
+  not linked, not repeated).
+- **Divisions at different venues the same day is a real, supported case —
+  not an error.** Considered adding a build-time validation rule requiring
+  one venue per date, but different divisions genuinely can be hosted at
+  different parks the same Saturday. Instead the day heading detects
+  whether every game that date actually shares one venue: if so, the
+  single combined link described above; if not, the heading says
+  "Multiple locations today — see each game below" and each row falls
+  back to its own full venue + field link and warning icon, so nothing is
+  ever silently wrong for a division at a different location. Verified
+  both paths live: a single-venue day and a deliberately mixed-venue day
+  (8U at Mesquite, 12U at Naranja Park) on the same date.
+- **`fields.ts`: `label` is now genuinely short** ("Field 1", not
+  "Mesquite HS — Field 1") **and free-form** — there's no fixed
+  numbering/lettering scheme enforced, since different venues label their
+  fields differently in real life. Whoever edits the data sets it to
+  whatever matches that venue's actual signage. Removed the redundant
+  `name` property (identical to `label` on every entry) and the
+  `fieldDisplayName()` helper, which was unused anywhere and, had it been
+  used, wouldn't have actually returned a short name despite its own
+  comment claiming otherwise — another instance of styled/written-but-
+  never-wired-up code, same shape as 3.14's `.game-note` finding.
+- **Added an optional `fieldMapUrl` slot** on `Field` (a diagram/image of
+  where each field sits within a venue) — renders a "Field map" link next
+  to the venue heading when set, nothing when it isn't. No real images
+  exist yet; this just makes room for them. Shared across all field
+  entries at one venue, same as `venue`/`address`/`mapUrl` already are.
+- Applied the same simplification to `HomeSchedulePreview.astro` (the
+  homepage's next-game-day preview), which had the identical per-game
+  link duplication.
+
+---
+
 ## [3.14] — 2026-08-31 — Desktop game notes, richer seed data
 
 ### Fixed

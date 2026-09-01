@@ -6,17 +6,32 @@
 // The field id must match the field value used in schedule.ts.
 // For venues with multiple numbered fields, use the pattern:
 //   'mesquite-f1', 'mesquite-f2', 'mesquite-f3'
+//
+// `label` is shown per-game on the schedule (e.g. "Field 1") — the venue
+// name, address, and map link are shown once per day instead, at the top
+// of that day's schedule (see LeagueSchedule.astro), not repeated per row.
+// There's no fixed format for `label` — different venues label their
+// fields differently (numbers, letters, names). Set it to whatever
+// actually matches the signage/scorer's-table naming at that venue.
+//
+// `fieldMapUrl` is optional — a diagram/image showing where each field is
+// within the venue, if one exists. Leave it unset until you have one; nothing
+// breaks either way, the "Field map" link on the site just won't show up.
+// To add one: drop the image in `public/assets/field-maps/` and set this to
+// that path (e.g. '/assets/field-maps/mesquite.jpg'). Multi-field venues
+// share one field-map image across all their field entries (same as venue/
+// address/mapUrl below), since it's one diagram of the whole site.
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface Field {
-  id:      string;    // used in schedule.ts
-  name:    string;    // full display name
-  label:   string;    // short label for schedule table (keep under ~18 chars)
-  venue:   string;    // venue name
-  address: string;
-  city:    string;
-  mapUrl:  string;
-  notes?:  string;
+  id:           string;    // used in schedule.ts
+  label:        string;    // short, per-game label — e.g. 'Field 1'. Free-form, see note above.
+  venue:        string;    // venue name, shown once per day
+  address:      string;
+  city:         string;
+  mapUrl:       string;
+  notes?:       string;    // venue-level note (e.g. a warning) — shown once per day, not per game
+  fieldMapUrl?: string;    // optional — see note above
 }
 
 export const fields: Field[] = [
@@ -26,8 +41,7 @@ export const fields: Field[] = [
   // Note: edge of Field 3 has a busted pipe / wet area — avoid
   {
     id:      'mesquite-f1',
-    name:    'Mesquite HS — Field 1',
-    label:   'Mesquite HS — Field 1',
+    label:   'Field 1',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -36,8 +50,7 @@ export const fields: Field[] = [
   },
   {
     id:      'mesquite-f2',
-    name:    'Mesquite HS — Field 2',
-    label:   'Mesquite HS — Field 2',
+    label:   'Field 2',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -46,8 +59,7 @@ export const fields: Field[] = [
   },
   {
     id:      'mesquite-f3',
-    name:    'Mesquite HS — Field 3',
-    label:   'Mesquite HS — Field 3',
+    label:   'Field 3',
     venue:   'Mesquite High School',
     address: '500 S McQueen Rd, Gilbert, AZ 85233',
     city:    'Gilbert',
@@ -58,8 +70,7 @@ export const fields: Field[] = [
   // ── NARANJA PARK — Oro Valley ──────────────────────────────────────────
   {
     id:      'naranja-park',
-    name:    'Naranja Park',
-    label:   'Naranja Park',
+    label:   'Field 4',
     venue:   'Naranja Park',
     address: '1100 N Naranja Dr, Oro Valley, AZ 85737',
     city:    'Oro Valley',
@@ -68,8 +79,7 @@ export const fields: Field[] = [
   },
   {
     id:      'chuparosa',
-    name:    'Chuparosa Park',
-    label:   'Chuparosa Park',
+    label:   'Chuparosa Field',
     venue:   'Chuparosa Park',
     address: '11175 N Chuparosa Dr, Oro Valley, AZ 85737',
     city:    'Oro Valley',
@@ -80,8 +90,7 @@ export const fields: Field[] = [
   // ── SURPRISE SOCCER COMPLEX (SSC) ─────────────────────────────────────
   {
     id:      'ssc',
-    name:    'Surprise Soccer Complex',
-    label:   'Surprise Soccer Complex',
+    label:   'SSC',
     venue:   'Surprise Soccer Complex (SSC)',
     address: '14450 W Sweetwater Ave, Surprise, AZ 85379',
     city:    'Surprise',
@@ -92,8 +101,7 @@ export const fields: Field[] = [
   // ── MOHAVE MIDDLE SCHOOL ───────────────────────────────────────────────
   {
     id:      'mohave',
-    name:    'Mohave Middle School',
-    label:   'Mohave Middle School',
+    label:   'Mohave',
     venue:   'Mohave Middle School',
     address: '8425 W Mohave St, Tolleson, AZ 85353',
     city:    'Tolleson',
@@ -104,8 +112,7 @@ export const fields: Field[] = [
   // ── ANTHEM COMMUNITY PARK ─────────────────────────────────────────────
   {
     id:      'anthem-community',
-    name:    'Anthem Community Park',
-    label:   'Anthem Community Park',
+    label:   'Anthem',
     venue:   'Anthem Community Park',
     address: '41703 N Gavilan Peak Pkwy, Anthem, AZ 85086',
     city:    'Anthem',
@@ -118,11 +125,4 @@ export const fields: Field[] = [
 // ── HELPERS ────────────────────────────────────────────────────────────────
 export function getFieldById(id: string) {
   return fields.find(f => f.id === id);
-}
-
-// Returns a short display name: just the field number for multi-field venues
-export function fieldDisplayName(id: string) {
-  const f = getFieldById(id);
-  if (!f) return id;
-  return f.name;
 }
