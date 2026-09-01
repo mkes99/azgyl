@@ -7,6 +7,34 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.27] — 2026-09-01 — Document empty-tab behavior everywhere, including for the end user
+
+### Added
+
+- **A confirmed decision on the Schedule/Standings empty-tab asymmetry
+  (3.26 fixed Schedule's case; Standings staying silent when empty was
+  intentional, now explicitly documented rather than just left as
+  observed behavior)** — an active season with no `Schedule` rows shows
+  a real "No games scheduled yet" notice; a season with no `Standings`
+  rows shows no standings section at all, no message. Different on
+  purpose: a missing schedule is something to actively flag, a standings
+  table with nothing to summarize yet just isn't a section that exists.
+  Documented in three places, each pitched at its reader: a new
+  unnumbered "What an empty tab looks like on the site" section in
+  `GOOGLE_SHEETS_SETUP.md` (technical, a full state table covering "no
+  active season at all" too); a new "It's fine to set up a season before
+  it has games or standings" section in `SHEET_ENTRY_GUIDE.md` (plain
+  language, reassures whoever's filling in the sheet that an
+  in-progress season won't look like a broken page) — that one's also
+  what's live at `/admin/setup`; and a short paragraph in `README.md`
+  for a developer skimming, pointing at the full breakdown.
+- Fixed a separate stale spot found while touching this: `README.md`'s
+  "don't need to be retyped" paragraph still only listed `season_id`/
+  `date`/`venue`/`division` as fill-down columns — missing `fieldMapUrl`
+  and `venueNotes`, both added across 3.24/3.26.
+
+---
+
 ## [3.26] — 2026-09-01 — venueNotes column; reordered Schedule tab; empty-tab edge case fixed; sheet renamed
 
 ### Added

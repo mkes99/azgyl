@@ -97,11 +97,20 @@ often rather than as a one-off, it'd be worth moving those CSV URLs into
 Cloudflare Pages environment variables instead of hardcoded constants —
 ask whoever maintains the codebase if that becomes worth doing.
 
-**`season_id`, `date`, `venue`, and `division` don't need to be retyped on
-every `Schedule` row** — leave any of those cells blank and it inherits
-whatever was in the row above (see "Leave repeated cells blank" in
-`SHEET_ENTRY_GUIDE.md`). Only the very first row of the tab needs every
-column filled in.
+**`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`, and
+`division` don't need to be retyped on every `Schedule` row** — leave any
+of those cells blank and it inherits whatever was in the row above (see
+"Leave repeated cells blank" in `SHEET_ENTRY_GUIDE.md`). Only the very
+first row of the tab needs every column filled in.
+
+**An active season with no rows in `Schedule` yet shows "No games
+scheduled yet"** rather than looking broken or claiming the season's
+over — it's fine to create the `Seasons` row and mark it active before
+there's any schedule data. Standings work differently: a season with no
+`Standings` rows just has no standings section on the page at all, no
+message — deliberate, not a bug, since there's nothing to summarize
+before anyone's played. Full breakdown of every empty-tab state is in
+`GOOGLE_SHEETS_SETUP.md`, "What an empty tab looks like on the site."
 
 **The homepage shows the next unplayed date from the first active event.** The league page shows all active events (a season and a tournament can both be `active` at once) with their full schedule.
 

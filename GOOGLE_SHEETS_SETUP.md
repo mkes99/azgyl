@@ -263,6 +263,31 @@ differential) — never sort the sheet yourself.
 
 ---
 
+## What an empty tab looks like on the site
+
+`Schedule` and `Standings` are independent — one having no rows for a
+season doesn't hide or affect the other. Deliberately *not* symmetric:
+
+| State | What shows on `/league` |
+|---|---|
+| No `Seasons` row is `active` at all | The whole schedule area shows "Schedule coming soon" (a site-wide state, not per-season). |
+| An active season, but `Schedule` has no rows for it | That season's schedule area shows **"No games scheduled yet"** — a real, visible notice, not a blank space. |
+| An active season, but `Standings` has no rows for it | The standings section for that season **doesn't appear at all** — no heading, no empty table, no message. Silent, not broken. |
+| Both have rows | Both sections render normally, independently of each other. |
+
+The difference is deliberate: a season with no games entered yet is
+worth actively saying so (something's expected there and isn't there
+yet); a season with no standings yet just isn't a section that exists
+on the page — before anyone's played a game, there's nothing to
+summarize, so nothing showing is the correct, unremarkable state.
+
+This also means it's completely fine to create the `Seasons` row and mark
+it `active` before `Schedule`/`Standings` have any data — the site won't
+show anything broken, just the "not scheduled yet" notice (or, for
+standings, nothing) until rows exist.
+
+---
+
 ## Step 5 — Publish all three tabs to the web as CSV
 
 For **each** tab (`Seasons`, `Schedule`, then `Standings`):

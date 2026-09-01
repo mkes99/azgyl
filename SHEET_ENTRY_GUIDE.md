@@ -221,6 +221,26 @@ differential) automatically, however the rows are ordered in the sheet.
 
 ---
 
+## It's fine to set up a season before it has games or standings
+
+You don't have to enter everything at once. If you add a season on the
+Seasons tab and mark it active before you've added any games for it, the
+website won't look broken — it'll just say **"No games scheduled yet"**
+in the schedule area, so people know that part's coming rather than
+wondering if something's wrong.
+
+Standings work a little differently: if there's no standings data yet
+for a season, that section just **doesn't show up at all** — no message,
+nothing. That's on purpose, not a bug — before anyone's played a game,
+there's nothing to summarize, so the cleanest thing is for that part of
+the page to simply not exist yet. It'll appear on its own as soon as you
+add rows for that season to the Standings tab.
+
+Either way, nothing you do here can show visitors a broken page — worst
+case, a part of it just isn't there yet.
+
+---
+
 ## Archiving a past season
 
 Once a season is completely over, its rows can be moved out of `Schedule`
