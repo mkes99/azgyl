@@ -77,6 +77,12 @@ a backstop — if the sheet's own check somehow lets something bad through,
 the build fails loudly rather than publishing it, and Cloudflare keeps
 serving the last good deploy.
 
+**`season_id`, `date`, `venue`, and `division` don't need to be retyped on
+every `Schedule` row** — leave any of those cells blank and it inherits
+whatever was in the row above (see "Leave repeated cells blank" in
+`GOOGLE_SHEETS_SETUP.md`). Only the very first row of the tab needs every
+column filled in.
+
 **The homepage shows the next unplayed date from the first active event.** The league page shows all active events (a season and a tournament can both be `active` at once) with their full schedule.
 
 ---
@@ -185,10 +191,28 @@ since different venues label their fields differently):
   city:    'Gilbert',
   mapUrl:  'https://maps.google.com/?q=...',
   notes:   'No dogs allowed.',
+  fieldMapUrl: '/assets/field-maps/mesquite.png', // optional, see below
 }
 ```
 
 Venues listed on the schedule are automatically linked to Google Maps.
+
+**`fieldMapUrl`** (optional) shows a "Field map" button next to the venue
+name that opens the image in a lightbox — a diagram of where each field
+sits within the venue. Two ways to set it:
+
+- **Local file (reliable, needs a code change):** drop the image in
+  `public/assets/field-maps/` and reference it as
+  `/assets/field-maps/<filename>` — **no `/public` in the path**, Astro
+  serves everything under `public/` from the site root, so
+  `public/assets/field-maps/mesquite.png` on disk becomes
+  `/assets/field-maps/mesquite.png` as a URL.
+- **Public link via the Sheet (no code change, needs Google Drive):**
+  the optional `Venues` Sheet tab lets someone paste a link without
+  touching code — it overrides whatever's hardcoded here if both exist.
+  Full walkthrough (including why it has to be a Drive `uc?export=view`
+  link and not a regular share link) is in `GOOGLE_SHEETS_SETUP.md`,
+  "Venues tab".
 
 ---
 
