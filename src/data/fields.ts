@@ -49,6 +49,7 @@ export const fields: Field[] = [
     city:    'Gilbert',
     mapUrl:  'https://maps.google.com/?q=500+S+McQueen+Rd+Gilbert+AZ+85233',
     notes:   'No dogs allowed. Main competition field.',
+    fieldMapUrl: '/assets/field-maps/mesquite.png',
   },
   {
     id:      'mesquite-f2',
@@ -58,6 +59,7 @@ export const fields: Field[] = [
     city:    'Gilbert',
     mapUrl:  'https://maps.google.com/?q=500+S+McQueen+Rd+Gilbert+AZ+85233',
     notes:   'No dogs allowed.',
+    fieldMapUrl: '/assets/field-maps/mesquite.png',
   },
   {
     id:      'mesquite-f3',
@@ -67,6 +69,7 @@ export const fields: Field[] = [
     city:    'Gilbert',
     mapUrl:  'https://maps.google.com/?q=500+S+McQueen+Rd+Gilbert+AZ+85233',
     notes:   'No dogs allowed. Busted pipe near edge — wet area, avoid that section. Field shifted to compensate.',
+    fieldMapUrl: '/assets/field-maps/mesquite.png',
   },
 
   // ── NARANJA PARK — Oro Valley ──────────────────────────────────────────
@@ -83,9 +86,9 @@ export const fields: Field[] = [
     id:      'chuparosa',
     label:   'Chuparosa Field',
     venue:   'Chuparosa Park',
-    address: '11175 N Chuparosa Dr, Oro Valley, AZ 85737',
-    city:    'Oro Valley',
-    mapUrl:  'https://maps.google.com/?q=11175+N+Chuparosa+Dr+Oro+Valley+AZ+85737',
+    address: '2400 S Dobson Rd, Chandler, AZ 85286',
+    city:    'Chandler',
+    mapUrl:  'https://maps.google.com/?q=2400+S+Dobson+Rd+Chandler+AZ+85286',
     notes:   'Used for 8U games on Oro Valley host weekends.',
   },
 

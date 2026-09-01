@@ -263,6 +263,30 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       });
     });
   });
+
+  // Notes popover: left-anchored by default. Venue names of varying
+  // length put the button at an unpredictable horizontal position, so on
+  // narrow screens the box can run past the right edge of the viewport —
+  // shift it left by exactly the overflow amount (never more, so it can
+  // never push past the LEFT edge either: shifting by the full overflow
+  // always lands the box's left edge at `innerWidth - boxWidth`, which is
+  // safe as long as the box itself is narrower than the viewport, which
+  // its max-width already guarantees). The caret gets nudged the same
+  // amount in the opposite direction so it still points at the button.
+  document.querySelectorAll('.sched-venue-notes').forEach(function (details) {
+    details.addEventListener('toggle', function () {
+      var p = details.querySelector('p');
+      if (!p) return;
+      p.style.transform = '';
+      p.style.removeProperty('--caret-shift');
+      if (!details.open) return;
+      var overflow = p.getBoundingClientRect().right - window.innerWidth + 8;
+      if (overflow > 0) {
+        p.style.transform = 'translateX(-' + overflow + 'px)';
+        p.style.setProperty('--caret-shift', overflow + 'px');
+      }
+    });
+  });
 })();
 </script>
 
@@ -389,7 +413,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     z-index: 5;
     margin: 0;
     width: max-content;
-    max-width: min(340px, 80vw);
+    max-width: min(340px, calc(100vw - 2.5rem));
     padding: .7rem .9rem;
     background: var(--surface);
     border: 1px solid var(--line);
@@ -400,12 +424,15 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     color: var(--muted);
   }
   /* Caret pointing back up at the button, so the popover reads as
-     anchored to it rather than a stray floating box. */
+     anchored to it rather than a stray floating box. Shifted right by
+     JS (via --caret-shift, clamped to the box's own width) whenever the
+     box itself got nudged left to stay clear of the viewport edge — see
+     the toggle listener below. */
   .sched-venue-notes p::before {
     content: '';
     position: absolute;
     top: -6px;
-    left: 16px;
+    left: min(calc(16px + var(--caret-shift, 0px)), calc(100% - 28px));
     width: 11px; height: 11px;
     background: var(--surface);
     border-left: 1px solid var(--line);

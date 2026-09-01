@@ -91,6 +91,32 @@ Example row:
 spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite-f2 | Opening day
 ```
 
+### How games get grouped by venue on the site
+
+The `field` value you pick for each game controls how that day's games are
+grouped on `/league` — you don't set the venue name, address, or map link
+per game, they come from whichever venue that `field` id belongs to in
+`src/data/fields.ts`.
+
+- **Same day, same venue:** if every game that date uses a `field` id that
+  belongs to the same venue (e.g. `mesquite-f1`, `mesquite-f2`, `mesquite-f3`
+  are all "Mesquite High School"), the site shows one venue heading —
+  name, address, map link, field map, and notes — with every game listed
+  underneath it, each row just showing its own short field label
+  ("Field 1", "Field 2", ...).
+- **Same day, different venues:** if some games that date use `field` ids
+  from a different venue (e.g. some divisions at Mesquite, others at
+  Naranja Park), the site automatically splits that day into one section
+  per venue, each with its own heading. Nothing special to enter for
+  this — just use the correct `field` id for each game and the grouping
+  follows.
+
+So the only thing that determines grouping is picking the right `field` id
+per game. If a venue you need isn't in `src/data/fields.ts` yet (new host
+site, or a park with fields not already listed), ask whoever manages the
+site to add it before you reference it in the sheet — an unrecognized
+`field` id fails validation.
+
 ### Team name matching
 
 Team and field names must match **exactly** what's on the site. Check
