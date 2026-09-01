@@ -75,12 +75,13 @@ Open `src/data/schedule.ts`. Each **event** is a season or tournament:
       id:       'sp26-g1',
       date:     '2026-02-07',        // YYYY-MM-DD
       time:     '9:00 AM',
+      arrival:  '8:30 AM',           // optional — arrival/warmup time, shown under the game time
       home:     'Diamonds',          // must match a name in teams.ts
       away:     'Tukee Lightning',
       division: '12U',
       venue:    'mesquite',          // must match an id in venues.ts — drives grouping, address, map, notes
       field:    'Field 2',           // plain text, whatever that venue calls it — not validated
-      notes:    'Senior night',      // optional
+      notes:    'Senior night',      // optional — see the note below on the two different `notes`
     },
   ],
 }
@@ -91,6 +92,14 @@ Open `src/data/schedule.ts`. Each **event** is a season or tournament:
 **To add a tournament alongside a regular season:** add a second event with `type: 'tournament'`. Both appear on the league page if `active: true`.
 
 **The homepage shows the first active event's upcoming games (limit 5).** The league page shows all active events with their full schedule and standings.
+
+**There are two different `notes` fields — don't confuse them.** This
+`notes` (on a `Game`, here in `schedule.ts`) is per-game and shows inline
+under that one matchup, e.g. `"Senior night"`, `"Picture day — arrive 30
+min early"`. It's unrelated to the `notes` on a `Venue` (in `venues.ts`) —
+that one is venue-wide, shows once per venue behind the "Notes" button
+next to the venue name (see "Venues" below), and is about the location
+itself (`"No dogs allowed"`), not about any one game.
 
 ---
 
@@ -197,12 +206,18 @@ since different venues label their fields differently):
   address: '500 S McQueen Rd, Gilbert, AZ 85233',
   city:    'Gilbert',
   mapUrl:  'https://maps.google.com/?q=...',
-  notes:   'No dogs allowed.',
+  notes:   'No dogs allowed.',              // optional, see below
   fieldMapUrl: '/assets/field-maps/mesquite.png', // optional, see below
 }
 ```
 
 Venues listed on the schedule are automatically linked to Google Maps.
+
+**`notes`** (optional) shows a "Notes" button next to the venue name —
+click to reveal the text (not a hover tooltip, so it works on touch
+devices too). Shown once per venue per day, not once per game, even when
+that venue has ten games that day. Leave it unset and the button just
+doesn't appear.
 
 **`fieldMapUrl`** (optional) shows a "Field map" button next to the venue
 name that opens the image in a lightbox — a diagram of where each field
