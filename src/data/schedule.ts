@@ -11,12 +11,18 @@
 //                 'tournament'. `active` is TRUE/FALSE — TRUE means it
 //                 shows on the homepage and /league.
 //
-//   Schedule tab: season_id | date | time | arrival | home | away | division | field | notes
+//   Schedule tab: season_id | date | time | arrival | home | away | division | venue | field | notes
 //                 One row per game. `season_id` must match a Seasons row's
 //                 `season_id` — same column name in both tabs on purpose,
 //                 so the relationship between the two is obvious at a
 //                 glance. `home`/`away` must match a team name in teams.ts
-//                 exactly. `field` must match an id in fields.ts.
+//                 exactly. `venue` must match an id in venues.ts — it's
+//                 the only thing that determines which games get grouped
+//                 together on the site, so it needs to be identified once
+//                 per game (same as season_id), not once per day. `field`
+//                 is plain, unvalidated text — whatever that venue calls
+//                 it ("Field 1", "Chuparosa Field") — since different
+//                 venues label their fields differently.
 //                 `arrival`/`notes` are optional — leave the cell blank.
 //
 // Both tabs are edited together, in the same sitting, in the same sheet.
@@ -32,13 +38,13 @@
 // This build-time check is a backstop, not the primary defense — the sheet
 // itself validates on every edit (Apps Script, see GOOGLE_SHEETS_SETUP.md)
 // and blocks a bad deploy before it's even triggered. Both read the same
-// valid team/division/field values, published live at /valid-values.json
+// valid team/division/venue values, published live at /valid-values.json
 // (src/pages/valid-values.json.ts) so there's one source of truth.
 // ─────────────────────────────────────────────────────────────────────────
 
 import { parseCSV } from '@/lib/csv';
 import { teams } from './teams';
-import { fields } from './fields';
+import { venues } from './venues';
 
 const SEASONS_CSV_URL = '';  // paste the published Seasons-tab CSV URL here
 const SCHEDULE_CSV_URL = ''; // paste the published Schedule-tab CSV URL here
@@ -54,7 +60,8 @@ export interface Game {
   home:     string;   // team name (must match teams.ts)
   away:     string;   // team name (must match teams.ts)
   division: string;
-  field:    string;   // field id from fields.ts
+  venue:    string;   // venue id from venues.ts — drives address/map/notes/field-map, and grouping
+  field:    string;   // plain text field label at that venue — 'Field 1', 'Chuparosa Field', etc.
   notes?:   string;
 }
 
@@ -87,7 +94,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
   const errors: string[] = [];
   const teamNames = new Set(teams.map(t => t.name));
   const validDivisions = new Set(teams.flatMap(t => t.divisions));
-  const fieldIds = new Set(fields.map(f => f.id));
+  const venueIds = new Set(venues.map(v => v.id));
 
   const events = new Map<string, ScheduleEvent>();
 
@@ -129,7 +136,8 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     if (row.home && !teamNames.has(row.home)) errors.push(`Schedule row ${rowNum}: home team "${row.home}" doesn't match a name in teams.ts`);
     if (row.away && !teamNames.has(row.away)) errors.push(`Schedule row ${rowNum}: away team "${row.away}" doesn't match a name in teams.ts`);
     if (!validDivisions.has(row.division)) errors.push(`Schedule row ${rowNum}: division "${row.division}" isn't used by any team in teams.ts`);
-    if (!fieldIds.has(row.field)) errors.push(`Schedule row ${rowNum}: field "${row.field}" doesn't match an id in fields.ts`);
+    if (!venueIds.has(row.venue)) errors.push(`Schedule row ${rowNum}: venue "${row.venue}" doesn't match an id in venues.ts`);
+    if (!row.field) errors.push(`Schedule row ${rowNum}: missing field`);
 
     target.games.push({
       id: `${seasonId}-${rowNum}`,
@@ -139,6 +147,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
       home: row.home,
       away: row.away,
       division: row.division,
+      venue: row.venue,
       field: row.field,
       notes: row.notes || undefined,
     });

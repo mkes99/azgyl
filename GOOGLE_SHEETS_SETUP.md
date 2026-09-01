@@ -17,7 +17,7 @@ nothing goes live and whoever made the edit gets an email explaining why.
  ┌────────────────────┐           ┌─────────────────────────────┐
  │ Seasons tab         │           │ /valid-values.json           │
  │ Schedule tab        │──edit──▶  │  (current team/division/     │
- └─────────┬───────────┘           │   field names, always live)  │
+ └─────────┬───────────┘           │   venue names, always live)  │
            │                       └───────────────┬───────────────┘
            │ Apps Script                            │ fetched by
            │ validates against ──────────────────────┘ the script
@@ -72,7 +72,7 @@ spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
 ## Step 3 — `Schedule` tab headers (Row 1, exact spelling)
 
 ```
-season_id | date | time | arrival | home | away | division | field | notes
+season_id | date | time | arrival | home | away | division | venue | field | notes
 ```
 
 | Column | Notes |
@@ -83,45 +83,36 @@ season_id | date | time | arrival | home | away | division | field | notes
 | `arrival` | Optional — arrival/warmup time, e.g. `9:00 AM`. Leave blank if not needed. |
 | `home` / `away` | Team name — must exactly match a team name on the site (see "Team name matching" below). |
 | `division` | Must be a division one of the current teams actually plays in (8U/10U/12U/14U, etc.). |
-| `field` | Must match a field id from `src/data/fields.ts` (e.g. `mesquite-f2`) — ask whoever manages the site for the current list if you're not sure. |
+| `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). |
+| `field` | Plain text — whatever that venue actually calls it, e.g. `Field 1`, `Field 3`, `Chuparosa Field`. Not validated against any list, since different venues label their fields differently. |
 | `notes` | Optional — e.g. `Senior night`. Leave blank if not needed. |
 
 Example row:
 ```
-spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite-f2 | Opening day
+spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day
 ```
 
 ### How games get grouped by venue on the site
 
-The `field` value you pick for each game controls how that day's games are
-grouped on `/league` — you don't set the venue name, address, or map link
-per game, they come from whichever venue that `field` id belongs to in
-`src/data/fields.ts`.
+Every game that shares a `venue` value on the same date is grouped
+together on `/league` under one heading — venue name, address, map link,
+field map, and notes are all shown once per group, not once per game. If
+some games that date use a different `venue` (e.g. some divisions at
+Mesquite, others at Naranja Park), the site automatically splits that day
+into one section per venue instead. Nothing special to enter for either
+case — just put the correct `venue` on each game and the grouping follows
+from that alone.
 
-- **Same day, same venue:** if every game that date uses a `field` id that
-  belongs to the same venue (e.g. `mesquite-f1`, `mesquite-f2`, `mesquite-f3`
-  are all "Mesquite High School"), the site shows one venue heading —
-  name, address, map link, field map, and notes — with every game listed
-  underneath it, each row just showing its own short field label
-  ("Field 1", "Field 2", ...).
-- **Same day, different venues:** if some games that date use `field` ids
-  from a different venue (e.g. some divisions at Mesquite, others at
-  Naranja Park), the site automatically splits that day into one section
-  per venue, each with its own heading. Nothing special to enter for
-  this — just use the correct `field` id for each game and the grouping
-  follows.
-
-So the only thing that determines grouping is picking the right `field` id
-per game. If a venue you need isn't in `src/data/fields.ts` yet (new host
-site, or a park with fields not already listed), ask whoever manages the
-site to add it before you reference it in the sheet — an unrecognized
-`field` id fails validation.
+If a venue you need isn't in `src/data/venues.ts` yet (new host site, or a
+park not already listed), ask whoever manages the site to add it before
+you reference it in the sheet — an unrecognized `venue` id fails
+validation. `field` never fails validation — it's just descriptive text.
 
 ### Team name matching
 
-Team and field names must match **exactly** what's on the site. Check
+Team and venue names must match **exactly** what's on the site. Check
 `https://azgyl.com/valid-values.json` any time — it lists every currently
-valid team name, division, and field id. This is the same list the
+valid team name, division, and venue id. This is the same list the
 validator checks against, so if a name isn't in that file, the sheet will
 reject it.
 
@@ -262,7 +253,7 @@ function validateData(seasonRows, gameRows, valid) {
   const errors = [];
   const teamNames  = new Set(valid.teamNames);
   const divisions  = new Set(valid.divisions);
-  const fieldIds   = new Set(valid.fieldIds);
+  const venueIds   = new Set(valid.venueIds);
   const seasonIds  = new Set();
 
   seasonRows.forEach(row => {
@@ -290,7 +281,8 @@ function validateData(seasonRows, gameRows, valid) {
     if (row.home && !teamNames.has(row.home)) errors.push('Schedule row ' + row.__row + ': home team "' + row.home + '" not recognized — check /valid-values.json');
     if (row.away && !teamNames.has(row.away)) errors.push('Schedule row ' + row.__row + ': away team "' + row.away + '" not recognized — check /valid-values.json');
     if (!divisions.has(row.division)) errors.push('Schedule row ' + row.__row + ': division "' + row.division + '" not recognized');
-    if (!fieldIds.has(row.field)) errors.push('Schedule row ' + row.__row + ': field "' + row.field + '" not recognized');
+    if (!venueIds.has(row.venue)) errors.push('Schedule row ' + row.__row + ': venue "' + row.venue + '" not recognized — check /valid-values.json');
+    if (!row.field) errors.push('Schedule row ' + row.__row + ': missing field');
   });
 
   return errors;

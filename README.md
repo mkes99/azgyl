@@ -40,7 +40,7 @@ npm run build    # ./dist
 |------|-----------------|-----------|
 | `src/data/schedule.ts` | Fetches + validates the schedule from Google Sheets at build time | Rarely — see below, games are added in the Sheet, not this file |
 | `src/data/standings.ts` | Division standings | After each game day |
-| `src/data/fields.ts` | Field locations + map links | Venues change |
+| `src/data/venues.ts` | Venue locations + map links | Venues change |
 | `src/data/teams.ts` | Member club directory | Clubs change |
 | `src/data/board.ts` | Board member names + roles | Annual election |
 | `src/data/committees.ts` | Standing committees | Governance changes |
@@ -170,22 +170,25 @@ To remove a team without losing history (e.g. a club folds mid-season), comment 
 
 ---
 
-## Fields
+## Venues
 
-Open `src/data/fields.ts`. Each field has an `id` that matches the `field` value in `schedule.ts`:
+Open `src/data/venues.ts`. Each venue has an `id` that matches the `venue`
+value on a game in `schedule.ts` (the `field` value on that same game is
+just plain text — "Field 1", "Chuparosa Field" — not looked up anywhere,
+since different venues label their fields differently):
 
 ```ts
 {
   id:      'mesquite',
-  name:    'Mesquite Athletic Complex',
-  address: '6100 S. 80th St, Chandler, AZ 85249',
-  city:    'Chandler',
+  name:    'Mesquite High School',
+  address: '500 S McQueen Rd, Gilbert, AZ 85233',
+  city:    'Gilbert',
   mapUrl:  'https://maps.google.com/?q=...',
-  notes:   'Fields 4–5 for AZGYL games.',
+  notes:   'No dogs allowed.',
 }
 ```
 
-Fields listed on the schedule are automatically linked to Google Maps.
+Venues listed on the schedule are automatically linked to Google Maps.
 
 ---
 

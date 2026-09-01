@@ -3,7 +3,7 @@
 // Current week is determined purely by today's date.
 // No results, no status tracking — the schedule just shows games.
 import { scheduleEvents } from '@/data/schedule';
-import { getFieldById }   from '@/data/fields';
+import { getVenueById }   from '@/data/venues';
 
 const DIV_ORDER = ['8U', '10U', '12U', '14U'];
 
@@ -20,18 +20,17 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   const currentDate = dates.find(d => d >= todayISO) ?? dates[dates.length - 1];
   const seasonOver  = dates.every(d => d < todayISO);
 
-  const fmtDate   = (iso: string) =>
+  const fmtDate     = (iso: string) =>
     new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric',
     });
-  const fieldLabel   = (id: string) => getFieldById(id)?.label ?? id;
-  const fieldVenue   = (id: string) => getFieldById(id)?.venue ?? '';
-  const fieldAddress = (id: string) => getFieldById(id)?.address ?? '';
-  const mapUrl       = (id: string) => getFieldById(id)?.mapUrl ?? '#';
-  const fieldNote    = (id: string) => getFieldById(id)?.notes ?? '';
-  const fieldMapImg  = (id: string) => getFieldById(id)?.fieldMapUrl ?? '';
+  const venueName    = (id: string) => getVenueById(id)?.name ?? id;
+  const venueAddress = (id: string) => getVenueById(id)?.address ?? '';
+  const mapUrl        = (id: string) => getVenueById(id)?.mapUrl ?? '#';
+  const venueNote     = (id: string) => getVenueById(id)?.notes ?? '';
+  const venueMapImg   = (id: string) => getVenueById(id)?.fieldMapUrl ?? '';
 
-  return { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, fieldAddress, mapUrl, fieldNote, fieldMapImg, todayISO };
+  return { games, dates, divisions, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO };
 }
 
 const activeEvents = scheduleEvents.filter(e => e.active);
@@ -50,7 +49,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
 )}
 
 {activeEvents.map(event => {
-  const { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldLabel, fieldVenue, fieldAddress, mapUrl, fieldNote, fieldMapImg, todayISO } = buildEventData(event);
+  const { games, dates, divisions, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO } = buildEventData(event);
 
   return (
     <section class="league-sched-section">
@@ -111,13 +110,14 @@ const activeEvents = scheduleEvents.filter(e => e.active);
           // host site), but divisions can legitimately be at different
           // venues the same day. Each group gets its own venue heading
           // (map link + warning + field map) shown once, however many
-          // games are in it — never repeated per row.
-          const venueGroups: { venue: string; field: string; games: typeof dayGames }[] = [];
+          // games are in it — never repeated per row. Grouping key is the
+          // venue id straight off each game — no lookup needed to know
+          // which games share a venue.
+          const venueGroups: { venue: string; games: typeof dayGames }[] = [];
           for (const g of dayGames) {
-            const venue = fieldVenue(g.field);
-            let group = venueGroups.find(vg => vg.venue === venue);
+            let group = venueGroups.find(vg => vg.venue === g.venue);
             if (!group) {
-              group = { venue, field: g.field, games: [] };
+              group = { venue: g.venue, games: [] };
               venueGroups.push(group);
             }
             group.games.push(g);
@@ -142,28 +142,32 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                 <div class="sched-venue-group">
                   {group.venue && (
                     <div class="sched-day-venue-row">
-                      <a class="sched-day-venue" href={mapUrl(group.field)} target="_blank" rel="noreferrer">
-                        {group.venue}
+                      <a class="sched-day-venue" href={mapUrl(group.venue)} target="_blank" rel="noreferrer">
+                        {venueName(group.venue)}
                       </a>
-                      {fieldMapImg(group.field) && (
-                        <a class="sched-day-fieldmap" href={fieldMapImg(group.field)} target="_blank" rel="noreferrer">
+                      {venueMapImg(group.venue) && (
+                        <a class="sched-day-fieldmap" href={venueMapImg(group.venue)} target="_blank" rel="noreferrer">
+                          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M7 3.5 3 5v11.5l4-1.5 6 2 4-1.5V4l-4 1.5-6-2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M7 3.5v11.5M13 5.5V17" stroke="currentColor" stroke-width="1.4"/>
+                          </svg>
                           Field map
                         </a>
                       )}
-                      {fieldNote(group.field) && (
+                      {venueNote(group.venue) && (
                         <details class="sched-venue-notes">
                           <summary>Notes</summary>
-                          <p>{fieldNote(group.field)}</p>
+                          <p>{venueNote(group.venue)}</p>
                         </details>
                       )}
                     </div>
                   )}
-                  {fieldAddress(group.field) && (
-                    <p class="sched-day-address">{fieldAddress(group.field)}</p>
+                  {venueAddress(group.venue) && (
+                    <p class="sched-day-address">{venueAddress(group.venue)}</p>
                   )}
 
                   {/* Game list — CSS grid rows, no table */}
-                  <div class="sched-list" role="list" aria-label={`Week ${weekIdx + 1} schedule, ${group.venue}`}>
+                  <div class="sched-list" role="list" aria-label={`Week ${weekIdx + 1} schedule, ${venueName(group.venue)}`}>
                     <div class="sched-list-header" aria-hidden="true">
                       <span>Div</span>
                       <span>Start</span>
@@ -183,7 +187,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                           <span class="sl-away">{g.away}</span>
                           {g.notes && <span class="game-note">{g.notes}</span>}
                         </span>
-                        <span class="sl-field">{fieldLabel(g.field)}</span>
+                        <span class="sl-field">{g.field}</span>
                       </div>
                     ))}
                   </div>
@@ -204,7 +208,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                           <span class="scard-vs">vs</span>
                           <span class="scard-away">{g.away}</span>
                         </div>
-                        <span class="scard-field">{fieldLabel(g.field)}</span>
+                        <span class="scard-field">{g.field}</span>
                         {g.notes && <div class="scard-note">{g.notes}</div>}
                       </div>
                     ))}
@@ -220,6 +224,16 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     </section>
   );
 })}
+
+{/* Single reusable lightbox for every "Field map" link on the page —
+    populated with whichever image was clicked (see the script below). */}
+<div class="fieldmap-lightbox" id="fieldmap-lightbox" hidden>
+  <button type="button" class="fieldmap-lightbox-backdrop" aria-label="Close field map"></button>
+  <figure class="fieldmap-lightbox-figure">
+    <button type="button" class="fieldmap-lightbox-close" aria-label="Close field map">&times;</button>
+    <img class="fieldmap-lightbox-img" src="" alt="Field map" />
+  </figure>
+</div>
 
 <script is:inline>
 (function () {
@@ -237,6 +251,14 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       section.querySelectorAll('.sched-day:not(.sched-day--hidden)').forEach(function (day) {
         day.querySelectorAll('[data-division]').forEach(function (el) {
           el.style.display = (activeDiv === 'all' || el.dataset.division === activeDiv) ? '' : 'none';
+        });
+        // A venue group can end up with every one of its games filtered
+        // out (e.g. a division-only host at a venue, filtered to a
+        // different division) — hide the whole group, not just leave its
+        // heading sitting above an empty table.
+        day.querySelectorAll('.sched-venue-group').forEach(function (group) {
+          var hasMatch = activeDiv === 'all' || !!group.querySelector('[data-division="' + activeDiv + '"]');
+          group.style.display = hasMatch ? '' : 'none';
         });
       });
     }
@@ -273,20 +295,70 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   // safe as long as the box itself is narrower than the viewport, which
   // its max-width already guarantees). The caret gets nudged the same
   // amount in the opposite direction so it still points at the button.
-  document.querySelectorAll('.sched-venue-notes').forEach(function (details) {
-    details.addEventListener('toggle', function () {
-      var p = details.querySelector('p');
-      if (!p) return;
-      p.style.transform = '';
-      p.style.removeProperty('--caret-shift');
-      if (!details.open) return;
-      var overflow = p.getBoundingClientRect().right - window.innerWidth + 8;
-      if (overflow > 0) {
-        p.style.transform = 'translateX(-' + overflow + 'px)';
-        p.style.setProperty('--caret-shift', overflow + 'px');
-      }
-    });
+  // Recomputed on open AND on window resize — a box left open while the
+  // window is dragged narrower (or the device rotates) would otherwise
+  // keep whatever shift (or none) was correct for the old width.
+  function applyNotesOverflowShift(details) {
+    var p = details.querySelector('p');
+    if (!p) return;
+    p.style.transform = '';
+    p.style.removeProperty('--caret-shift');
+    if (!details.open) return;
+    var overflow = p.getBoundingClientRect().right - window.innerWidth + 8;
+    if (overflow > 0) {
+      p.style.transform = 'translateX(-' + overflow + 'px)';
+      p.style.setProperty('--caret-shift', overflow + 'px');
+    }
+  }
+  var allNotes = document.querySelectorAll('.sched-venue-notes');
+  allNotes.forEach(function (details) {
+    details.addEventListener('toggle', function () { applyNotesOverflowShift(details); });
   });
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      allNotes.forEach(function (details) {
+        if (details.open) applyNotesOverflowShift(details);
+      });
+    }, 100);
+  });
+
+  // Field map lightbox — one shared overlay, populated from whichever
+  // "Field map" link was clicked. Falls back to opening the image in a
+  // new tab (the link's normal target="_blank" behavior) if the lightbox
+  // markup isn't on the page for some reason.
+  var lightbox = document.getElementById('fieldmap-lightbox');
+  if (lightbox) {
+    var lightboxImg = lightbox.querySelector('.fieldmap-lightbox-img');
+    var openerEl = null;
+
+    function openLightbox(href, opener) {
+      lightboxImg.src = href;
+      lightbox.hidden = false;
+      document.body.style.overflow = 'hidden';
+      openerEl = opener || null;
+      lightbox.querySelector('.fieldmap-lightbox-close').focus();
+    }
+    function closeLightbox() {
+      lightbox.hidden = true;
+      lightboxImg.src = '';
+      document.body.style.overflow = '';
+      if (openerEl) openerEl.focus();
+    }
+
+    document.querySelectorAll('.sched-day-fieldmap').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        openLightbox(link.href, link);
+      });
+    });
+    lightbox.querySelector('.fieldmap-lightbox-backdrop').addEventListener('click', closeLightbox);
+    lightbox.querySelector('.fieldmap-lightbox-close').addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+    });
+  }
 })();
 </script>
 
@@ -360,15 +432,26 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     text-decoration: none;
   }
   .sched-day-venue:hover { text-decoration: underline; }
+  /* Filled/tinted, with an icon — deliberately a different treatment
+     from the outlined "Notes" toggle next to it, so the two don't read
+     as the same kind of control (one opens an image, the other reveals
+     text inline). */
   .sched-day-fieldmap {
+    display: inline-flex;
+    align-items: center;
+    gap: .32rem;
     font-size: .78rem;
-    color: var(--muted);
+    font-weight: 600;
+    color: var(--rose-deep);
     text-decoration: none;
-    border: 1px solid var(--line-strong);
+    background: var(--rose-bg);
+    border: 1px solid transparent;
     border-radius: 999px;
-    padding: .15rem .6rem;
+    padding: .15rem .7rem .15rem .55rem;
+    transition: background .15s, border-color .15s;
   }
-  .sched-day-fieldmap:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
+  .sched-day-fieldmap svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .sched-day-fieldmap:hover { background: var(--rose-deep); color: #fff; }
   /* Click-to-open, not a hover tooltip — shows for any venue note, not
      just ones that happen to sound like a warning. The revealed text is a
      floating popover anchored to the button (position:relative on the
@@ -517,4 +600,60 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     .sched-cards { display: flex; }
     .sched-filter-label { min-width: 50px; }
   }
+
+  /* ── Field map lightbox ──────────────────────── */
+  /* The [hidden] attribute is how the script shows/hides this — its
+     default `display:none` UA rule loses to any author rule setting
+     `display` on the same element, so the non-hidden layout has to be
+     scoped to :not([hidden]) or it renders open on every page load. */
+  .fieldmap-lightbox:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 5vw, 48px);
+  }
+  .fieldmap-lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(20, 16, 14, 0.78);
+    cursor: pointer;
+  }
+  .fieldmap-lightbox-figure {
+    position: relative;
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    line-height: 0;
+  }
+  .fieldmap-lightbox-img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - clamp(32px, 10vw, 96px));
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+  }
+  .fieldmap-lightbox-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+  }
+  .fieldmap-lightbox-close:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
 </style>

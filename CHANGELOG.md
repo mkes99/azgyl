@@ -7,6 +7,73 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.19] — 2026-09-01 — Venue/field data model split; field-map lightbox; filter and resize fixes
+
+Ported from `develop` (there: 3.21), plus the branch-only Sheet-side pieces
+(CSV validation, `valid-values.json`, `GOOGLE_SHEETS_SETUP.md`,
+`SHEET_SEED_DATA.md`) that only exist here.
+
+### Changed
+
+- **`field` is no longer a compound venue-prefixed id (`mesquite-f2`) — it's
+  now plain per-game text (`'Field 2'`), and `venue` is a separate column
+  in the `Schedule` sheet tab that references a venue directly.**
+  Previously the sheet's `field` column doubled as both "which venue" and
+  "which specific field," so every venue's fields needed their own
+  uniquely-prefixed ids just to disambiguate. A venue only needs to be
+  identified once per game (same as `season_id` only needs to be defined
+  once per season and simply referenced by every `Schedule` row) — the
+  specific field within that venue is just a plain, unvalidated label
+  ("Field 1", "Chuparosa Field," whatever that venue's signage actually
+  says). `src/data/fields.ts` replaced by `src/data/venues.ts` (one entry
+  per physical location, not per field). Schedule tab header is now
+  `season_id | date | time | arrival | home | away | division | venue |
+  field | notes`. Updated: `schedule.ts` (CSV parsing/validation/`Game`
+  type), `valid-values.json.ts` (now publishes `venueIds`, not
+  `fieldIds` — `field` isn't validated against anything),
+  `GOOGLE_SHEETS_SETUP.md` (Step 3 table, grouping explanation, Apps
+  Script validator), `SHEET_SEED_DATA.md` (all 40 seed rows), `README.md`
+  ("Fields" section renamed "Venues"). Verified against a local mock CSV
+  server: valid `venue`+`field` data builds and groups correctly
+  (including a genuine mixed-venue day), an unrecognized `venue` id fails
+  the build with a clear error, a missing `field` fails the build too.
+- Removed `src/components/ScheduleTable.astro` — confirmed unused
+  anywhere in the site, already referencing a `.name` property removed
+  back in 3.15, and would have broken on this migration regardless.
+
+### Fixed
+
+- **A venue group with every game filtered out by the Division filter
+  still showed its full heading (venue name, address, Field map, Notes)
+  above an empty table** — the filter only ever toggled `display:none` on
+  individual `[data-division]` rows, never on the `.sched-venue-group`
+  wrapping them. Now `applyFilters()` also hides any venue group with zero
+  matching rows for the active division.
+- **The notes popover's overflow correction only ran on open/close, not on
+  a live window resize** — a box left open while the window was dragged
+  narrower kept whatever horizontal shift (or lack of one) was correct for
+  the old width, so it could still run off the right edge. Added a
+  debounced `resize` listener that recomputes the shift for any
+  currently-open popover.
+- **The field-map lightbox rendered open on every single page load,
+  covering the whole site** — its CSS set `display:flex` unconditionally
+  on `.fieldmap-lightbox`, which as an author rule overrides the browser's
+  default `[hidden] { display:none }`, so the `hidden` attribute the
+  script relies on to show/hide it was silently doing nothing. Scoped the
+  layout rule to `:not([hidden])`.
+
+### Added
+
+- **"Field map" opens in an in-page lightbox** instead of a new tab —
+  dimmed backdrop, centered image, closes on the × button, backdrop
+  click, or Escape.
+- **"Field map" restyled as a filled rose pill with a small map icon**,
+  distinct from the outlined "Notes" toggle next to it — the two read as
+  different kinds of controls now (one opens an image, the other reveals
+  text inline) instead of two visually-identical buttons.
+
+---
+
 ## [3.18] — 2026-09-01 — Notes popover no longer overflows the viewport on narrow screens
 
 Ported from `develop` (there: 3.20).
