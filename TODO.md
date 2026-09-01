@@ -107,6 +107,20 @@ fine while the live page still decapitates someone.
       it's fetched from the Sheet; whether historical Marana Reapers games
       are represented there is now a sheet-content decision, not a code
       one.)
+- [ ] **`HomeSchedulePreview.astro`'s "Season Complete" logic has the same
+      vacuous-truth gap `LeagueSchedule.astro`'s `seasonOver` had before it
+      was fixed** — `seasonComplete = !nextDate`, where `nextDate =
+      allDates.find(d => d >= todayISO) ?? null`. If `allDates` is ever
+      empty (an active season with zero `Schedule` rows), `nextDate` is
+      `null` and this reads as "season complete" instead of "not scheduled
+      yet." `LeagueSchedule.astro` was fixed to require
+      `dates.length > 0 && dates.every(...)`; this component was never
+      touched and needs the same fix (plus probably its own "No games
+      scheduled yet" state, matching `LeagueSchedule.astro`'s). Currently
+      showing correctly by coincidence (Spring 2026 really has ended), not
+      because the logic is actually safe against an empty schedule. Found
+      2026-09-01 while reviewing the google-sheets-schedule → develop merge
+      locally, before push — deliberately not fixed as part of that merge.
 - [ ] **Dead per-club `contact` addresses** in `src/data/teams.ts` (9 remaining,
       e.g. `solsisters@azgyl.com`). Nothing renders this field — it is unused
       data. Either wire it into the team cards or drop it.
