@@ -7,6 +7,651 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.36] — 2026-09-01 — Correction: VALID_VALUES_URL doesn't settle at merge-to-main
+
+### Fixed
+
+- **3.31's migration note for `VALID_VALUES_URL` was wrong** — it
+  assumed `azgyl.com` becomes valid the moment `google-sheets-schedule`
+  merges into `main`. It doesn't: the `azgyl.com` custom domain isn't
+  attached in Cloudflare Pages until actual launch, a separate, later,
+  deliberate step — merging to `main` and launching are not the same
+  event, and there can be a real gap between them. Corrected to
+  describe the actual pattern (track whichever Cloudflare Pages
+  deployment is currently live by hand, checked fresh at every branch
+  merge/deletion, with `azgyl.com` only becoming correct at launch
+  itself) rather than a fixed three-stage timeline.
+
+---
+
+---
+
+## [3.35] — 2026-09-01 — Admin always notified; VALID_VALUES_URL migration path documented
+
+### Changed
+
+- **`FALLBACK_EMAIL` → `ADMIN_EMAIL`, and it's no longer just a
+  fallback** — previously the shared board inbox only got emailed when
+  the editor's Google account couldn't be determined; now `ADMIN_EMAIL`
+  gets every validation error, unconditionally, with the actual editor
+  (if known) added as an additional recipient rather than the only one.
+  Set to `mike@formativewebsolutions.com`. Updated the "How it fits
+  together" diagram and the notification-behavior explainer to match.
+
+- **`VALID_VALUES_URL` documented as a moving target** — unlike
+  `DEPLOY_HOOK_URLS` (fans out to every active branch), this has to stay
+  a single URL, since it's the one source of truth for valid team/
+  division/venue names. Added an explicit migration note: branch preview
+  now (`azgyl.com` isn't live yet) → `develop`'s preview once merged
+  (and `google-sheets-schedule` deleted) → `azgyl.com` permanently once
+  merged to `main`. Found via a real DNS error hitting the live script.
+
+---
+
+---
+
+## [3.34] — 2026-09-01 — Apps Script supports multiple deploy hooks (one per branch)
+
+### Changed
+
+- **`DEPLOY_HOOK_URL` → `DEPLOY_HOOK_URLS`** in the Apps Script
+  (`GOOGLE_SHEETS_SETUP.md`, Step 8) — a Cloudflare deploy hook only
+  rebuilds the one branch it was created for, and this integration needs
+  to follow the code across branches (currently just
+  `google-sheets-schedule`, then `develop` and `main` once merged). Now
+  an array; `validateAndDeploy()` fires every configured hook on a clean
+  validation, one deploy per branch, `muteHttpExceptions` so one stale
+  hook failing doesn't block the rest. Step 7 updated with a
+  `<branch>-deploy` naming convention (`google-sheets-schedule-deploy`,
+  `develop-deploy`, `main-deploy`) so the hook list stays readable as
+  more branches pick this up.
+
+---
+
+---
+
+## [3.33] — 2026-09-01 — Real sheet wired in; Team filter; field-map CDN switch; league page polish
+
+### Added
+
+- **Real Google Sheet CSV URLs wired into `schedule.ts`/`standings.ts`** —
+  `SEASONS_CSV_URL`, `SCHEDULE_CSV_URL`, and `STANDINGS_CSV_URL` now
+  point at the actual published sheet (Step 6 of
+  `GOOGLE_SHEETS_SETUP.md`), not empty strings. Verified against both a
+  fully-empty sheet and an active-season-with-zero-rows sheet — neither
+  breaks the build or the site.
+- **Auto-generated Team filter on `/league`**, built from that event's
+  own `games` (not the full `teams.ts` roster) — not every team plays
+  every season, so the filter only ever offers teams that actually
+  showed up. Combines (AND) with the existing Division and Week filters.
+- **"All" option added to the Week filter**, matching the existing
+  Division filter's "All" pill.
+- **Graceful fallback in the field-map lightbox** — a failed image load
+  now shows "Couldn't load the field map image — Open it directly"
+  instead of a permanently broken icon.
+- **Visible legend above the standings tables** (W/L/T/Pts/GF/GA/+/−
+  spelled out) — the existing `title` tooltip on desktop headers is
+  effectively undiscoverable, and the mobile card view had no
+  explanation at all.
+
+### Fixed
+
+- **Week filter: a past week that's also the default-active week never
+  got the "past" styling class**, only "active" — deselecting it (e.g.
+  by clicking a different week) left it bare/unstyled instead of falling
+  back to the muted "past" look. `isPast` is now applied independent of
+  `isCurrent`; CSS reordered so `--active` still wins the cascade when a
+  button carries both classes.
+- **No spacing between consecutive week panels** in the new "All" weeks
+  view — only one panel was ever visible at a time before, so nothing
+  separated them. Added margin/border between `.sched-day` panels.
+- **Field-map links switched from `drive.google.com/uc?export=view` to
+  `lh3.googleusercontent.com`** — the former is an informal, undocumented
+  Drive workaround observed 503'ing under repeated requests in testing;
+  the latter is Google's actual production image CDN (same
+  infrastructure behind Google Photos/profile pictures). Same
+  paste-a-Drive-link workflow on the sheet side, no doc changes needed.
+
+### Changed
+
+- **Dev-facing copy that had leaked into public-facing text, rewritten
+  for the actual audience** — the `/league` hero no longer references
+  `src/data/schedule.ts` or a hardcoded season name; the standings
+  caption no longer says "Live from Google Sheets. Update the sheet and
+  redeploy to refresh." (implies visitors need to take an action they
+  can't take). Both now describe what the page shows, not how it's
+  maintained.
+- **Parents page now links to the USA Lacrosse resources it already
+  references but didn't link to** — "USA Lacrosse membership" (Step 2)
+  and the equipment/legal-sticks pages (Equipment section) now link out,
+  pulled from the same `officialLinks` array already used in the
+  footer rather than hardcoded a second time.
+- Mohave's hardcoded venue note removed from `venues.ts` (demo request).
+
+---
+
+---
+
+## [3.32] — 2026-09-01 — Clearer column names; Drive field-map links simplified; Standings cascades too
+
+### Changed
+
+- **Schedule tab's per-game `notes` column renamed to `gameNotes`** — now
+  unambiguous alongside `venueNotes`, since the two were easy to confuse
+  by name alone (one's about the location, the other's about a single
+  game). Renamed end-to-end: `Game.gameNotes` in `schedule.ts`, both
+  render spots in `LeagueSchedule.astro`, and every mention across
+  `GOOGLE_SHEETS_SETUP.md`, `SHEET_ENTRY_GUIDE.md`, and
+  `SHEET_SEED_DATA.md`. CSS class names (`game-note`, `scard-note`) and
+  the unrelated `Venue.notes` field (venues.ts) are untouched.
+
+- **Standings tab's `W`/`L`/`T`/`GF`/`GA` columns spelled out as
+  `wins`/`losses`/`ties`/`goalsFor`/`goalsAgainst`** — the abbreviations
+  weren't obvious to everyone filling in the sheet. Renamed end-to-end:
+  `StandingRow` in `standings.ts` (interface, `localStandings`,
+  sheet-parsing, `sortedRows()`), the display code in
+  `StandingsTable.astro`, and every doc. The site's own compact `W`/`L`/
+  `T`/`GF`/`GA` table headers are unchanged — those are just the display
+  labels (with title-attribute tooltips), not the sheet's column names.
+
+- **Adding a field-map picture no longer requires hand-building a
+  URL.** Previously, someone had to copy Drive's share link, pull the
+  file id out of it, and paste it into a `uc?export=view&id=...`
+  template — a lot to ask for a spreadsheet task. Now the raw link
+  Drive's "Copy link" button gives you goes straight into `fieldMapUrl`
+  as-is; a new `normalizeFieldMapUrl()` helper (`src/lib/driveLink.ts`)
+  rewrites whatever shape of Drive link shows up into the direct-image
+  form at build time. Cuts the documented steps from 7 down to 3.
+  `GOOGLE_SHEETS_SETUP.md`, `SHEET_ENTRY_GUIDE.md`, and `README.md`
+  updated to match, and `README.md`'s `fieldMapUrl`-overrides-`venues.ts`
+  behavior is now stated explicitly rather than implied.
+
+### Added
+
+- **Standings tab's `season_id` and `division` now cascade**, same
+  fill-down convenience the Schedule tab already had — leave either
+  blank on a row and it inherits from the row above, so a block of teams
+  in one season/division only needs those two typed once.  `division` is
+  scoped to the `season_id` block (mirrors `fieldMapUrl`/`venueNotes`'s
+  scoping to venue/date on Schedule): a row with its own explicit
+  `season_id` resets the cached division, so a new season's rows can't
+  silently inherit the previous season's division. Implemented
+  identically in `standings.ts`'s `fillDown()` and the Apps Script's new
+  `fillDownStandings()` — both documented in `GOOGLE_SHEETS_SETUP.md`,
+  `SHEET_ENTRY_GUIDE.md`, and `README.md`.
+
+---
+
+---
+
+## [3.31] — 2026-09-01 — Document empty-tab behavior everywhere, including for the end user
+
+### Added
+
+- **A confirmed decision on the Schedule/Standings empty-tab asymmetry
+  (3.26 fixed Schedule's case; Standings staying silent when empty was
+  intentional, now explicitly documented rather than just left as
+  observed behavior)** — an active season with no `Schedule` rows shows
+  a real "No games scheduled yet" notice; a season with no `Standings`
+  rows shows no standings section at all, no message. Different on
+  purpose: a missing schedule is something to actively flag, a standings
+  table with nothing to summarize yet just isn't a section that exists.
+  Documented in three places, each pitched at its reader: a new
+  unnumbered "What an empty tab looks like on the site" section in
+  `GOOGLE_SHEETS_SETUP.md` (technical, a full state table covering "no
+  active season at all" too); a new "It's fine to set up a season before
+  it has games or standings" section in `SHEET_ENTRY_GUIDE.md` (plain
+  language, reassures whoever's filling in the sheet that an
+  in-progress season won't look like a broken page) — that one's also
+  what's live at `/admin/setup`; and a short paragraph in `README.md`
+  for a developer skimming, pointing at the full breakdown.
+- Fixed a separate stale spot found while touching this: `README.md`'s
+  "don't need to be retyped" paragraph still only listed `season_id`/
+  `date`/`venue`/`division` as fill-down columns — missing `fieldMapUrl`
+  and `venueNotes`, both added across 3.24/3.26.
+
+---
+
+---
+
+## [3.30] — 2026-09-01 — venueNotes column; reordered Schedule tab; empty-tab edge case fixed; sheet renamed
+
+### Added
+
+- **`venueNotes` column on the `Schedule` tab** — same override pattern
+  as `fieldMapUrl`: a venue-wide note (e.g. "No dogs allowed"), typed on
+  the same row where `venue` is first given for a block, filling down
+  with the rest of it, overriding whatever's hardcoded in `venues.ts`
+  when present. Distinct from the existing per-game `notes` column
+  (about one game — "Senior night"), which is unaffected. `Game` gained
+  `venueNotes?: string`; `venueNote()` in `LeagueSchedule.astro` now
+  takes the same override-then-fallback shape `venueMapImg()` already
+  had for `fieldMapUrl`; `venueNotes` added to `fillDown()`'s columns
+  and to `BLOCK_SCOPED_COLUMNS` (so it resets at a new venue/date block
+  exactly like `fieldMapUrl`/`division` already do), mirrored in the
+  Apps Script.
+
+### Changed
+
+- **`Schedule` tab column order** — the "cascading" fields (the ones
+  that fill down a block: `season_id`, `date`, `venue`, `fieldMapUrl`,
+  `venueNotes`, `division`) now come first, then the per-game specifics
+  (`time`, `arrival`, `home`, `away`, `field`, `notes`). Purely cosmetic
+  — every column is read by header name, not position, verified by
+  building against a full round-trip of the reordered seed data with no
+  code changes needed and no validation errors. Updated in
+  `GOOGLE_SHEETS_SETUP.md`, `SHEET_ENTRY_GUIDE.md`, and all 40 rows of
+  `SHEET_SEED_DATA.md` (which also gained real `venueNotes` values on
+  each block's first row, matching `venues.ts`'s existing defaults, as a
+  worked example of the column).
+- **Sheet renamed** from "AZGYL Schedule" to **"AZGYL Season Data"** —
+  the old name stopped fitting once `Standings` (3.25) and `Archive`
+  joined `Seasons`/`Schedule` in the same spreadsheet.
+
+### Fixed
+
+- **An active season with zero rows in the `Schedule` tab showed a
+  misleading "Season complete" banner** instead of a "not set up yet"
+  state — `dates.every(d => d < todayISO)` is vacuously `true` on an
+  empty array in JS, so a season with no games at all read as one where
+  every game had already happened. `seasonOver` now also requires
+  `dates.length > 0`. Added a dedicated "No games scheduled yet" notice
+  for this case instead of leaving an empty filter bar with nothing
+  beneath it. Found and verified while answering a question about what
+  actually happens with a header-only `Schedule` tab — confirmed
+  separately that a `Standings` row referencing a season that doesn't
+  exist fails the build loudly (correct, already true), and that
+  `Schedule` having data while `Standings` is empty degrades cleanly
+  with no standings section rendered (also already correct) — only the
+  reverse case (active season, zero schedule rows) had the bug.
+
+---
+
+---
+
+## [3.29] — 2026-09-01 — Standings consolidated into the schedule sheet; real Sheet integration built
+
+### Changed
+
+- **Standings moved into the same Google Sheet as `Seasons`/`Schedule`**,
+  as a `Standings` tab, instead of "a separate spreadsheet" as
+  `STANDINGS_SETUP.md` previously framed it (that file is deleted — its
+  content lives in `GOOGLE_SHEETS_SETUP.md`/`SHEET_ENTRY_GUIDE.md` now).
+  One sheet, one login, one thing to remember, not two.
+- **`Standings` rows now carry a `season_id`**, same linkage as
+  `Schedule` — the previous format (`division | team | W | L | T | GF |
+  GA`, no season column at all) could only ever represent *one* season's
+  standings at a time; a new season would just silently overwrite the
+  last one with no way to look back. Schema is now `season_id | division
+  | team | W | L | T | GF | GA`.
+- **Actually built the Sheet-fetch/validate pipeline for standings** —
+  turns out this was never really implemented. `STANDINGS_CSV_URL`
+  existed as a placeholder, but the only fetch code that existed at all
+  was a hand-rolled, unvalidated comma-split sitting inside
+  `StandingsTable.astro` (not `standings.ts`, where every other Sheet
+  integration on this project lives) — no shared `parseCSV`, no
+  validation of any kind, a silent try/catch that fell back to stale
+  local data on any fetch error (the opposite of the fail-loud approach
+  used everywhere else), and it always wrapped everything into one fake
+  event using `localStandings[0]`'s id/name as a guess, regardless of
+  what the sheet actually said. Rewrote `standings.ts` to mirror
+  `schedule.ts`'s exact pattern: validate `season_id` against real
+  `Seasons` rows, `team`/`division` against `teams.ts`, `W`/`L`/`T`/`GF`/
+  `GA` as real non-negative numbers (blank = 0, anything else invalid is
+  a hard error), fail loud on any problem, keep serving the last good
+  deploy otherwise. `StandingsTable.astro` now just renders the already-
+  resolved data — all the fetch/parse logic that didn't belong in a
+  component is gone from it.
+- **Fixed a real bug found while rewriting this**: `LeagueStandings.astro`
+  decided which seasons to show standings for by checking
+  `localStandings.some(...)` — *always*, even when a Sheet was connected
+  — so a season with standings only in the Sheet (nothing matching in the
+  unused local fallback) would have silently shown no standings section
+  at all. Now checks the resolved `standings` export instead.
+- **`fetchCSV()` extracted to `src/lib/csv.ts`**, shared by `schedule.ts`
+  and `standings.ts` instead of each keeping its own copy — one fetch/
+  fail-loud implementation for both to import, not two to keep in sync.
+- **Apps Script now validates all three tabs together** (`Seasons`,
+  `Schedule`, `Standings`) in one combined pass — one clean-or-not
+  decision, one email if something's wrong, instead of `Standings`
+  having no automated validation at all (previously: manual "click
+  Redeploy in Cloudflare," no on-edit check, no error email).
+
+### Added
+
+- **Optional `Archive` tab**, documented in both `GOOGLE_SHEETS_SETUP.md`
+  and `SHEET_ENTRY_GUIDE.md` — nowhere the site reads from, just a place
+  to move a completed season's `Schedule`/`Standings` rows once it's
+  over. Came out of a conversation about the `Schedule` tab's realistic
+  growth (into the hundreds, potentially 1000+ rows, across a couple of
+  years): the site only ever renders `active` seasons, so historical rows
+  sitting in the live tabs do nothing but get fetched, parsed, and
+  validated on every edit and every build for zero display benefit — and
+  add more surface for a `fillDown()` boundary mistake (see 3.24) to go
+  unnoticed. No automation for archiving; it's a manual, infrequent step,
+  and Sheets' own version history is the backstop regardless of whether
+  it's ever done.
+- Verified end to end against a full mock CSV round-trip covering all
+  three tabs together (not just standings in isolation): real seed data
+  parses and validates cleanly, all 4 divisions render, a `season_id` not
+  matching any `Seasons` row fails the build with a clear error.
+
+---
+
+---
+
+## [3.28] — 2026-09-01 — fieldMapUrl moved onto the Schedule row; fillDown block-scoping fix
+
+### Changed
+
+- **`fieldMapUrl` moved off the separate `Venues` tab and onto the
+  `Schedule` tab itself**, on the same row where `venue` is first given
+  for a block — replacing 3.21's Venues-tab mechanism entirely.
+  `src/data/venues.ts` reverted to a plain hardcoded array (no
+  `VENUES_CSV_URL` fetch); `Game` in `schedule.ts` gained an optional
+  `fieldMapUrl`, included in `fillDown()`'s columns; `LeagueSchedule.astro`
+  now resolves the field-map link as the game's own value, falling back
+  to the venue's hardcoded default. `GOOGLE_SHEETS_SETUP.md`,
+  `SHEET_ENTRY_GUIDE.md`, `SHEET_SEED_DATA.md`, and `README.md` all
+  updated — Step 3½ removed, its content folded into Step 3.
+
+### Fixed
+
+- **`fillDown()` could leak a value across a venue/date boundary it had
+  no business crossing** — found live while testing the change above: a
+  Naranja Park row with a blank `fieldMapUrl`, sitting right after a
+  Mesquite block that had one, silently inherited Mesquite's field-map
+  link. `fillDown()` tracked each column's last-seen value completely
+  independently, with no idea that `venue` changing on a row means every
+  *other* blank column on that row belongs to a new block too — not the
+  previous one. `division` and `fieldMapUrl` are now block-scoped: any
+  row that explicitly gives its own `venue` or `date` resets both, so a
+  venue with no field-map link (or a division-block boundary) can no
+  longer silently wear the previous block's value. `season_id`, `date`,
+  and `venue` themselves are unaffected — they keep inheriting exactly as
+  before. Ported identically into the Apps Script's `fillDown()`, same as
+  every fill-down column so far — the two have to stay in lockstep or the
+  sheet-side check accepts or rejects rows the build wouldn't agree with.
+  Verified with the exact reproducing case (fixed) and a regression case
+  (division still changes correctly mid-block, unaffected by the fix).
+- This also directly informed the answer to a bigger question raised in
+  conversation — as the `Schedule` tab grows across seasons (realistically
+  into the hundreds to 1000+ rows over a couple of years), this exact
+  failure shape gets harder to catch by eye. Recommended (not yet
+  implemented): archive a season's rows out of the live tab once it ends,
+  since the site only ever renders `active` seasons anyway — historical
+  rows currently do nothing but get fetched, parsed, and validated on
+  every build for zero display benefit.
+
+---
+
+---
+
+## [3.27] — 2026-09-01 — Split the sheet docs by audience; sheet-swapping note
+
+### Added
+
+- **New `SHEET_ENTRY_GUIDE.md`** — plain-language, non-technical reference
+  for whoever actually fills in the sheet week to week: the two tabs,
+  column-by-column what to type, the leave-repeated-cells-blank trick,
+  how venue grouping shows up on the site, getting team/venue names
+  right, and the optional `Venues` tab (Google Drive walkthrough
+  included). No mention of the build pipeline, validation internals, code
+  file paths, or anything else that reader has no reason to see.
+  `src/pages/admin/setup.astro` now renders this instead of
+  `GOOGLE_SHEETS_SETUP.md` — that page is meant to be handed to a
+  non-technical end user, so it should only ever show them the end-user
+  doc. (An earlier pass tried removing the technical schema/validation
+  detail from `GOOGLE_SHEETS_SETUP.md` and pointing it at the new guide
+  instead of restating it — reverted: that doc is the technical reference
+  a developer needs when debugging or maintaining the integration, and
+  needed to stay complete on its own. The two docs now cover the same
+  ground for two different readers, cross-referenced, kept in sync
+  manually if the schema changes.)
+- **`README.md`: switching to a different Google Sheet later documented**
+  as what it actually is — a small, isolated change (republish the new
+  sheet's tabs as CSV, swap 2–3 URL constants, commit/push) with one real
+  cost: the Apps Script validator lives inside whichever spreadsheet it
+  was pasted into, so a new sheet needs it re-added and its triggers
+  re-set by hand — everything else (deploy hook, `/valid-values.json`,
+  build-time validation) is sheet-agnostic already. Noted environment
+  variables as the upgrade path if sheet-swapping becomes routine rather
+  than occasional.
+
+---
+
+---
+
+## [3.26] — 2026-09-01 — Live admin instructions page at /admin/setup
+
+### Added
+
+- **`src/pages/admin/setup.astro` renders `GOOGLE_SHEETS_SETUP.md` directly
+  on the live site**, for whoever manages the schedule sheet day to day
+  and doesn't have (or shouldn't need) GitHub access to read the raw
+  markdown file. Imports the `.md` file straight from the repo root via
+  Astro's built-in markdown-import support (`import { Content } from
+  '../../../GOOGLE_SHEETS_SETUP.md'`) — one source of truth, no content
+  duplicated into the page by hand, so it can't drift from the repo doc.
+  Wrapped in a `prose`-styled `<article>` matching the site's existing
+  colors/typography (headings, tables, code blocks, the ASCII diagram —
+  code blocks get a visible scrollbar since Shiki's syntax highlighting
+  wraps them in a dark theme where the site's default border color is
+  invisible, and macOS hides scrollbars until touched, so a wide block
+  would otherwise just look cut off).
+- **`BaseLayout.astro` gained an optional `noindex` prop** — `true` on
+  this page, keeps it out of search as a courtesy. Not the actual
+  protection: this page has no content that couldn't already be read in
+  the repo, but it's meant to be access-restricted so it doesn't show up
+  for casual visitors either. Actual access control is **Cloudflare
+  Access**, configured entirely in the Cloudflare dashboard against the
+  `/admin/*` path — no code involved, and it covers any future page added
+  under `src/pages/admin/` automatically. `README.md` documents the setup
+  steps (Zero Trust → Access → add a `/admin/*` self-hosted application,
+  an email-allowlist policy, done).
+
+---
+
+---
+
+## [3.25] — 2026-09-01 — Optional Venues sheet tab for field-map links
+
+### Added
+
+- **A new optional `Venues` Sheet tab (`venue_id | fieldMapUrl`) lets
+  someone add or swap a venue's "Field map" image link without a code
+  change.** `src/data/venues.ts` now optionally fetches this tab
+  (`VENUES_CSV_URL`, same empty-by-default pattern as the Seasons/
+  Schedule URLs) and layers it on top of the hardcoded `venues` list —
+  the sheet's link wins if a venue has both; a venue with no row (or a
+  blank `fieldMapUrl` cell) just keeps using whatever's hardcoded, same
+  as before this existed. Everything else about a venue (name, address,
+  map link, notes) still only lives in code — this is deliberately
+  narrow, just the field-map link. `GOOGLE_SHEETS_SETUP.md` documents the
+  tab, the fallback behavior, and — the actual gotcha here — that the
+  link has to be a *direct* image URL, not a share-page link (most Google
+  Drive/Photos/Dropbox "share" links open a viewer page, not the raw
+  image, so they silently fail to load in an `<img>` tag). This tab
+  intentionally isn't wired into the Apps Script's real-time validate/
+  notify flow — low-stakes, low-frequency edit, so the existing build-time
+  check (fails loud, keeps serving the last good deploy) is enough.
+  Verified against a local mock CSV server: overriding an existing local
+  image, adding one to a venue that had none, and an unrecognized
+  `venue_id` failing the build with a clear error.
+- **The doc now commits to Google Drive specifically** rather than just
+  naming the direct-vs-share-link problem and leaving the reader to
+  figure out a source — step-by-step (upload, set sharing to "Anyone with
+  the link," copy the share link, extract the file id, build the
+  `uc?export=view&id=...` URL from it), why Drive over Photos/Dropbox
+  (already have the account for the Sheet itself; the others don't have a
+  reliable direct-link option), and a reminder to test the constructed
+  URL in a browser tab before pasting it in, since the build validates
+  `venue_id` but doesn't fetch the image to confirm the link itself
+  actually works.
+
+---
+
+---
+
+## [3.24] — 2026-09-01 — Blank cells inherit from the row above (season_id/date/venue/division)
+
+### Added
+
+- **`season_id`, `date`, `venue`, and `division` can now be left blank on
+  any `Schedule` row — a blank cell inherits whatever was in the row
+  above it for that column**, so a block of games at the same venue/date
+  doesn't need those four values retyped on every single line. Matches
+  how a vertically-merged range of Sheet cells actually exports to CSV
+  (value in the top cell of the merge, blank for the rest), so it works
+  whether someone types the block with those cells left blank or
+  actually merges them in the sheet for a cleaner look. Only the very
+  first row of the whole tab needs every column filled in. Implemented
+  as `fillDown()` in `src/data/schedule.ts`, applied to the parsed rows
+  before validation — and ported line-for-line into the Apps Script
+  validator in `GOOGLE_SHEETS_SETUP.md`, since the sheet-side check has
+  to accept exactly what the build accepts or it'll reject rows the site
+  would otherwise build fine.
+- `GOOGLE_SHEETS_SETUP.md`: new "Leave repeated cells blank" section with
+  a worked multi-row example.
+- `SHEET_SEED_DATA.md`: all 40 seed rows now follow this pattern — the
+  season/date/venue/division cells are blank everywhere they'd just
+  repeat the row above, matching the entry style the setup doc now
+  recommends. Verified round-trip through the actual `fillDown()` +
+  validation code (mock CSV server): same 40 games, same 5 venue groups,
+  same division counts as before the seed data was rewritten.
+- Fixed a stale count in `SHEET_SEED_DATA.md` ("8 of the 40 rows have a
+  `notes` value") — the listed examples were always 7, not 8.
+
+### Considered and rejected
+
+- **A separate Sheet tab per division**, so `division` wouldn't need a
+  column at all. Rejected: the league distributes a whole Saturday's
+  games — every division — as one document, so splitting entry across 4
+  tabs would make the common case (enter one day's full slate) more work,
+  not less, and adding a division later would need a code change (a new
+  CSV URL) instead of just adding it to `teams.ts`. The blank-cell
+  inheritance above gets the same "don't retype it" benefit without
+  either downside.
+
+---
+
+---
+
+## [3.23] — 2026-08-31 — Desktop game notes, richer seed data
+
+### Fixed
+
+- **Per-game `notes` never rendered on the desktop schedule table**, only
+  on mobile cards. The styling (`.game-note`) already existed — it was
+  written but never wired into the desktop row markup, so a game's notes
+  column was silently invisible to anyone not on mobile. Added
+  `{g.notes && <span class="game-note">{g.notes}</span>}` inside
+  `.sl-matchup` in `LeagueSchedule.astro`, with `flex-basis: 100%` so it
+  drops to its own line under the matchup within the existing wrapping
+  flex row — no new grid column needed. Distinct from, and independent of,
+  the ⚠️ field-warning icon (that's a `fields.ts` venue note, not a
+  per-game one — the spreadsheet has no control over it).
+- Found (but did not yet clean up) another instance of the stale-duplicate-
+  CSS pattern from 3.12's footer fix: `global.css` still has its own "10.
+  Schedule & Standings" section duplicating `LeagueSchedule.astro`'s scoped
+  styles (`.sched-list-header`, `.sl-matchup`, `.game-note`, etc., with
+  slightly different values in places — e.g. `.game-note` font-size `.72rem`
+  there vs `.7rem` in the component). Didn't bite this time since the new
+  `flex-basis` property isn't contested by the stale copy, but it's the
+  same landmine shape. Logged in `TODO.md`.
+
+### Changed
+
+- **Seed data (`SHEET_SEED_DATA.md`) expanded from 2 weeks to 5** (16 → 40
+  games) — 2 weeks wasn't enough to actually exercise the `/league` page's
+  Week filter. Added 8 per-game notes at a realistic density (not every
+  row) and rebalanced the Standings numbers to match each team's 5 games
+  played.
+- **One field per week instead of mixed within a date** — the whole league
+  now plays at one venue per Saturday (`mesquite-f1` → `naranja-park` →
+  `mesquite-f3` → `chuparosa` → `mohave`), alternating between fields that
+  carry a ⚠️ warning note in `fields.ts` and ones that don't. This means
+  the seed data now demonstrates the two independent note systems clearly
+  instead of the field-warning icon just appearing on every single game by
+  coincidence (all 40 rows previously used Mesquite fields, which all
+  happen to have warnings). Re-verified the full data against the real
+  fetch/parse/validate pipeline via a local mock server, then confirmed
+  live in a browser: Week 3 (Mesquite Field 3) shows both a per-game note
+  and the field-warning icon on the same date; Week 5 (Mohave) shows a
+  per-game note with no icon.
+
+---
+
+---
+
+## [3.22] — 2026-08-31 — Schedule & season now sourced from Google Sheets
+
+### Changed
+
+- **Sheet columns renamed for a self-evident join.** The `Seasons` tab's
+  `id` and the `Schedule` tab's `event` are now both called `season_id` —
+  same column name in both tabs, so the relationship between them (one
+  `Schedule` row references one `Seasons` row) is obvious without reading
+  the docs. Updated everywhere: `schedule.ts`'s validation and error
+  messages, `GOOGLE_SHEETS_SETUP.md`'s column tables and the Apps Script.
+
+### Added
+
+- **Schedule and season data moved out of code and into a Google Sheet**
+  (two tabs: `Seasons`, `Schedule`), fetched and validated at build time.
+  Full setup and the weekly workflow are documented fresh in
+  `GOOGLE_SHEETS_SETUP.md` (the previous version of that doc was written
+  for an older, never-finished schema and didn't match how the site
+  actually works — replaced rather than patched). Standings remains a
+  separate, not-yet-automated sheet — see the note now at the top of
+  `STANDINGS_SETUP.md`.
+  - `src/data/schedule.ts` fetches both tabs' published CSV at build time
+    (`SEASONS_CSV_URL`/`SCHEDULE_CSV_URL`), parses them (new
+    `src/lib/csv.ts` — hand-rolled, quote/comma-aware, no dependency
+    needed for data this size), validates every row (season shell
+    integrity, date formats, orphaned `season_id` references, team names,
+    divisions, and field ids against `teams.ts`/`fields.ts`), and throws —
+    failing the build — if anything's wrong. Cloudflare Pages keeps
+    serving the last successful deploy rather than a build with bad or
+    partial data.
+  - New `/valid-values.json` endpoint (`src/pages/valid-values.json.ts`)
+    publishes the current valid team names, divisions, and field ids,
+    generated live from `teams.ts`/`fields.ts`. This is the single source
+    of truth both the build-time validator and the sheet-side validator
+    (below) check against — add a team on the site and both validators
+    know immediately, no second list to keep in sync by hand.
+  - The sheet itself validates on every edit via an Apps Script
+    (`GOOGLE_SHEETS_SETUP.md`, written in full — copy/paste ready): a
+    debounced (2 min after the last edit, not per-keystroke) check against
+    `/valid-values.json` that either triggers a Cloudflare deploy hook when
+    the data's clean, or emails whoever made the edit exactly what's wrong
+    and where, without ever triggering a deploy. Falls back to the shared
+    board inbox if Apps Script can't determine who made the edit — a known
+    limitation of its editor-detection, not a bug, documented as such.
+  - Verified the whole pipeline end-to-end against a local mock CSV server
+    before shipping: comma-inside-quotes parsing, a deliberately invalid
+    team name correctly blocking the build with a clear row-numbered error,
+    and a valid dataset correctly rendering on `/league`.
+
+### Removed
+
+- **`ScheduleTable.astro`** — a fully orphaned, broken component. It called
+  `getResult()`, a function that was never defined anywhere in the
+  codebase, and referenced a `results.ts` data file that was never
+  created — leftover from an abandoned attempt at per-game result
+  tracking. Confirmed via grep it was never imported by any page; deleted
+  rather than fixed, since nothing on the live site tracks or displays
+  per-game results (`LeagueSchedule.astro` is explicit about this: "No
+  results, no status tracking — the schedule just shows games").
+- **`getAllGames`/`getUpcomingGames`/`getDivisionsInEvent`** helpers in
+  `schedule.ts` — same abandoned feature, same story: `getUpcomingGames`
+  filtered on `game.result`, a field that didn't exist on the `Game` type.
+  Confirmed unused anywhere else before removing.
+
+---
+
+---
+
 ## [3.21] — 2026-09-01 — Venue/field data model split; field-map lightbox; filter and resize fixes
 
 ### Changed

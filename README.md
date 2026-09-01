@@ -38,8 +38,8 @@ npm run build    # ./dist
 
 | File | What it controls | Edit when |
 |------|-----------------|-----------|
-| `src/data/schedule.ts` | Game schedule (all seasons + tournaments) | Adding/updating games |
-| `src/data/standings.ts` | Division standings | After each game day |
+| `src/data/schedule.ts` | Fetches + validates the schedule from Google Sheets at build time | Rarely — see below, games are added in the Sheet, not this file |
+| `src/data/standings.ts` | Fetches + validates standings from Google Sheets at build time | Rarely — see below, results are added in the Sheet, not this file |
 | `src/data/venues.ts` | Venue locations + map links | Venues change |
 | `src/data/teams.ts` | Member club directory | Clubs change |
 | `src/data/board.ts` | Board member names + roles | Annual election |
@@ -58,60 +58,120 @@ npm run build    # ./dist
 
 ---
 
-## Schedule — how to add and update games
+## Schedule & season — how to add and update games
 
-Open `src/data/schedule.ts`. Each **event** is a season or tournament:
+Games and seasons are **not edited in this codebase** — they live in a
+Google Sheet (two tabs: `Seasons`, `Schedule`), fetched and validated at
+build time by `src/data/schedule.ts`. Two docs cover it, for two different
+readers: **`GOOGLE_SHEETS_SETUP.md`** is the technical setup (wiring the
+sheet up, the validation internals, the Apps Script) — start there if
+you're setting this up. **`SHEET_ENTRY_GUIDE.md`** is how to actually fill
+in games week to week, written for a non-technical reader — that's what's
+rendered live at `/admin/setup` (see below), and is the one to hand off
+to whoever manages the sheet day to day.
 
-```ts
-{
-  id:        'spring-2026',          // unique slug
-  name:      'Spring 2026',          // shown on the site
-  type:      'season',               // 'season' or 'tournament'
-  active:    true,                   // true = shown on homepage + league page
-  startDate: '2026-02-07',
-  endDate:   '2026-04-11',
-  games: [
-    {
-      id:       'sp26-g1',
-      date:     '2026-02-07',        // YYYY-MM-DD
-      time:     '9:00 AM',
-      arrival:  '8:30 AM',           // optional — arrival/warmup time, shown under the game time
-      home:     'Diamonds',          // must match a name in teams.ts
-      away:     'Tukee Lightning',
-      division: '12U',
-      venue:    'mesquite',          // must match an id in venues.ts — drives grouping, address, map, notes
-      field:    'Field 2',           // plain text, whatever that venue calls it — not validated
-      notes:    'Senior night',      // optional — see the note below on the two different `notes`
-    },
-  ],
-}
-```
+The short version: open the sheet, add/update rows in `Seasons` and
+`Schedule`, save. A script validates the edit and either triggers a
+rebuild automatically (~2 min) or emails whoever made the edit exactly
+what's wrong, without publishing anything broken.
 
-**To add a new season or tournament:** copy the whole event block, change the `id`, set `active: true`.
+`src/data/schedule.ts` itself only needs touching to change the two CSV
+URLs it fetches from (a one-time setup step), or if the validation rules
+themselves need to change. It also validates independently at build time as
+a backstop — if the sheet's own check somehow lets something bad through,
+the build fails loudly rather than publishing it, and Cloudflare keeps
+serving the last good deploy.
 
-**To add a tournament alongside a regular season:** add a second event with `type: 'tournament'`. Both appear on the league page if `active: true`.
+**Switching to a different Google Sheet later is a small, isolated
+change** — it doesn't touch the data model or any of the display logic.
+Publish the new sheet's tabs to web as CSV (same as initial setup), swap
+in the new URLs in `src/data/schedule.ts`, commit, push. The one thing
+that **doesn't** carry over automatically: the Apps Script validator
+lives inside the
+specific spreadsheet it was added to (Extensions → Apps Script), so a new
+sheet needs that script pasted in and its triggers re-added — a few
+minutes, but it's manual every time. Everything else (the Cloudflare
+deploy hook, `/valid-values.json`, the site's own build-time validation)
+is sheet-agnostic and needs no changes. If you expect to swap sheets
+often rather than as a one-off, it'd be worth moving those CSV URLs into
+Cloudflare Pages environment variables instead of hardcoded constants —
+ask whoever maintains the codebase if that becomes worth doing.
 
-**The homepage shows the first active event's upcoming games (limit 5).** The league page shows all active events with their full schedule and standings.
+**`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`, and
+`division` don't need to be retyped on every `Schedule` row** — leave any
+of those cells blank and it inherits whatever was in the row above (see
+"Leave repeated cells blank" in `SHEET_ENTRY_GUIDE.md`). Only the very
+first row of the tab needs every column filled in.
 
-**There are two different `notes` fields — don't confuse them.** This
-`notes` (on a `Game`, here in `schedule.ts`) is per-game and shows inline
-under that one matchup, e.g. `"Senior night"`, `"Picture day — arrive 30
-min early"`. It's unrelated to the `notes` on a `Venue` (in `venues.ts`) —
-that one is venue-wide, shows once per venue behind the "Notes" button
-next to the venue name (see "Venues" below), and is about the location
-itself (`"No dogs allowed"`), not about any one game.
+**An active season with no rows in `Schedule` yet shows "No games
+scheduled yet"** rather than looking broken or claiming the season's
+over — it's fine to create the `Seasons` row and mark it active before
+there's any schedule data. Standings work differently: a season with no
+`Standings` rows just has no standings section on the page at all, no
+message — deliberate, not a bug, since there's nothing to summarize
+before anyone's played. Full breakdown of every empty-tab state is in
+`GOOGLE_SHEETS_SETUP.md`, "What an empty tab looks like on the site."
+
+**The homepage shows the next unplayed date from the first active event.** The league page shows all active events (a season and a tournament can both be `active` at once) with their full schedule.
+
+
+---
+
+## Admin instructions page — `/admin/setup`
+
+`src/pages/admin/setup.astro` renders `SHEET_ENTRY_GUIDE.md` directly on
+the live site (imports the file straight from the repo root, so there's
+one source of truth — editing the `.md` file updates the page too, nothing
+to keep in sync by hand). Deliberately the entry guide, not
+`GOOGLE_SHEETS_SETUP.md` — this page is purely "how do I fill in the
+sheet," for whoever manages the schedule day to day and has no reason to
+see the technical setup/validation-internals doc. It's for someone who
+doesn't have — or shouldn't need — GitHub access to read the raw
+markdown file.
+
+**This page is not meant to be public.** It isn't linked from anywhere on
+the site and is marked `noindex` so it won't turn up in search, but that's
+just a courtesy — the actual gate has to be **Cloudflare Access**, set up
+once in the Cloudflare dashboard (no code involved):
+
+1. Cloudflare dashboard → your account → **Zero Trust** → **Access** →
+   **Applications** → **Add an application** → **Self-hosted**.
+2. Application domain: your production domain, path `/admin/*` (covers
+   this page and anything else added under `/admin/` later).
+3. Add a policy — for a small group, **Allow**, rule type **Emails**,
+   list the specific email addresses that should have access (board
+   members, whoever manages the sheet). They'll sign in with a one-time
+   code sent to that email, or "Sign in with Google" if you set that
+   identity provider up — no separate password to create or share.
+4. Save. `https://azgyl.com/admin/setup` now prompts for that login
+   before showing anything — everything else on the site is unaffected.
+
+If more admin-only pages get added later, they can go under
+`src/pages/admin/` too and the same `/admin/*` Access rule covers them
+automatically, no additional Cloudflare configuration needed.
 
 ---
 
 ## Standings — how to update
 
-Open `src/data/standings.ts`. Find the matching `eventId` and division, update the numbers:
+Same Google Sheet as the schedule (see above) — a `Standings` tab,
+`season_id`-linked to `Seasons` the same way `Schedule` rows are, so
+more than one season's standings can exist without one overwriting the
+other. `season_id` and `division` cascade the same way they do on
+`Schedule` — leave either blank on a row and it inherits from the row
+above. Set `STANDINGS_CSV_URL` in `src/data/standings.ts` to use it; full
+column reference is in `GOOGLE_SHEETS_SETUP.md`/`SHEET_ENTRY_GUIDE.md`.
+
+Leave `STANDINGS_CSV_URL` empty to skip the Sheet and edit
+`localStandings` in `standings.ts` directly instead — same optional,
+code-only fallback pattern as the schedule:
 
 ```ts
-{ team:'Diamonds', W:4, L:1, T:0, GF:38, GA:22 },
+{ team:'Diamonds', wins:4, losses:1, ties:0, goalsFor:38, goalsAgainst:22 },
 ```
 
-Standings are sorted automatically by points (W=3, T=1), then goal differential.
+Standings are sorted automatically by points (win=3, tie=1), then goal
+differential — never sort either the sheet or the local array yourself.
 
 ---
 
@@ -206,39 +266,45 @@ since different venues label their fields differently):
   address: '500 S McQueen Rd, Gilbert, AZ 85233',
   city:    'Gilbert',
   mapUrl:  'https://maps.google.com/?q=...',
-  notes:   'No dogs allowed.',              // optional, see below
-  fieldMapUrl: '/assets/field-maps/mesquite.png', // optional, see below
+  notes:   'No dogs allowed.',                    // optional, see below
+  fieldMapUrl: '/assets/field-maps/mesquite.png',  // optional, see below
 }
 ```
 
 Venues listed on the schedule are automatically linked to Google Maps.
 
-**`notes`** (optional) shows a "Notes" button next to the venue name —
-click to reveal the text (not a hover tooltip, so it works on touch
-devices too). Shown once per venue per day, not once per game, even when
-that venue has ten games that day. Leave it unset and the button just
-doesn't appear.
+**`notes`** and **`fieldMapUrl`** (both optional) show, respectively, a
+"Notes" button (click to reveal the text) and a "Field map" button (opens
+the image in a lightbox) next to the venue name. Both work the same way,
+each with two ways to set them:
 
-**`fieldMapUrl`** (optional) shows a "Field map" button next to the venue
-name that opens the image in a lightbox — a diagram of where each field
-sits within the venue. Drop the image in `public/assets/field-maps/` and
-reference it as `/assets/field-maps/<filename>` — **no `/public` in the
-path**, Astro serves everything under `public/` from the site root, so
-`public/assets/field-maps/mesquite.png` on disk becomes
-`/assets/field-maps/mesquite.png` as a URL. (The `google-sheets-schedule`
-branch also supports a public-link override via an optional Sheet tab —
-not available here, since this branch's schedule isn't Sheet-driven.)
+- **Local (reliable, needs a code change):** edit `notes`/`fieldMapUrl`
+  directly on the venue here in `venues.ts`. For `fieldMapUrl`, drop the
+  image in `public/assets/field-maps/` and reference it as
+  `/assets/field-maps/<filename>` — **no `/public` in the path**, Astro
+  serves everything under `public/` from the site root, so
+  `public/assets/field-maps/mesquite.png` on disk becomes
+  `/assets/field-maps/mesquite.png` as a URL.
+- **Public override via the Sheet (no code change):** optional
+  `venueNotes`/`fieldMapUrl` columns on the `Schedule` tab (same row
+  where `venue` is first given for a block, so both fill down with it)
+  let someone add or swap either without touching code — the sheet's
+  value wins if both exist. `fieldMapUrl` needs Google Drive specifically —
+  paste whatever link Drive's "Copy link" button gives you (a normal
+  share link, not a direct-image URL); `normalizeFieldMapUrl()`
+  (`src/lib/driveLink.ts`) rewrites it into the direct-image form the
+  site needs at build time, so no manual URL surgery. Full walkthrough is
+  in `SHEET_ENTRY_GUIDE.md`, "Adding a field-layout picture." Same
+  content, more technical framing, for both is in
+  `GOOGLE_SHEETS_SETUP.md` too.
 
-### How games get grouped by venue on the site
-
-Every game that shares a `venue` value on the same date is grouped
-together on `/league` under one heading — venue name, address, map link,
-field map, and notes are all shown once per group, not once per game. If
-some games that date use a different `venue` (e.g. some divisions at
-Mesquite, others at Naranja Park), the site automatically splits that day
-into one section per venue instead. Nothing special to do for either
-case — the grouping follows straight from whatever `venue` each game
-carries in `schedule.ts`.
+**Games sharing a `venue` on the same date are grouped under one
+heading** on `/league` — venue name, address, map link, field map, and
+notes shown once per group, not once per game. A day with some divisions
+at a different venue automatically splits into one section per venue
+instead — nothing special to enter, it follows straight from each game's
+`venue` value. Full breakdown in `GOOGLE_SHEETS_SETUP.md`, "How games get
+grouped by venue on the site."
 
 ---
 

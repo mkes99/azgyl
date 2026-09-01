@@ -1,152 +1,234 @@
 // ─────────────────────────────────────────────────────────────────────────
-// SCHEDULE DATA  ·  src/data/schedule.ts
+// SCHEDULE & SEASON DATA  ·  src/data/schedule.ts
 // ─────────────────────────────────────────────────────────────────────────
 //
-// This file contains the schedule ONLY — who plays who, when, and where.
-// Results and scores live in src/data/results.ts (update that after games).
-// The site uses today's date to determine the current week automatically.
-// You never need to change anything here mid-season.
+// Sourced from Google Sheets, not this file. See GOOGLE_SHEETS_SETUP.md for
+// full setup instructions. One Sheet, two tabs, both published to web as
+// CSV:
 //
-// HOW TO ADD A NEW WEEK — copy game lines, increment the id:
-//   w3-8u-g01, w3-10u-g01, etc.
-//   venue: must match an id in src/data/venues.ts
-//   field: plain text, whatever that venue actually calls it — 'Field 1',
-//     'Field 3', 'Chuparosa Field', etc. Free-form, not validated against
-//     a list, since it only needs to be entered once per game (same as
-//     venue only needs to be entered once per game day, not once per
-//     game — the site groups games by venue automatically, see
-//     LeagueSchedule.astro).
+//   Seasons tab:  season_id | name | type | active | startDate | endDate
+//                 One row per season/tournament. `type` is 'season' or
+//                 'tournament'. `active` is TRUE/FALSE — TRUE means it
+//                 shows on the homepage and /league.
 //
-// HOW TO ADD A NEW SEASON OR TOURNAMENT — copy the event block,
-//   change id + name, set active: true on the new one.
+//   Schedule tab: season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | gameNotes
+//                 One row per game. Column order groups the "cascading"
+//                 fields first (season_id, date, venue, fieldMapUrl,
+//                 venueNotes, division — the ones that fill down a
+//                 block), then the per-game specifics (time, arrival,
+//                 home, away, field, gameNotes). Order is cosmetic only —
+//                 every column is read by header name, not position, so
+//                 this is purely for readability in the sheet itself.
 //
-// TEAM NAMES must match the name field in src/data/teams.ts exactly.
+//                 `season_id` must match a Seasons row's `season_id` —
+//                 same column name in both tabs on purpose, so the
+//                 relationship between the two is obvious at a glance.
+//                 `home`/`away` must match a team name in teams.ts
+//                 exactly. `venue` must match an id in venues.ts — it's
+//                 the only thing that determines which games get grouped
+//                 together on the site. `field` is plain, unvalidated
+//                 text — whatever that venue calls it ("Field 1",
+//                 "Chuparosa Field") — since different venues label their
+//                 fields differently. `arrival`/`gameNotes`/`fieldMapUrl`/
+//                 `venueNotes` are optional — leave the cell blank.
+//                 `fieldMapUrl` overrides the venue's hardcoded field-map
+//                 image, `venueNotes` overrides its hardcoded notes (both
+//                 in venues.ts) — typed on the same row where `venue` is
+//                 first set for a block, so both fill down along with it.
+//                 `fieldMapUrl` is normalized through normalizeFieldMapUrl()
+//                 (src/lib/driveLink.ts) — whatever share link Drive's
+//                 "Copy link" button gives someone gets rewritten into the
+//                 direct-image form the site actually needs, so nobody
+//                 has to hand-build that URL themselves.
+//                 Don't confuse `venueNotes` (about the location — "No
+//                 dogs allowed") with `gameNotes` (about one specific
+//                 game — "Senior night") — different columns, different
+//                 scope, deliberately named to not look alike.
+//
+//                 `season_id`, `date`, `venue`, `division`, `fieldMapUrl`,
+//                 and `venueNotes` don't need to be retyped on every row —
+//                 leave any of those blank and it inherits whatever was in
+//                 the row above (see fillDown() below). This matches how
+//                 vertically-merged Sheet cells actually export to CSV
+//                 (the value only lands in the top row of the merge, blank
+//                 cells for the rest of it), so it works whether someone
+//                 types a block of games with those cells left blank or
+//                 actually merges the cells in the sheet. Only the very
+//                 first row needs every column filled in — there's nothing
+//                 to inherit from above it.
+//
+// Both tabs are edited together, in the same sitting, in the same sheet.
+//
+// This is a fully static site (astro.config.mjs: output: 'static') — there
+// is no server to fetch from at request time, so both tabs are fetched and
+// validated once, at BUILD time (top-level await below). A validation
+// failure throws, which fails the build — Cloudflare Pages keeps serving
+// the last successful deploy rather than publishing bad data. That's
+// intentional: silently falling back to stale data would hide a broken
+// sheet URL/format indefinitely instead of surfacing it.
+//
+// This build-time check is a backstop, not the primary defense — the sheet
+// itself validates on every edit (Apps Script, see GOOGLE_SHEETS_SETUP.md)
+// and blocks a bad deploy before it's even triggered. Both read the same
+// valid team/division/venue values, published live at /valid-values.json
+// (src/pages/valid-values.json.ts) so there's one source of truth.
 // ─────────────────────────────────────────────────────────────────────────
 
+import { fetchCSV } from '@/lib/csv';
+import { normalizeFieldMapUrl } from '@/lib/driveLink';
+import { teams } from './teams';
+import { venues } from './venues';
+
+const SEASONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=0&single=true&output=csv';
+const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=899852134&single=true&output=csv';
+// Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Seasons'
+// Leave both empty to run with zero events (site shows its normal
+// "no active events" state) — useful before the sheet is set up.
+
 export interface Game {
-  id:        string;   // unique — e.g. 'w1-12u-g01' — used to look up results
-  date:      string;   // 'YYYY-MM-DD'
-  time:      string;   // '9:30 AM'
-  arrival?:  string;   // '9:00 AM' — arrival/warmup time
-  home:      string;   // team name (must match teams.ts)
-  away:      string;   // team name (must match teams.ts)
-  division:  string;   // '8U' | '10U' | '12U' | '14U'
-  venue:     string;   // venue id from venues.ts — drives address/map/notes/field-map, and grouping
-  field:     string;   // plain text field label at that venue — 'Field 1', 'Chuparosa Field', etc.
-  notes?:    string;   // 'Spring Break week', 'Senior night', etc.
+  id:       string;   // derived — season_id + row number, not sheet input
+  date:     string;   // 'YYYY-MM-DD'
+  time:     string;   // '9:30 AM'
+  arrival?: string;   // '9:00 AM' — arrival/warmup time
+  home:     string;   // team name (must match teams.ts)
+  away:     string;   // team name (must match teams.ts)
+  division: string;
+  venue:    string;   // venue id from venues.ts — drives address/map/notes/field-map, and grouping
+  field:    string;   // plain text field label at that venue — 'Field 1', 'Chuparosa Field', etc.
+  gameNotes?: string;    // optional — about this one game, e.g. 'Senior night'
+  fieldMapUrl?: string;  // optional — overrides the venue's hardcoded field-map image for this game
+  venueNotes?: string;   // optional — overrides the venue's hardcoded notes for this game
 }
 
 export interface ScheduleEvent {
-  id:        string;       // slug — 'spring-2026', 'fall-2026-tournament'
-  name:      string;       // display name shown on site
+  id:        string;
+  name:      string;
   type:      'season' | 'tournament';
-  active:    boolean;      // true = shown on homepage + /league
-  startDate: string;       // 'YYYY-MM-DD'
-  endDate:   string;       // 'YYYY-MM-DD'
+  active:    boolean;
+  startDate: string;
+  endDate:   string;
   games:     Game[];
 }
 
-// ── EVENTS ────────────────────────────────────────────────────────────────
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-export const scheduleEvents: ScheduleEvent[] = [
+// A blank cell in any of `columns` inherits whatever was in the row above
+// it for that column — lets a block of games at the same venue/date/
+// division be typed (or pasted from a vertically-merged Sheet range)
+// without repeating that value on every single row. Row order and count
+// are untouched, so row-number-based error messages below still line up
+// with the actual sheet.
+//
+// `division`, `fieldMapUrl`, and `venueNotes` are block-scoped to venue/
+// date: whenever a row explicitly gives its own venue or date (rather
+// than leaving them blank to inherit), that's a new block starting, and
+// none of the three should reach back into the PREVIOUS block for a
+// value it left blank — that's how a mixed-venue day (new venue, same
+// date, different games) or a venue that just doesn't have a field-map
+// link/notes ends up silently wearing the last block's, instead of
+// correctly having none. `season_id`, `date`, and `venue` themselves
+// keep inheriting exactly as before; only these three are scoped.
+const BLOCK_SCOPED_COLUMNS = ['division', 'fieldMapUrl', 'venueNotes'];
 
-  // ── SPRING 2026 REGULAR SEASON ─────────────────────────────────────────
-  {
-    id:        'spring-2026',
-    name:      'Spring 2026',
-    type:      'season',
-    active:    true,
-    startDate: '2026-02-07',
-    endDate:   '2026-04-11',
-    games: [
+function fillDown(rows: Record<string, string>[], columns: string[]): Record<string, string>[] {
+  const last: Record<string, string> = {};
+  return rows.map(row => {
+    if (row.venue || row.date) {
+      for (const col of BLOCK_SCOPED_COLUMNS) delete last[col];
+    }
+    const filled = { ...row };
+    for (const col of columns) {
+      if (filled[col]) last[col] = filled[col];
+      else if (last[col]) filled[col] = last[col];
+    }
+    return filled;
+  });
+}
 
-      // ── Week 1 · Feb 7 · Mesquite HS, 500 S McQueen Rd, Gilbert AZ 85233
-      // Note: NO DOGS ALLOWED at Mesquite HS
+function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<string, string>[]): ScheduleEvent[] {
+  const errors: string[] = [];
+  const teamNames = new Set(teams.map(t => t.name));
+  const validDivisions = new Set(teams.flatMap(t => t.divisions));
+  const venueIds = new Set(venues.map(v => v.id));
 
-      // 8U — Field 2
-      { id:'w1-8u-g01', date:'2026-02-07', time:'8:00 AM',  arrival:'7:30 AM', division:'8U',  venue:'mesquite', field:'Field 2', home:'Hotshots/Chandler/Oro',  away:'Tukee Lightning 2' },
-      { id:'w1-8u-g02', date:'2026-02-07', time:'8:45 AM',  arrival:'8:15 AM', division:'8U',  venue:'mesquite', field:'Field 2', home:'Tukee Lightning 2',       away:'Diamonds' },
-      { id:'w1-8u-g03', date:'2026-02-07', time:'9:30 AM',  arrival:'9:00 AM', division:'8U',  venue:'mesquite', field:'Field 2', home:'Vipers',                  away:'Tukee Lightning 1' },
+  gameRows = fillDown(gameRows, ['season_id', 'date', 'venue', 'division', 'fieldMapUrl', 'venueNotes']);
 
-      // 10U — Fields 2 & 3
-      { id:'w1-10u-g01', date:'2026-02-07', time:'8:00 AM',  arrival:'7:30 AM', division:'10U', venue:'mesquite', field:'Field 3', home:'Hotshots',                away:'Vipers' },
-      { id:'w1-10u-g02', date:'2026-02-07', time:'9:30 AM',  arrival:'9:00 AM', division:'10U', venue:'mesquite', field:'Field 3', home:'Tukee Lightning 1',       away:'Chandler/Sol Sisters' },
-      { id:'w1-10u-g03', date:'2026-02-07', time:'10:15 AM', arrival:'9:45 AM', division:'10U', venue:'mesquite', field:'Field 2', home:'Vipers',                  away:'Tukee Lightning 1' },
-      { id:'w1-10u-g04', date:'2026-02-07', time:'11:00 AM', arrival:'10:30 AM',division:'10U', venue:'mesquite', field:'Field 2', home:'Diamonds',                away:'Hotshots' },
-      { id:'w1-10u-g05', date:'2026-02-07', time:'11:45 AM', arrival:'11:15 AM',division:'10U', venue:'mesquite', field:'Field 2', home:'Chandler/Sol Sisters',    away:'Tukee Lightning 2' },
-      { id:'w1-10u-g06', date:'2026-02-07', time:'12:30 PM', arrival:'12:00 PM',division:'10U', venue:'mesquite', field:'Field 2', home:'Tukee Lightning 2',       away:'Diamonds' },
+  const events = new Map<string, ScheduleEvent>();
 
-      // 12U — Fields 1 & 2  (using revised schedule)
-      { id:'w1-12u-g01', date:'2026-02-07', time:'8:45 AM',  arrival:'8:15 AM', division:'12U', venue:'mesquite', field:'Field 1', home:'Oro Valley',              away:'Tukee Lightning' },
-      { id:'w1-12u-g02', date:'2026-02-07', time:'9:30 AM',  arrival:'9:00 AM', division:'12U', venue:'mesquite', field:'Field 2', home:'Hawks',                   away:'Vipers' },
-      { id:'w1-12u-g03', date:'2026-02-07', time:'10:15 AM', arrival:'9:45 AM', division:'12U', venue:'mesquite', field:'Field 1', home:'Diamonds',                away:'Oro Valley' },
-      { id:'w1-12u-g04', date:'2026-02-07', time:'11:00 AM', arrival:'10:30 AM',division:'12U', venue:'mesquite', field:'Field 1', home:'Hawks',                   away:'Tukee Lightning' },
-      { id:'w1-12u-g05', date:'2026-02-07', time:'11:00 AM', arrival:'10:30 AM',division:'12U', venue:'mesquite', field:'Field 2', home:'Vipers',                  away:'Marana Reapers' },
-      { id:'w1-12u-g06', date:'2026-02-07', time:'11:45 AM', arrival:'11:15 AM',division:'12U', venue:'mesquite', field:'Field 1', home:'Marana Reapers',           away:'Diamonds' },
+  seasonRows.forEach((row, i) => {
+    const rowNum = i + 2; // header is row 1
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push(`Seasons row ${rowNum}: missing season_id`); return; }
+    if (events.has(seasonId)) { errors.push(`Seasons row ${rowNum}: duplicate season_id "${seasonId}"`); return; }
+    if (!row.name) errors.push(`Seasons row ${rowNum} (${seasonId}): missing name`);
+    if (row.type !== 'season' && row.type !== 'tournament') {
+      errors.push(`Seasons row ${rowNum} (${seasonId}): type must be "season" or "tournament", got "${row.type}"`);
+    }
+    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not YYYY-MM-DD`);
+    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not YYYY-MM-DD`);
 
-      // 14U — Fields 1 & 3  (using revised schedule)
-      { id:'w1-14u-g01', date:'2026-02-07', time:'8:00 AM',  arrival:'7:30 AM', division:'14U', venue:'mesquite', field:'Field 1', home:'Hotshots',                away:'Tukee Lightning 1' },
-      { id:'w1-14u-g02', date:'2026-02-07', time:'9:30 AM',  arrival:'9:00 AM', division:'14U', venue:'mesquite', field:'Field 1', home:'East Valley Bullets',     away:'Hawks' },
-      { id:'w1-14u-g03', date:'2026-02-07', time:'10:15 AM', arrival:'9:45 AM', division:'14U', venue:'mesquite', field:'Field 3', home:'Hawks',                   away:'Hotshots' },
-      { id:'w1-14u-g04', date:'2026-02-07', time:'11:00 AM', arrival:'10:30 AM',division:'14U', venue:'mesquite', field:'Field 3', home:'Tukee Lightning 1',       away:'Chandler Lax' },
-      { id:'w1-14u-g05', date:'2026-02-07', time:'11:45 AM', arrival:'11:15 AM',division:'14U', venue:'mesquite', field:'Field 3', home:'Tukee Lightning 2',       away:'Vipers/Diamonds' },
-      { id:'w1-14u-g06', date:'2026-02-07', time:'12:30 PM', arrival:'12:00 PM',division:'14U', venue:'mesquite', field:'Field 1', home:'Vipers/Diamonds',         away:'East Valley Bullets' },
-      { id:'w1-14u-g07', date:'2026-02-07', time:'12:30 PM', arrival:'12:00 PM',division:'14U', venue:'mesquite', field:'Field 3', home:'Tukee Lightning 2',       away:'Chandler Lax' },
+    events.set(seasonId, {
+      id: seasonId,
+      name: row.name,
+      type: (row.type === 'tournament' ? 'tournament' : 'season'),
+      active: /^true$/i.test(row.active),
+      startDate: row.startDate,
+      endDate: row.endDate,
+      games: [],
+    });
+  });
 
-      // ── Week 2–10 games go here as schedules are released ──────────────
-      // Copy the pattern above: w3-8u-g01, w3-10u-g01, etc.
-      // Add each week's games when you receive the CSV from the scheduler.
-      // ── Week 2 · Feb 14 · Mesquite HS (host: Chandler)
-      // 8U hosted at Chuparosa Park this week instead — different venue
-      // than the rest of the day, to exercise the mixed-venue grouping
-      // (see LeagueSchedule.astro). Chuparosa, not Naranja Park, per the
-      // note on naranja-park in venues.ts ("Chuparosa Park used for 8U").
-      { id:'w2-8u-g01',  date:'2026-02-14', time:'8:00 AM',  arrival:'7:30 AM',  division:'8U',  venue:'chuparosa', field:'Chuparosa Field',    home:'Diamonds',              away:'Tukee Lightning 1' },
-      { id:'w2-8u-g02',  date:'2026-02-14', time:'8:45 AM',  arrival:'8:15 AM',  division:'8U',  venue:'chuparosa', field:'Chuparosa Field',    home:'Tukee Lightning 1',     away:'Hotshots/Chandler/Oro' },
-      { id:'w2-8u-g03',  date:'2026-02-14', time:'9:30 AM',  arrival:'9:00 AM',  division:'8U',  venue:'chuparosa', field:'Chuparosa Field',    home:'Tukee Lightning 2',     away:'Vipers' },
+  gameRows.forEach((row, i) => {
+    const rowNum = i + 2;
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push(`Schedule row ${rowNum}: missing season_id`); return; }
+    const target = events.get(seasonId);
+    if (!target) { errors.push(`Schedule row ${rowNum}: season_id "${seasonId}" doesn't match any Seasons row`); return; }
 
-      { id:'w2-10u-g01', date:'2026-02-14', time:'8:00 AM',  arrival:'7:30 AM',  division:'10U', venue:'mesquite', field:'Field 3', home:'Tukee Lightning 2',     away:'Hotshots' },
-      { id:'w2-10u-g02', date:'2026-02-14', time:'8:45 AM',  arrival:'8:15 AM',  division:'10U', venue:'mesquite', field:'Field 3', home:'Vipers',                away:'Chandler/Sol Sisters' },
-      { id:'w2-10u-g03', date:'2026-02-14', time:'9:30 AM',  arrival:'9:00 AM',  division:'10U', venue:'mesquite', field:'Field 2', home:'Tukee Lightning 1',     away:'Diamonds' },
-      { id:'w2-10u-g04', date:'2026-02-14', time:'10:15 AM', arrival:'9:45 AM',  division:'10U', venue:'mesquite', field:'Field 2', home:'Hotshots',              away:'Chandler/Sol Sisters' },
-      { id:'w2-10u-g05', date:'2026-02-14', time:'11:00 AM', arrival:'10:30 AM', division:'10U', venue:'mesquite', field:'Field 3', home:'Chandler/Sol Sisters',  away:'Tukee Lightning 2' },
-      { id:'w2-10u-g06', date:'2026-02-14', time:'11:45 AM', arrival:'11:15 AM', division:'10U', venue:'mesquite', field:'Field 2', home:'Diamonds',              away:'Vipers' },
+    if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not YYYY-MM-DD`);
+    if (!row.time) errors.push(`Schedule row ${rowNum}: missing time`);
+    if (!row.home) errors.push(`Schedule row ${rowNum}: missing home team`);
+    if (!row.away) errors.push(`Schedule row ${rowNum}: missing away team`);
+    if (row.home && row.away && row.home === row.away) errors.push(`Schedule row ${rowNum}: home and away are both "${row.home}"`);
+    if (row.home && !teamNames.has(row.home)) errors.push(`Schedule row ${rowNum}: home team "${row.home}" doesn't match a name in teams.ts`);
+    if (row.away && !teamNames.has(row.away)) errors.push(`Schedule row ${rowNum}: away team "${row.away}" doesn't match a name in teams.ts`);
+    if (!validDivisions.has(row.division)) errors.push(`Schedule row ${rowNum}: division "${row.division}" isn't used by any team in teams.ts`);
+    if (!venueIds.has(row.venue)) errors.push(`Schedule row ${rowNum}: venue "${row.venue}" doesn't match an id in venues.ts`);
+    if (!row.field) errors.push(`Schedule row ${rowNum}: missing field`);
 
-      { id:'w2-12u-g01', date:'2026-02-14', time:'8:45 AM',  arrival:'8:15 AM',  division:'12U', venue:'mesquite', field:'Field 1', home:'Tukee Lightning',       away:'Diamonds' },
-      { id:'w2-12u-g02', date:'2026-02-14', time:'9:30 AM',  arrival:'9:00 AM',  division:'12U', venue:'mesquite', field:'Field 1', home:'Vipers',                away:'Oro Valley' },
-      { id:'w2-12u-g03', date:'2026-02-14', time:'10:15 AM', arrival:'9:45 AM',  division:'12U', venue:'mesquite', field:'Field 2', home:'Marana Reapers',        away:'Hawks' },
-      { id:'w2-12u-g04', date:'2026-02-14', time:'11:00 AM', arrival:'10:30 AM', division:'12U', venue:'mesquite', field:'Field 1', home:'Diamonds',              away:'Marana Reapers' },
-      { id:'w2-12u-g05', date:'2026-02-14', time:'11:00 AM', arrival:'10:30 AM', division:'12U', venue:'mesquite', field:'Field 2', home:'Oro Valley',            away:'Tukee Lightning' },
-      { id:'w2-12u-g06', date:'2026-02-14', time:'11:45 AM', arrival:'11:15 AM', division:'12U', venue:'mesquite', field:'Field 1', home:'Hawks',                 away:'Vipers' },
+    target.games.push({
+      id: `${seasonId}-${rowNum}`,
+      date: row.date,
+      time: row.time,
+      arrival: row.arrival || undefined,
+      home: row.home,
+      away: row.away,
+      division: row.division,
+      venue: row.venue,
+      field: row.field,
+      gameNotes: row.gameNotes || undefined,
+      fieldMapUrl: row.fieldMapUrl ? normalizeFieldMapUrl(row.fieldMapUrl) : undefined,
+      venueNotes: row.venueNotes || undefined,
+    });
+  });
 
-      { id:'w2-14u-g01', date:'2026-02-14', time:'8:00 AM',  arrival:'7:30 AM',  division:'14U', venue:'mesquite', field:'Field 1', home:'Tukee Lightning 1',     away:'Hawks' },
-      { id:'w2-14u-g02', date:'2026-02-14', time:'9:30 AM',  arrival:'9:00 AM',  division:'14U', venue:'mesquite', field:'Field 1', home:'Chandler Lax',          away:'Vipers/Diamonds' },
-      { id:'w2-14u-g03', date:'2026-02-14', time:'10:15 AM', arrival:'9:45 AM',  division:'14U', venue:'mesquite', field:'Field 3', home:'Hotshots',              away:'East Valley Bullets' },
-      { id:'w2-14u-g04', date:'2026-02-14', time:'11:00 AM', arrival:'10:30 AM', division:'14U', venue:'mesquite', field:'Field 3', home:'Hawks',                 away:'Chandler Lax' },
-      { id:'w2-14u-g05', date:'2026-02-14', time:'11:45 AM', arrival:'11:15 AM', division:'14U', venue:'mesquite', field:'Field 3', home:'Vipers/Diamonds',       away:'Tukee Lightning 2' },
-      { id:'w2-14u-g06', date:'2026-02-14', time:'12:30 PM', arrival:'12:00 PM', division:'14U', venue:'mesquite', field:'Field 1', home:'East Valley Bullets',   away:'Hotshots' },
-      { id:'w2-14u-g07', date:'2026-02-14', time:'12:30 PM', arrival:'12:00 PM', division:'14U', venue:'mesquite', field:'Field 3', home:'Tukee Lightning 2',     away:'Tukee Lightning 1' },
+  if (errors.length) {
+    throw new Error(
+      `[schedule.ts] ${errors.length} problem(s) in the schedule sheet — fix these and rebuild:\n` +
+      errors.map(e => ` - ${e}`).join('\n')
+    );
+  }
 
+  return [...events.values()];
+}
 
-
-    ] },
-
-  // ── SPRING 2026 TOURNAMENT ─────────────────────────────────────────────
-  // Uncomment and fill in when tournament bracket is finalized
-  /*
-  {
-    id:        'spring-2026-tournament',
-    name:      'Spring 2026 Tournament',
-    type:      'tournament',
-    active:    false,
-    startDate: '2026-04-18',
-    endDate:   '2026-04-18',
-    games: [
-      { id:'t26-g01', date:'2026-04-18', time:'8:00 AM', division:'12U', venue:'mesquite', field:'Field 1', home:'TBD', away:'TBD' },
-    ] },
-  */
-
-];
+export const scheduleEvents: ScheduleEvent[] =
+  SEASONS_CSV_URL && SCHEDULE_CSV_URL
+    ? buildEvents(
+        await fetchCSV(SEASONS_CSV_URL, 'schedule.ts', 'Seasons'),
+        await fetchCSV(SCHEDULE_CSV_URL, 'schedule.ts', 'Schedule'),
+      )
+    : [];
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 export function getActiveEvents() {
@@ -154,16 +236,4 @@ export function getActiveEvents() {
 }
 export function getEventById(id: string) {
   return scheduleEvents.find(e => e.id === id);
-}
-export function getAllGames(eventId?: string) {
-  if (eventId) return getEventById(eventId)?.games ?? [];
-  return scheduleEvents.flatMap(e => e.games);
-}
-export function getUpcomingGames(eventId?: string, limit?: number) {
-  const games = getAllGames(eventId).filter(g => g.result === 'upcoming');
-  return limit ? games.slice(0, limit) : games;
-}
-export function getDivisionsInEvent(eventId: string) {
-  const games = getEventById(eventId)?.games ?? [];
-  return [...new Set(games.map(g => g.division))].sort();
 }

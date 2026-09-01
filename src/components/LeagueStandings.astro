@@ -1,15 +1,17 @@
 ---
 import StandingsTable from '@/components/StandingsTable.astro';
 import { scheduleEvents } from '@/data/schedule';
-import { localStandings, STANDINGS_CSV_URL } from '@/data/standings';
+import { standings } from '@/data/standings';
 
 const activeEvents = scheduleEvents.filter(e => e.active);
 
-// Match active events to standing data.
-// StandingsTable handles the sheet-vs-local decision internally;
-// we just need to know which eventIds have any standing data at all.
+// Match active events to standing data. `standings` is already the
+// resolved set (Sheet if STANDINGS_CSV_URL is set, localStandings
+// otherwise) — checking against it, not localStandings directly, so an
+// event with standings only in the Sheet (no local fallback data) still
+// renders instead of silently being filtered out.
 const activeWithStandings = activeEvents.filter(e =>
-  localStandings.some(s => s.eventId === e.id)
+  standings.some(s => s.eventId === e.id)
 );
 ---
 
@@ -22,12 +24,7 @@ const activeWithStandings = activeEvents.filter(e =>
           <h2>Division Standings</h2>
         </div>
         <div class="section-header-copy">
-          <p>
-            {STANDINGS_CSV_URL
-              ? 'Live from Google Sheets. Update the sheet and redeploy to refresh.'
-              : 'Update standings in src/data/standings.ts — or connect Google Sheets. See STANDINGS_SETUP.md.'
-            }
-          </p>
+          <p>Who's on top, who's climbing — updated after every game day.</p>
         </div>
       </div>
       <StandingsTable eventId={event.id} />

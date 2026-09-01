@@ -14,8 +14,20 @@
 //
 // `fieldMapUrl` is optional — a diagram/image showing where each field is
 // within the venue, if one exists. Leave it unset until you have one; the
-// "Field map" button on the site just won't show up. To add one: drop the
-// image in `public/assets/field-maps/` and set this to that path.
+// "Field map" button on the site just won't show up. Two ways to set it:
+//
+//   1. Drop the image in `public/assets/field-maps/` and set this to that
+//      path (e.g. '/assets/field-maps/mesquite.png') — reliable, doesn't
+//      depend on anything outside the repo, but needs a code change.
+//   2. Add a `fieldMapUrl` on the game rows in the Schedule sheet, same
+//      row where `venue` is first typed for that block (see fillDown()
+//      in src/data/schedule.ts) — lets someone add or swap a link without
+//      touching code. If both exist, the sheet's value wins for any game
+//      that has one; a game with no `fieldMapUrl` cell falls back to
+//      whatever's hardcoded here. A Google Drive share link pasted as-is
+//      (whatever "Copy link" gives you) gets rewritten into a direct
+//      image URL at build time — see normalizeFieldMapUrl() in
+//      src/lib/driveLink.ts and GOOGLE_SHEETS_SETUP.md.
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface Venue {
@@ -26,7 +38,7 @@ export interface Venue {
   mapUrl:       string;
   notes?:       string;    // venue-wide note, shown once per day (not per game) behind a
                             // click-to-open "Notes" disclosure — plain text
-  fieldMapUrl?: string;    // optional — see note above
+  fieldMapUrl?: string;    // optional — see note above; may be overridden per-game from the sheet
 }
 
 export const venues: Venue[] = [
@@ -74,7 +86,6 @@ export const venues: Venue[] = [
     address: '8425 W Mohave St, Tolleson, AZ 85353',
     city:    'Tolleson',
     mapUrl:  'https://maps.google.com/?q=8425+W+Mohave+St+Tolleson+AZ+85353',
-    notes:   '3–4 fields. AZGL-hosted games.',
   },
 
   {

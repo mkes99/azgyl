@@ -1,10 +1,10 @@
 ---
 // StandingsTable
-// Reads from Google Sheets CSV when STANDINGS_CSV_URL is set in standings.ts.
-// Falls back to localStandings otherwise.
+// `standings` is already fully resolved by src/data/standings.ts (fetched
+// + validated from the Sheet if STANDINGS_CSV_URL is set, localStandings
+// otherwise) — this component just picks which event/division to render.
 // Responsive: table on desktop, stacked cards on mobile.
-import { localStandings, sortedRows, STANDINGS_CSV_URL } from '@/data/standings';
-import type { EventStandings } from '@/data/standings';
+import { standings, sortedRows } from '@/data/standings';
 
 interface Props {
   eventId?:  string;
@@ -12,51 +12,22 @@ interface Props {
 }
 const { eventId, division } = Astro.props;
 
-// ── Fetch from Google Sheets if URL is set ────────────────────────────────
-let allStandings: EventStandings[] = localStandings;
-
-if (STANDINGS_CSV_URL) {
-  try {
-    const res  = await fetch(STANDINGS_CSV_URL);
-    const text = await res.text();
-
-    // Parse CSV: division,team,W,L,T,GF,GA
-    const rows = text.trim().split('\n').slice(1); // skip header row
-    const divMap = new Map<string, typeof localStandings[0]['divisions'][0]['rows']>();
-
-    for (const raw of rows) {
-      const [div, team, W, L, T, GF, GA] = raw.split(',').map(c => c.replace(/"/g,'').trim());
-      if (!div || !team) continue;
-      if (!divMap.has(div)) divMap.set(div, []);
-      divMap.get(div)!.push({
-        team,
-        W: Number(W) || 0, L: Number(L) || 0, T: Number(T) || 0,
-        GF: Number(GF) || 0, GA: Number(GA) || 0,
-      });
-    }
-
-    // Wrap in the same EventStandings shape — eventId from first local entry
-    const baseEventId = localStandings[0]?.eventId ?? 'spring-2026';
-    allStandings = [{
-      eventId:   baseEventId,
-      eventName: localStandings[0]?.eventName ?? 'Spring 2026',
-      divisions: [...divMap.entries()].map(([div, rows]) => ({ division: div, rows })),
-    }];
-  } catch (e) {
-    // Sheet fetch failed — silently fall back to local data
-    allStandings = localStandings;
-  }
-}
-
-// ── Resolve which event + divisions to show ───────────────────────────────
 const event = eventId
-  ? allStandings.find(s => s.eventId === eventId)
-  : allStandings[0];
+  ? standings.find(s => s.eventId === eventId)
+  : standings[0];
 
 const divs = event
   ? (division ? event.divisions.filter(d => d.division === division) : event.divisions)
   : [];
 ---
+
+{divs.length > 0 && (
+  <p class="standings-legend">
+    <strong>W</strong> Wins · <strong>L</strong> Losses · <strong>T</strong> Ties ·
+    <strong> Pts</strong> Points · <strong>GF</strong> Goals For · <strong>GA</strong> Goals Against ·
+    <strong> +/−</strong> Goal differential (used to break ties in points)
+  </p>
+)}
 
 {divs.map(div => {
   const rows = sortedRows(div.rows);
@@ -93,8 +64,8 @@ const divs = event
           </thead>
           <tbody>
             {rows.map((row, i) => {
-              const pts  = row.W * 3 + row.T;
-              const diff = row.GF - row.GA;
+              const pts  = row.wins * 3 + row.ties;
+              const diff = row.goalsFor - row.goalsAgainst;
               return (
                 <tr class={i === 0 ? 'row-leader' : ''}>
                   <td class="td-rank">
@@ -108,12 +79,12 @@ const divs = event
                       {row.team}
                     </span>
                   </td>
-                  <td class="td-num">{row.W}</td>
-                  <td class="td-num td-muted">{row.L}</td>
-                  <td class="td-num td-muted">{row.T}</td>
+                  <td class="td-num">{row.wins}</td>
+                  <td class="td-num td-muted">{row.losses}</td>
+                  <td class="td-num td-muted">{row.ties}</td>
                   <td class="td-num td-pts">{pts}</td>
-                  <td class="td-num td-muted">{row.GF}</td>
-                  <td class="td-num td-muted">{row.GA}</td>
+                  <td class="td-num td-muted">{row.goalsFor}</td>
+                  <td class="td-num td-muted">{row.goalsAgainst}</td>
                   <td class={`td-num${diff > 0 ? ' td-pos' : diff < 0 ? ' td-neg' : ' td-muted'}`}>
                     {diff > 0 ? `+${diff}` : diff}
                   </td>
@@ -127,8 +98,8 @@ const divs = event
       {/* Mobile cards */}
       <div class="standings-cards">
         {rows.map((row, i) => {
-          const pts  = row.W * 3 + row.T;
-          const diff = row.GF - row.GA;
+          const pts  = row.wins * 3 + row.ties;
+          const diff = row.goalsFor - row.goalsAgainst;
           return (
             <div class={`stand-card${i === 0 ? ' stand-card--leader' : ''}`}>
               <div class="stand-left">
@@ -138,9 +109,9 @@ const divs = event
                 <span class="stand-team">{row.team}</span>
               </div>
               <div class="stand-stats">
-                <div class="stand-stat"><span>W</span><strong>{row.W}</strong></div>
-                <div class="stand-stat"><span>L</span><strong>{row.L}</strong></div>
-                <div class="stand-stat"><span>T</span><strong>{row.T}</strong></div>
+                <div class="stand-stat"><span>W</span><strong>{row.wins}</strong></div>
+                <div class="stand-stat"><span>L</span><strong>{row.losses}</strong></div>
+                <div class="stand-stat"><span>T</span><strong>{row.ties}</strong></div>
                 <div class="stand-stat stand-stat--pts"><span>Pts</span><strong>{pts}</strong></div>
                 <div class={`stand-stat${diff > 0 ? ' stand-stat--pos' : diff < 0 ? ' stand-stat--neg' : ''}`}>
                   <span>+/−</span><strong>{diff > 0 ? `+${diff}` : diff}</strong>
@@ -198,6 +169,9 @@ const divs = event
   .stand-stat--pts strong { color: var(--olive); font-weight: 700; }
   .stand-stat--pos strong { color: #15803d; }
   .stand-stat--neg strong { color: #b91c1c; }
+
+  .standings-legend { margin: 0 0 2.1rem; font-size: .78rem; color: var(--muted); line-height: 1.6; }
+  .standings-legend strong { color: var(--soft); font-weight: 700; }
 
   @media (max-width: 600px) {
     .standings-table-shell { display: none; }
