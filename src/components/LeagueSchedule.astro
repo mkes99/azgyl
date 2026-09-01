@@ -11,6 +11,10 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   const games     = event.games;
   const dates     = [...new Set(games.map(g => g.date))].sort();
   const divisions = DIV_ORDER.filter(d => games.some(g => g.division === d));
+  // Built from this event's own games, not the full roster in teams.ts —
+  // not every team plays every season, so the filter should only ever
+  // offer teams that actually show up here.
+  const teamNames = [...new Set(games.flatMap(g => [g.home, g.away]))].sort();
 
   // Today in YYYY-MM-DD local time
   const todayISO = new Date().toLocaleDateString('en-CA');
@@ -39,7 +43,7 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   const venueMapImg   = (id: string, override?: string) => override || getVenueById(id)?.fieldMapUrl || '';
   const venueNote     = (id: string, override?: string) => override || getVenueById(id)?.notes || '';
 
-  return { games, dates, divisions, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO };
+  return { games, dates, divisions, teamNames, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO };
 }
 
 const activeEvents = scheduleEvents.filter(e => e.active);
@@ -58,7 +62,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
 )}
 
 {activeEvents.map(event => {
-  const { games, dates, divisions, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO } = buildEventData(event);
+  const { games, dates, divisions, teamNames, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO } = buildEventData(event);
 
   return (
     <section class="league-sched-section">
@@ -103,12 +107,13 @@ const activeEvents = scheduleEvents.filter(e => e.active);
           <div class="sched-filter-row">
             <span class="sched-filter-label">Week</span>
             <div class="sched-filter-tabs" role="tablist" aria-label="Filter by week">
+              <button class="sched-tab" data-week-filter="all" role="tab" aria-selected="false">All</button>
               {dates.map((date, i) => {
                 const isPast    = date < todayISO;
                 const isCurrent = date === currentDate;
                 return (
                   <button
-                    class={`sched-tab${isCurrent ? ' sched-tab--active' : ''}${isPast && !isCurrent ? ' sched-tab--past' : ''}`}
+                    class={`sched-tab${isCurrent ? ' sched-tab--active' : ''}${isPast ? ' sched-tab--past' : ''}`}
                     data-week-filter={date}
                     role="tab"
                     aria-selected={isCurrent ? 'true' : 'false'}
@@ -118,6 +123,16 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          <div class="sched-filter-row">
+            <span class="sched-filter-label">Team</span>
+            <div class="sched-filter-tabs" role="tablist" aria-label="Filter by team">
+              <button class="sched-tab sched-tab--active" data-team-filter="all" role="tab" aria-selected="true">All</button>
+              {teamNames.map(team => (
+                <button class="sched-tab" data-team-filter={team} role="tab" aria-selected="false">{team}</button>
+              ))}
             </div>
           </div>
 
@@ -197,7 +212,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                       <span class="sl-field-head">Field</span>
                     </div>
                     {group.games.map(g => (
-                      <div class="sched-row" role="listitem" data-division={g.division}>
+                      <div class="sched-row" role="listitem" data-division={g.division} data-home={g.home} data-away={g.away}>
                         <span class="sl-div"><span class="div-chip">{g.division}</span></span>
                         <span class="sl-time">
                           <strong>{g.time}</strong>
@@ -255,6 +270,13 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   <figure class="fieldmap-lightbox-figure">
     <button type="button" class="fieldmap-lightbox-close" aria-label="Close field map">&times;</button>
     <img class="fieldmap-lightbox-img" src="" alt="Field map" />
+    {/* Shown instead of the image if it fails to load (e.g. a Drive
+        hiccup) — the link still opens the source directly rather than
+        leaving a permanently broken image icon with no way forward. */}
+    <p class="fieldmap-lightbox-fallback" hidden>
+      Couldn't load the field map image.
+      <a class="fieldmap-lightbox-fallback-link" href="" target="_blank" rel="noreferrer">Open it directly</a>
+    </p>
   </figure>
 </div>
 
@@ -265,7 +287,16 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     if (!section) return;
 
     var activeDiv  = 'all';
+    var activeTeam = 'all';
     var activeWeek = (section.querySelector('.sched-day:not(.sched-day--hidden)') || {}).dataset?.weekDate || '';
+
+    // Division, Week, and Team all combine (AND) — a row has to satisfy
+    // whichever of the three are active, not just one of them.
+    function rowMatches(el) {
+      var divMatch  = activeDiv === 'all' || el.dataset.division === activeDiv;
+      var teamMatch = activeTeam === 'all' || el.dataset.home === activeTeam || el.dataset.away === activeTeam;
+      return divMatch && teamMatch;
+    }
 
     function applyFilters() {
       section.querySelectorAll('.sched-day').forEach(function (day) {
@@ -273,14 +304,15 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       });
       section.querySelectorAll('.sched-day:not(.sched-day--hidden)').forEach(function (day) {
         day.querySelectorAll('[data-division]').forEach(function (el) {
-          el.style.display = (activeDiv === 'all' || el.dataset.division === activeDiv) ? '' : 'none';
+          el.style.display = rowMatches(el) ? '' : 'none';
         });
         // A venue group can end up with every one of its games filtered
         // out (e.g. a division-only host at a venue, filtered to a
-        // different division) — hide the whole group, not just leave its
-        // heading sitting above an empty table.
+        // different division, or a team that didn't play there) — hide
+        // the whole group, not just leave its heading sitting above an
+        // empty table.
         day.querySelectorAll('.sched-venue-group').forEach(function (group) {
-          var hasMatch = activeDiv === 'all' || !!group.querySelector('[data-division="' + activeDiv + '"]');
+          var hasMatch = Array.prototype.some.call(group.querySelectorAll('[data-division]'), rowMatches);
           group.style.display = hasMatch ? '' : 'none';
         });
       });
@@ -297,9 +329,20 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       });
     });
 
+    filterRoot.querySelectorAll('[data-team-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeTeam = btn.dataset.teamFilter;
+        filterRoot.querySelectorAll('[data-team-filter]').forEach(function (b) {
+          b.classList.toggle('sched-tab--active', b === btn);
+          b.setAttribute('aria-selected', String(b === btn));
+        });
+        applyFilters();
+      });
+    });
+
     filterRoot.querySelectorAll('[data-week-filter]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        activeWeek = btn.dataset.weekFilter;
+        activeWeek = btn.dataset.weekFilter === 'all' ? '' : btn.dataset.weekFilter;
         filterRoot.querySelectorAll('[data-week-filter]').forEach(function (b) {
           b.classList.toggle('sched-tab--active', b === btn);
           b.setAttribute('aria-selected', String(b === btn));
@@ -353,10 +396,24 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   // markup isn't on the page for some reason.
   var lightbox = document.getElementById('fieldmap-lightbox');
   if (lightbox) {
-    var lightboxImg = lightbox.querySelector('.fieldmap-lightbox-img');
+    var lightboxImg      = lightbox.querySelector('.fieldmap-lightbox-img');
+    var lightboxFallback = lightbox.querySelector('.fieldmap-lightbox-fallback');
+    var lightboxFallbackLink = lightbox.querySelector('.fieldmap-lightbox-fallback-link');
     var openerEl = null;
 
+    // A failed image load (e.g. a transient hiccup from whatever's
+    // hosting it) used to leave a permanently broken icon with no way
+    // forward — swap in a link to open the source directly instead.
+    lightboxImg.addEventListener('error', function () {
+      if (!lightboxImg.src) return; // src cleared on close — not a real failure
+      lightboxImg.hidden = true;
+      lightboxFallbackLink.href = lightboxImg.src;
+      lightboxFallback.hidden = false;
+    });
+
     function openLightbox(href, opener) {
+      lightboxImg.hidden = false;
+      lightboxFallback.hidden = true;
       lightboxImg.src = href;
       lightbox.hidden = false;
       document.body.style.overflow = 'hidden';
@@ -416,13 +473,6 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     transition: background .15s, color .15s, border-color .15s;
   }
   .sched-tab:hover   { background: var(--surface-soft); color: var(--text); border-color: var(--text); }
-  /* Active: solid filled — no opacity, full contrast */
-  .sched-tab--active {
-    background: var(--charcoal);
-    color: #fff;
-    border-color: var(--charcoal);
-    font-weight: 700;
-  }
   /* Past weeks: slightly muted text, still fully legible */
   .sched-tab--past {
     color: var(--soft);
@@ -430,8 +480,26 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     border-color: var(--line-strong);
   }
   .sched-tab--past:hover { color: var(--text); background: var(--surface-soft); }
+  /* Active: solid filled — no opacity, full contrast. Declared after
+     --past so a week that's both past AND active (e.g. the season's
+     last week, active by default) still renders active — a button can
+     carry both classes at once since --past is baked in server-side
+     purely from the date, independent of which week is selected. */
+  .sched-tab--active {
+    background: var(--charcoal);
+    color: #fff;
+    border-color: var(--charcoal);
+    font-weight: 700;
+  }
 
   /* ── Day panel ───────────────────────────────── */
+  /* Only one panel used to ever be visible at a time, so there was never
+     a need for space between them — now that the Week filter's "All"
+     option shows every week stacked, consecutive panels need real
+     separation. Doesn't affect the single-panel view beyond a little
+     trailing space before whatever section comes next. */
+  .sched-day { margin-bottom: 3rem; padding-bottom: 3rem; border-bottom: 1px solid var(--line); }
+  .sched-day:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
   .sched-day--hidden { display: none; }
   .sched-day-hdr { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 2px solid var(--line); }
   .sched-day-week { display: block; font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--rose-deep); margin-bottom: .2rem; }
@@ -679,4 +747,16 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     box-shadow: var(--shadow-lg);
   }
   .fieldmap-lightbox-close:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
+  .fieldmap-lightbox-fallback {
+    margin: 0;
+    padding: 2.5rem 3rem;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    color: var(--muted);
+    font-size: .9rem;
+    text-align: center;
+    max-width: 320px;
+  }
+  .fieldmap-lightbox-fallback-link { display: inline-block; margin-top: .5rem; color: var(--rose-deep); font-weight: 700; }
 </style>

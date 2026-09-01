@@ -86,7 +86,6 @@ export const venues: Venue[] = [
     address: '8425 W Mohave St, Tolleson, AZ 85353',
     city:    'Tolleson',
     mapUrl:  'https://maps.google.com/?q=8425+W+Mohave+St+Tolleson+AZ+85353',
-    notes:   '3–4 fields. AZGL-hosted games.',
   },
 
   {

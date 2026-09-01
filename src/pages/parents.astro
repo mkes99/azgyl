@@ -5,6 +5,16 @@ import SectionIntro from '@/components/SectionIntro.astro';
 import ParentFaq from '@/components/ParentFaq.astro';
 import ParentTeamFinder from '@/components/ParentTeamFinder.astro';
 import AgeChart from '@/components/AgeChart.astro';
+import { officialLinks } from '@/data/official-links';
+
+// Parents actually have to act on these — USA Lacrosse membership is a
+// required step (see Step 2 below), and the equipment rules quoted in
+// the Equipment section come straight from these official pages. Pulled
+// from officialLinks (also shown in the footer) rather than hardcoded a
+// second time, so both stay in sync if a URL ever changes.
+const playersParents = officialLinks.find(l => l.title === 'USA Lacrosse Players & Parents');
+const equipmentGuide = officialLinks.find(l => l.title === 'USA Lacrosse Equipment');
+const legalSticks    = officialLinks.find(l => l.title === 'Legal Women’s Sticks');
 ---
 
 <BaseLayout title="Parent Guide | AZGYL — Arizona Girls Youth Lacrosse" pathname="/parents">
@@ -34,7 +44,7 @@ import AgeChart from '@/components/AgeChart.astro';
         <article class="metric">
           <div class="section-kicker">Step 2</div>
           <h3>Register and complete membership.</h3>
-          <p>Sign up through the local program and complete USA Lacrosse membership before your player's first practice. Required — not optional.</p>
+          <p>Sign up through the local program and complete <a href={playersParents.href} target="_blank" rel="noreferrer">USA Lacrosse membership</a> before your player's first practice. Required — not optional.</p>
         </article>
         <article class="metric">
           <div class="section-kicker">Step 3</div>
@@ -75,10 +85,13 @@ import AgeChart from '@/components/AgeChart.astro';
   <section id="equipment">
     <div class="container section-block stack-lg">
       <SectionIntro eyebrow="Equipment" title="Buy the required basics first." intro="Stick, goggles, mouthguard. That's it for year one." />
+      <nav class="subpage-links">
+        <a href={equipmentGuide.href} target="_blank" rel="noreferrer">USA Lacrosse equipment guide</a>
+      </nav>
       <div class="metrics-grid">
         <article class="metric">
           <h3>Stick</h3>
-          <p>A legal girls stick in the $60–$100 range is fine for year one. Must be women's/girls pocket construction — not boys'.</p>
+          <p>A legal girls stick in the $60–$100 range is fine for year one. Must be women's/girls pocket construction — not boys'. <a href={legalSticks.href} target="_blank" rel="noreferrer">See the legal sticks list</a>.</p>
         </article>
         <article class="metric">
           <h3>Protective eyewear</h3>

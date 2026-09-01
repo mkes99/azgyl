@@ -37,7 +37,7 @@ import { fetchCSV } from '@/lib/csv';
 import { teams } from './teams';
 import { scheduleEvents } from './schedule';
 
-export const STANDINGS_CSV_URL = '';
+export const STANDINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=616344644&single=true&output=csv';
 // Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Standings'
 
 export interface StandingRow {

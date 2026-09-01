@@ -7,6 +7,66 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.29] — 2026-09-01 — Real sheet wired in; Team filter; field-map CDN switch; league page polish
+
+### Added
+
+- **Real Google Sheet CSV URLs wired into `schedule.ts`/`standings.ts`** —
+  `SEASONS_CSV_URL`, `SCHEDULE_CSV_URL`, and `STANDINGS_CSV_URL` now
+  point at the actual published sheet (Step 6 of
+  `GOOGLE_SHEETS_SETUP.md`), not empty strings. Verified against both a
+  fully-empty sheet and an active-season-with-zero-rows sheet — neither
+  breaks the build or the site.
+- **Auto-generated Team filter on `/league`**, built from that event's
+  own `games` (not the full `teams.ts` roster) — not every team plays
+  every season, so the filter only ever offers teams that actually
+  showed up. Combines (AND) with the existing Division and Week filters.
+- **"All" option added to the Week filter**, matching the existing
+  Division filter's "All" pill.
+- **Graceful fallback in the field-map lightbox** — a failed image load
+  now shows "Couldn't load the field map image — Open it directly"
+  instead of a permanently broken icon.
+- **Visible legend above the standings tables** (W/L/T/Pts/GF/GA/+/−
+  spelled out) — the existing `title` tooltip on desktop headers is
+  effectively undiscoverable, and the mobile card view had no
+  explanation at all.
+
+### Fixed
+
+- **Week filter: a past week that's also the default-active week never
+  got the "past" styling class**, only "active" — deselecting it (e.g.
+  by clicking a different week) left it bare/unstyled instead of falling
+  back to the muted "past" look. `isPast` is now applied independent of
+  `isCurrent`; CSS reordered so `--active` still wins the cascade when a
+  button carries both classes.
+- **No spacing between consecutive week panels** in the new "All" weeks
+  view — only one panel was ever visible at a time before, so nothing
+  separated them. Added margin/border between `.sched-day` panels.
+- **Field-map links switched from `drive.google.com/uc?export=view` to
+  `lh3.googleusercontent.com`** — the former is an informal, undocumented
+  Drive workaround observed 503'ing under repeated requests in testing;
+  the latter is Google's actual production image CDN (same
+  infrastructure behind Google Photos/profile pictures). Same
+  paste-a-Drive-link workflow on the sheet side, no doc changes needed.
+
+### Changed
+
+- **Dev-facing copy that had leaked into public-facing text, rewritten
+  for the actual audience** — the `/league` hero no longer references
+  `src/data/schedule.ts` or a hardcoded season name; the standings
+  caption no longer says "Live from Google Sheets. Update the sheet and
+  redeploy to refresh." (implies visitors need to take an action they
+  can't take). Both now describe what the page shows, not how it's
+  maintained.
+- **Parents page now links to the USA Lacrosse resources it already
+  references but didn't link to** — "USA Lacrosse membership" (Step 2)
+  and the equipment/legal-sticks pages (Equipment section) now link out,
+  pulled from the same `officialLinks` array already used in the
+  footer rather than hardcoded a second time.
+- Mohave's hardcoded venue note removed from `venues.ts` (demo request).
+
+---
+
 ## [3.28] — 2026-09-01 — Clearer column names; Drive field-map links simplified; Standings cascades too
 
 ### Changed

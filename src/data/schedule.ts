@@ -79,8 +79,8 @@ import { normalizeFieldMapUrl } from '@/lib/driveLink';
 import { teams } from './teams';
 import { venues } from './venues';
 
-const SEASONS_CSV_URL = '';  // paste the published Seasons-tab CSV URL here
-const SCHEDULE_CSV_URL = ''; // paste the published Schedule-tab CSV URL here
+const SEASONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=0&single=true&output=csv';
+const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=899852134&single=true&output=csv';
 // Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Seasons'
 // Leave both empty to run with zero events (site shows its normal
 // "no active events" state) — useful before the sheet is set up.
