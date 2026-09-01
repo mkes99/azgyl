@@ -7,6 +7,68 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.21] — 2026-09-01 — Venue/field data model split; field-map lightbox; filter and resize fixes
+
+### Changed
+
+- **`field` is no longer a compound venue-prefixed id (`mesquite-f2`) — it's
+  now plain per-game text (`'Field 2'`), and `venue` is a separate, new
+  property on `Game` (`src/data/schedule.ts`) that references a venue
+  directly.** Previously the only way the site knew which venue a game
+  was at was by looking up a field id like `mesquite-f2` in `fields.ts`,
+  which doubled as both "which venue" and "which specific field," forcing
+  every venue's fields into their own uniquely-prefixed ids. That's
+  backwards from how the data actually works: a venue only needs to be
+  identified once per game (same as `season_id` only needs to be defined
+  once per season, in the `Seasons` tab, and simply referenced by every
+  row in `Schedule`) — the specific field within that venue is just a
+  plain, unvalidated label ("Field 1", "Chuparosa Field," whatever that
+  venue's signage actually says), same as it already was free-form.
+  `src/data/fields.ts` is replaced by `src/data/venues.ts` (one entry per
+  physical location: name, address, map link, notes, field map — no more
+  one entry per field with the venue info repeated on each). All 47 games
+  in `schedule.ts` migrated. `LeagueSchedule.astro` and
+  `HomeSchedulePreview.astro` updated to group by `g.venue` directly
+  (no lookup needed to know which games share a venue) and display
+  `g.field` as-is (no lookup needed for the per-row label either).
+- Removed `src/components/ScheduleTable.astro` — confirmed unused
+  anywhere in the site (not imported by any page), already referencing a
+  `.name` property removed back in 3.15, and would have broken on this
+  migration regardless.
+
+### Fixed
+
+- **A venue group with every game filtered out by the Division filter
+  still showed its full heading (venue name, address, Field map, Notes)
+  above an empty table** — the filter only ever toggled `display:none` on
+  individual `[data-division]` rows, never on the `.sched-venue-group`
+  wrapping them. Now `applyFilters()` also hides any venue group with zero
+  matching rows for the active division.
+- **The notes popover's overflow correction only ran on open/close, not on
+  a live window resize** — a box left open while the window was dragged
+  narrower kept whatever horizontal shift (or lack of one) was correct for
+  the old width, so it could still run off the right edge. Added a
+  debounced `resize` listener that recomputes the shift for any
+  currently-open popover.
+- **The field-map lightbox rendered open on every single page load,
+  covering the whole site** — its CSS set `display:flex` unconditionally
+  on `.fieldmap-lightbox`, which as an author rule overrides the browser's
+  default `[hidden] { display:none }`, so the `hidden` attribute the
+  script relies on to show/hide it was silently doing nothing. Scoped the
+  layout rule to `:not([hidden])`.
+
+### Added
+
+- **"Field map" opens in an in-page lightbox** instead of a new tab —
+  dimmed backdrop, centered image, closes on the × button, backdrop
+  click, or Escape.
+- **"Field map" restyled as a filled rose pill with a small map icon**,
+  distinct from the outlined "Notes" toggle next to it — the two read as
+  different kinds of controls now (one opens an image, the other reveals
+  text inline) instead of two visually-identical buttons.
+
+---
+
 ## [3.20] — 2026-09-01 — Notes popover no longer overflows the viewport on narrow screens
 
 ### Fixed

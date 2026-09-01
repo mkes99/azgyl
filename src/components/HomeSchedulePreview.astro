@@ -1,6 +1,6 @@
 ---
 import { scheduleEvents } from '@/data/schedule';
-import { getFieldById }   from '@/data/fields';
+import { getVenueById }   from '@/data/venues';
 
 const event = scheduleEvents.find(e => e.active);
 if (!event) return;
@@ -20,8 +20,8 @@ const weekNum      = nextDate ? allDates.indexOf(nextDate) + 1 : 0;
 // at one park, 12U at another) — only show one combined venue link when
 // every game that day really shares one venue. See LeagueSchedule.astro
 // for the same pattern on the full /league page.
-const dayVenueNames = [...new Set(dayGames.map(g => getFieldById(g.field)?.venue).filter(Boolean))];
-const primaryVenue  = dayVenueNames.length === 1 ? getFieldById(dayGames[0]?.field) : null;
+const dayVenueIds  = [...new Set(dayGames.map(g => g.venue).filter(Boolean))];
+const primaryVenue = dayVenueIds.length === 1 ? getVenueById(dayGames[0]?.venue) : null;
 
 const fmtDate = (iso: string) =>
   new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
@@ -56,7 +56,7 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
             <h2 class="hsp-title">{fmtDate(nextDate!)}</h2>
             {primaryVenue && (
               <a class="hsp-venue" href={primaryVenue.mapUrl} target="_blank" rel="noreferrer">
-                📍 {primaryVenue.venue} · {primaryVenue.city}
+                📍 {primaryVenue.name} · {primaryVenue.city}
               </a>
             )}
           </div>
@@ -77,7 +77,7 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
                   <span class="hsp-div-count">{divGames.length} game{divGames.length !== 1 ? 's' : ''}</span>
                 </div>
                 {divGames.map(g => {
-                  const field = getFieldById(g.field);
+                  const venue = getVenueById(g.venue);
                   return (
                     <div class="hsp-game">
                       <div class="hsp-game-time">{g.time}</div>
@@ -86,14 +86,12 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
                         <span class="hsp-vs">vs</span>
                         <span class="hsp-away">{g.away}</span>
                       </div>
-                      {field && (
-                        primaryVenue ? (
-                          <span class="hsp-field">{field.label}</span>
-                        ) : (
-                          <a class="hsp-field hsp-field-link" href={field.mapUrl} target="_blank" rel="noreferrer">
-                            {field.venue} — {field.label}
-                          </a>
-                        )
+                      {primaryVenue ? (
+                        <span class="hsp-field">{g.field}</span>
+                      ) : venue && (
+                        <a class="hsp-field hsp-field-link" href={venue.mapUrl} target="_blank" rel="noreferrer">
+                          {venue.name} — {g.field}
+                        </a>
                       )}
                     </div>
                   );
