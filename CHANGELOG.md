@@ -7,6 +7,29 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.41] — 2026-09-01 — Homepage picks the active season by date, not sheet row order
+
+### Fixed
+
+- **`HomeSchedulePreview.astro` used `scheduleEvents.find(e => e.active)`
+  — whichever active season happened to be listed first in the sheet.**
+  More than one season/tournament can be active at once, and new
+  seasons get added as new rows at the *bottom* of the `Seasons` tab —
+  same as any spreadsheet, nobody's inserting rows above older ones. So
+  once a second season went active, the homepage would keep showing the
+  older one forever unless someone remembered to reorder sheet rows (or
+  deactivate the old season, losing its "active" status/visibility on
+  `/league` for no real reason). Replaced with the same principle
+  `/league`'s week filter already uses: let the date decide. The
+  homepage now picks whichever active season has the soonest upcoming
+  game, independent of row order; falls back to the first active event
+  only if none of them have an upcoming game at all (the old behavior,
+  for that edge case). Verified: real data (Spring 2026 complete) still
+  shows correctly, and a mock with Spring 2026 (complete, listed first)
+  plus Fall 2026 (upcoming, listed second) correctly shows Fall 2026.
+
+---
+
 ## [3.40] — 2026-09-01 — Homepage widget: "Schedule coming soon" state added
 
 ### Added

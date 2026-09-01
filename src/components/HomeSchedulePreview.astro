@@ -2,7 +2,30 @@
 import { scheduleEvents } from '@/data/schedule';
 import { getVenueById }   from '@/data/venues';
 
-const event = scheduleEvents.find(e => e.active);
+const todayISO = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+
+// More than one season/tournament can be active at once (see
+// GOOGLE_SHEETS_SETUP.md), and new seasons get added as new rows at the
+// bottom of the Seasons tab — same as any spreadsheet, nobody's going
+// to insert new rows above older ones. So picking "the first active
+// event" would keep showing an old season forever once a newer one's
+// added below it. Instead, pick whichever active event actually has an
+// upcoming game — whichever's soonest, if more than one qualifies —
+// since that's what a homepage visitor actually wants to see,
+// independent of row order. Falls back to the first active event if
+// none of them have an upcoming game (everything active is finished or
+// empty) — same as the old behavior for that edge case.
+const activeEvents = scheduleEvents.filter(e => e.active);
+function soonestUpcoming(evt: typeof scheduleEvents[0]) {
+  const dates = [...new Set(evt.games.map(g => g.date))].sort();
+  return dates.find(d => d >= todayISO) ?? null;
+}
+const event = activeEvents.reduce((best, evt) => {
+  const nextForEvt = soonestUpcoming(evt);
+  if (!nextForEvt) return best;
+  const nextForBest = best ? soonestUpcoming(best) : null;
+  return (!best || !nextForBest || nextForEvt < nextForBest) ? evt : best;
+}, null as typeof scheduleEvents[0] | null) ?? activeEvents[0];
 
 // No active season at all is a distinct state from an active season
 // with zero games — same distinction /league's LeagueSchedule.astro
@@ -16,7 +39,6 @@ const games    = event?.games ?? [];
 const allDates = [...new Set(games.map(g => g.date))].sort();
 
 // Current week = first game date on or after today — purely date-driven.
-const todayISO     = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 const nextDate     = allDates.find(d => d >= todayISO) ?? null;
 // `!nextDate` alone is vacuously true for an active season with zero
 // Schedule rows too (allDates.length === 0), not just a genuinely
