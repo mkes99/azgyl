@@ -7,6 +7,22 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.13] — 2026-08-31 — Footer merged back to a single 4-column row
+
+### Changed
+
+- **Footer brand block merged back into the same row as the Parents/
+  Resources/Official nav columns**, per request — one `.footer-grid` with
+  4 columns (`1.3fr 1fr 1fr 1fr`) instead of 3.12's two independently-sized
+  rows. At this column width the brand block (logo + copy + badge + social)
+  wraps to logo-above-text automatically (existing `flex-wrap` on
+  `.footer-brand-block`, no extra work needed) rather than sitting beside
+  the copy. Note: this reintroduces some of the height mismatch 3.12 fixed
+  — the brand block is still taller than the short nav lists — just less
+  pronounced now that the columns sit closer together.
+
+---
+
 ## [3.12] — 2026-08-31 — Footer restructure, stale duplicate CSS removed
 
 ### Fixed
