@@ -7,6 +7,42 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.16] — 2026-08-31 — Group games by venue; venue notes redesigned as a click-to-open disclosure
+
+### Changed
+
+- **Mixed-venue days now render as one section per venue, not a flat list
+  with a "Multiple locations" caveat.** 3.15's fallback (single flat list,
+  per-row "Venue — Field" links, "Multiple locations today — see each game
+  below") technically worked but still repeated the venue name on every
+  row for a mixed day. Restructured so a day's games are grouped by venue
+  first — almost always one group, occasionally more — and *every* group
+  gets its own venue heading (map link + notes) shown exactly once,
+  however many games are in it. A day with 8U at Naranja Park and
+  10U/12U/14U at Mesquite now renders as two clearly separated sections,
+  each internally identical to the simple single-venue case. This
+  eliminated the `singleVenueField`/"Location" vs. "Field" header
+  special-casing from 3.15 entirely — every row's field cell is now always
+  just the plain short label, full stop.
+- **Venue notes redesigned from a hover-tooltip ⚠️ icon to a click-to-open
+  "Notes" disclosure** (`<details>`/`<summary>`, the same accordion
+  pattern already used for the site's FAQ sections). Three real problems
+  with the icon: it was the same visual weight (a bright warning triangle)
+  regardless of whether the note was actually a safety warning or routine
+  logistics info; the native `title` tooltip has a slow hover delay and
+  doesn't work on touch at all; and a note only ever showed if someone had
+  manually prefixed it with "⚠️" in the data, so purely informational notes
+  (e.g. "Field 4 for 10U–14U, Chuparosa Park used for 8U") were invisible
+  everywhere on the site, always, with no way to see them. Now: the
+  "Notes" button shows for **any** venue note, click reveals the full text
+  inline (no delay, works on touch), and `fields.ts` notes are plain text —
+  no emoji convention to remember or get wrong.
+- **`fields.ts` notes stripped of the `⚠️` prefix** — kept as plain
+  descriptive text ("No dogs allowed. Main competition field.") now that
+  visibility isn't gated on the emoji being present.
+
+---
+
 ## [3.15] — 2026-08-31 — Venue moved to the day heading, short field labels, field-map slot
 
 ### Changed

@@ -86,19 +86,19 @@ just noise.
 plays at one place each Saturday, like a real host-site schedule, rather
 than divisions scattered across different venues on the same day:
 
-| Date | Field | Has a ⚠️ field warning? |
+| Date | Field | Has a venue note (click "Notes" to read)? |
 |---|---|---|
-| 2/7 | `mesquite-f1` | Yes — "NO DOGS ALLOWED" |
-| 2/14 | `naranja-park` | No |
-| 2/21 | `mesquite-f3` | Yes — "NO DOGS ALLOWED" + wet-area note |
-| 2/28 | `chuparosa` | No |
-| 3/7 | `mohave` | No |
+| 2/7 | `mesquite-f1` | Yes — "No dogs allowed. Main competition field." |
+| 2/14 | `naranja-park` | Yes — "Field 4 for 10U–14U. Chuparosa Park used for 8U." |
+| 2/21 | `mesquite-f3` | Yes — no-dogs + a wet-area note |
+| 2/28 | `chuparosa` | Yes — "Used for 8U games on Oro Valley host weekends." |
+| 3/7 | `mohave` | Yes — "3–4 fields. AZGL-hosted games." |
 
-That mix means the schedule now demonstrates both note systems as
-genuinely independent: some weeks show the field-warning icon, some show
-game notes, one week (2/21) shows both on the same date, and some rows
-show neither. Swap in other valid ids from `/valid-values.json` if games
-are actually elsewhere.
+Every venue in `fields.ts` currently has a note — venue notes and per-game
+`notes` are independent either way: venue notes sit behind a click-to-open
+"Notes" button next to the venue heading (once per day, not per row); game
+notes show inline under each matchup. Swap in other valid ids from
+`/valid-values.json` if games are actually elsewhere.
 
 ---
 
