@@ -6,14 +6,24 @@
 // GOOGLE_SHEETS_SETUP.md — as a `Standings` tab alongside `Seasons` and
 // `Schedule`:
 //
-//   Standings tab: season_id | division | team | W | L | T | GF | GA
+//   Standings tab: season_id | division | team | wins | losses | ties | goalsFor | goalsAgainst
 //                  One row per team per division per season. `season_id`
 //                  must match a `season_id` from the `Seasons` tab — same
 //                  linkage as `Schedule` rows use, so multiple seasons'
 //                  standings can coexist without one overwriting another.
 //                  `team` must match a name in teams.ts; `division` must
-//                  be one a team actually plays in. `W`/`L`/`T`/`GF`/`GA`
-//                  are whole numbers — leave a cell blank for 0.
+//                  be one a team actually plays in. `wins`, `losses`,
+//                  `ties`, `goalsFor`, and `goalsAgainst` are whole
+//                  numbers — leave a cell blank for 0.
+//
+//                  `season_id` and `division` cascade the same way as on
+//                  the Schedule tab (see fillDown() below) — a block of
+//                  teams in the same season/division only needs those two
+//                  typed once, at the top. `division` is scoped to the
+//                  season block: a row with its own explicit `season_id`
+//                  starts a new block and resets the cached division, so
+//                  a new season's first row can't silently inherit the
+//                  previous season's division.
 //
 // Leave STANDINGS_CSV_URL empty to use localStandings below instead (no
 // Sheet needed) — same empty-by-default pattern as SEASONS_CSV_URL/
@@ -31,12 +41,12 @@ export const STANDINGS_CSV_URL = '';
 // Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Standings'
 
 export interface StandingRow {
-  team: string;
-  W:    number;
-  L:    number;
-  T:    number;
-  GF:   number;
-  GA:   number;
+  team:         string;
+  wins:         number;
+  losses:       number;
+  ties:         number;
+  goalsFor:     number;
+  goalsAgainst: number;
 }
 
 export interface DivisionStandings {
@@ -60,45 +70,45 @@ export const localStandings: EventStandings[] = [
       {
         division: '8U',
         rows: [
-          { team:'Vipers',                W:1, L:0, T:0, GF:8,  GA:1  },
-          { team:'Diamonds',              W:1, L:0, T:0, GF:6,  GA:3  },
-          { team:'Hotshots/Chandler/Oro', W:1, L:0, T:0, GF:5,  GA:2  },
-          { team:'Tukee Lightning 2',     W:0, L:2, T:0, GF:5,  GA:11 },
-          { team:'Tukee Lightning 1',     W:0, L:1, T:0, GF:1,  GA:8  },
+          { team:'Vipers',                wins:1, losses:0, ties:0, goalsFor:8,  goalsAgainst:1  },
+          { team:'Diamonds',              wins:1, losses:0, ties:0, goalsFor:6,  goalsAgainst:3  },
+          { team:'Hotshots/Chandler/Oro', wins:1, losses:0, ties:0, goalsFor:5,  goalsAgainst:2  },
+          { team:'Tukee Lightning 2',     wins:0, losses:2, ties:0, goalsFor:5,  goalsAgainst:11 },
+          { team:'Tukee Lightning 1',     wins:0, losses:1, ties:0, goalsFor:1,  goalsAgainst:8  },
         ],
       },
       {
         division: '10U',
         rows: [
-          { team:'Diamonds',              W:2, L:0, T:0, GF:14, GA:4  },
-          { team:'Vipers',                W:2, L:0, T:0, GF:12, GA:8  },
-          { team:'Tukee Lightning 1',     W:1, L:1, T:0, GF:10, GA:8  },
-          { team:'Chandler/Sol Sisters',  W:0, L:1, T:1, GF:7,  GA:10 },
-          { team:'Tukee Lightning 2',     W:0, L:1, T:1, GF:6,  GA:9  },
-          { team:'Hotshots',              W:0, L:2, T:0, GF:6,  GA:16 },
+          { team:'Diamonds',              wins:2, losses:0, ties:0, goalsFor:14, goalsAgainst:4  },
+          { team:'Vipers',                wins:2, losses:0, ties:0, goalsFor:12, goalsAgainst:8  },
+          { team:'Tukee Lightning 1',     wins:1, losses:1, ties:0, goalsFor:10, goalsAgainst:8  },
+          { team:'Chandler/Sol Sisters',  wins:0, losses:1, ties:1, goalsFor:7,  goalsAgainst:10 },
+          { team:'Tukee Lightning 2',     wins:0, losses:1, ties:1, goalsFor:6,  goalsAgainst:9  },
+          { team:'Hotshots',              wins:0, losses:2, ties:0, goalsFor:6,  goalsAgainst:16 },
         ],
       },
       {
         division: '12U',
         rows: [
-          { team:'Diamonds',              W:2, L:0, T:0, GF:12, GA:8  },
-          { team:'Vipers',                W:1, L:0, T:1, GF:8,  GA:6  },
-          { team:'Hawks',                 W:1, L:1, T:0, GF:11, GA:7  },
-          { team:'Oro Valley',            W:1, L:1, T:0, GF:11, GA:9  },
-          { team:'Marana Reapers',        W:0, L:1, T:1, GF:7,  GA:9  },
-          { team:'Tukee Lightning',       W:0, L:2, T:0, GF:5,  GA:15 },
+          { team:'Diamonds',              wins:2, losses:0, ties:0, goalsFor:12, goalsAgainst:8  },
+          { team:'Vipers',                wins:1, losses:0, ties:1, goalsFor:8,  goalsAgainst:6  },
+          { team:'Hawks',                 wins:1, losses:1, ties:0, goalsFor:11, goalsAgainst:7  },
+          { team:'Oro Valley',            wins:1, losses:1, ties:0, goalsFor:11, goalsAgainst:9  },
+          { team:'Marana Reapers',        wins:0, losses:1, ties:1, goalsFor:7,  goalsAgainst:9  },
+          { team:'Tukee Lightning',       wins:0, losses:2, ties:0, goalsFor:5,  goalsAgainst:15 },
         ],
       },
       {
         division: '14U',
         rows: [
-          { team:'Hawks',                 W:2, L:0, T:0, GF:11, GA:7  },
-          { team:'Vipers/Diamonds',       W:1, L:0, T:1, GF:6,  GA:3  },
-          { team:'Hotshots',              W:1, L:1, T:0, GF:10, GA:10 },
-          { team:'Tukee Lightning 1',     W:1, L:1, T:0, GF:9,  GA:7  },
-          { team:'Chandler Lax',          W:1, L:1, T:0, GF:7,  GA:9  },
-          { team:'Tukee Lightning 2',     W:0, L:1, T:1, GF:5,  GA:7  },
-          { team:'East Valley Bullets',   W:0, L:2, T:0, GF:3,  GA:8  },
+          { team:'Hawks',                 wins:2, losses:0, ties:0, goalsFor:11, goalsAgainst:7  },
+          { team:'Vipers/Diamonds',       wins:1, losses:0, ties:1, goalsFor:6,  goalsAgainst:3  },
+          { team:'Hotshots',              wins:1, losses:1, ties:0, goalsFor:10, goalsAgainst:10 },
+          { team:'Tukee Lightning 1',     wins:1, losses:1, ties:0, goalsFor:9,  goalsAgainst:7  },
+          { team:'Chandler Lax',          wins:1, losses:1, ties:0, goalsFor:7,  goalsAgainst:9  },
+          { team:'Tukee Lightning 2',     wins:0, losses:1, ties:1, goalsFor:5,  goalsAgainst:7  },
+          { team:'East Valley Bullets',   wins:0, losses:2, ties:0, goalsFor:3,  goalsAgainst:8  },
         ],
       },
     ],
@@ -115,11 +125,37 @@ function parseStat(raw: string): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
+// A blank `season_id` or `division` cell inherits whatever was in the row
+// above it, same fill-down convenience as the Schedule tab — lets a block
+// of teams in one season/division be typed without repeating those two
+// values on every row. `division` is block-scoped to `season_id`: the
+// moment a row gives its own explicit `season_id` (a new season's block
+// starting), the cached division resets, so it can't reach back into the
+// PREVIOUS season's block for a division it left blank.
+function fillDown(rows: Record<string, string>[]): Record<string, string>[] {
+  let lastSeasonId = '';
+  let lastDivision = '';
+  return rows.map(row => {
+    const filled = { ...row };
+    if (filled.season_id) {
+      lastSeasonId = filled.season_id;
+      lastDivision = '';
+    } else if (lastSeasonId) {
+      filled.season_id = lastSeasonId;
+    }
+    if (filled.division) lastDivision = filled.division;
+    else if (lastDivision) filled.division = lastDivision;
+    return filled;
+  });
+}
+
 function buildStandings(rows: Record<string, string>[]): EventStandings[] {
   const errors: string[] = [];
   const teamNames = new Set(teams.map(t => t.name));
   const validDivisions = new Set(teams.flatMap(t => t.divisions));
   const eventsById = new Map(scheduleEvents.map(e => [e.id, e]));
+
+  rows = fillDown(rows);
 
   // eventId -> division -> rows
   const byEvent = new Map<string, Map<string, StandingRow[]>>();
@@ -136,7 +172,7 @@ function buildStandings(rows: Record<string, string>[]): EventStandings[] {
     if (!row.team) errors.push(`Standings row ${rowNum}: missing team`);
     else if (!teamNames.has(row.team)) errors.push(`Standings row ${rowNum}: team "${row.team}" doesn't match a name in teams.ts`);
 
-    const stats = { W: parseStat(row.W), L: parseStat(row.L), T: parseStat(row.T), GF: parseStat(row.GF), GA: parseStat(row.GA) };
+    const stats = { wins: parseStat(row.wins), losses: parseStat(row.losses), ties: parseStat(row.ties), goalsFor: parseStat(row.goalsFor), goalsAgainst: parseStat(row.goalsAgainst) };
     for (const [key, val] of Object.entries(stats)) {
       if (val === null) errors.push(`Standings row ${rowNum}: ${key} "${row[key as keyof typeof row]}" isn't a valid non-negative number`);
     }
@@ -145,12 +181,12 @@ function buildStandings(rows: Record<string, string>[]): EventStandings[] {
     const divisions = byEvent.get(seasonId)!;
     if (!divisions.has(row.division)) divisions.set(row.division, []);
     divisions.get(row.division)!.push({
-      team: row.team,
-      W:  stats.W  ?? 0,
-      L:  stats.L  ?? 0,
-      T:  stats.T  ?? 0,
-      GF: stats.GF ?? 0,
-      GA: stats.GA ?? 0,
+      team:         row.team,
+      wins:         stats.wins ?? 0,
+      losses:       stats.losses ?? 0,
+      ties:         stats.ties ?? 0,
+      goalsFor:     stats.goalsFor ?? 0,
+      goalsAgainst: stats.goalsAgainst ?? 0,
     });
   });
 
@@ -175,8 +211,8 @@ export const standings: EventStandings[] = STANDINGS_CSV_URL
 // ── HELPERS ────────────────────────────────────────────────────────────────
 export function sortedRows(rows: StandingRow[]) {
   return [...rows].sort((a, b) => {
-    const pa = a.W * 3 + a.T;
-    const pb = b.W * 3 + b.T;
-    return pb !== pa ? pb - pa : (b.GF - b.GA) - (a.GF - a.GA);
+    const pa = a.wins * 3 + a.ties;
+    const pb = b.wins * 3 + b.ties;
+    return pb !== pa ? pb - pa : (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
   });
 }

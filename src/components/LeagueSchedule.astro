@@ -207,7 +207,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                           <span class="sl-home">{g.home}</span>
                           <span class="sl-vs">vs</span>
                           <span class="sl-away">{g.away}</span>
-                          {g.notes && <span class="game-note">{g.notes}</span>}
+                          {g.gameNotes && <span class="game-note">{g.gameNotes}</span>}
                         </span>
                         <span class="sl-field">{g.field}</span>
                       </div>
@@ -231,7 +231,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                           <span class="scard-away">{g.away}</span>
                         </div>
                         <span class="scard-field">{g.field}</span>
-                        {g.notes && <div class="scard-note">{g.notes}</div>}
+                        {g.gameNotes && <div class="scard-note">{g.gameNotes}</div>}
                       </div>
                     ))}
                   </div>

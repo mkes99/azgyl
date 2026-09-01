@@ -97,13 +97,13 @@ spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
 ## Step 3 — `Schedule` tab headers (Row 1, exact spelling)
 
 ```
-season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | notes
+season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | gameNotes
 ```
 
 Column order groups the "cascading" fields first — the ones that fill
 down a block (`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`,
 `division`) — then the per-game specifics (`time`, `arrival`, `home`,
-`away`, `field`, `notes`). This order is purely cosmetic: every column is
+`away`, `field`, `gameNotes`). This order is purely cosmetic: every column is
 read by its header name, not its position, so the sheet would work
 identically in any column order — this one's just easier to scan.
 
@@ -112,14 +112,14 @@ identically in any column order — this one's just easier to scan.
 | `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. Can be left blank — see "Leave repeated cells blank" below. |
 | `date` | `YYYY-MM-DD`. Can be left blank. |
 | `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
-| `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. See "Adding a field-map picture" below — it has to be a specific kind of link or it won't show up. |
-| `venueNotes` | Optional — a note about the *venue* (e.g. "No dogs allowed"), not about one specific game. Can be left blank. See "Overriding a venue's notes" below — don't confuse this with `notes`, further down, which is about one game. |
+| `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. Overrides whatever's hardcoded for that venue in `venues.ts`, if anything. See "Adding a field-map picture" below. |
+| `venueNotes` | Optional — a note about the *venue* (e.g. "No dogs allowed"), not about one specific game. Can be left blank. See "Overriding a venue's notes" below — don't confuse this with `gameNotes`, further down, which is about one game. |
 | `division` | Must be a division one of the current teams actually plays in (8U/10U/12U/14U, etc.). Can be left blank. |
 | `time` | Game time, e.g. `9:30 AM`. |
 | `arrival` | Optional — arrival/warmup time, e.g. `9:00 AM`. Leave blank if not needed. |
 | `home` / `away` | Team name — must exactly match a team name on the site (see "Team name matching" below). |
 | `field` | Plain text — whatever that venue actually calls it, e.g. `Field 1`, `Field 3`, `Chuparosa Field`. Not validated against any list, since different venues label their fields differently. |
-| `notes` | Optional — about this one game specifically, e.g. `Senior night`. Leave blank if not needed. Not the same column as `venueNotes`, above. |
+| `gameNotes` | Optional — about this one game specifically, e.g. `Senior night`. Leave blank if not needed. Not the same column as `venueNotes`, above. |
 
 Example row:
 ```
@@ -132,11 +132,11 @@ spring-2026 | 2026-02-07 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vi
 don't need to be retyped on every row. Leave any of those cells blank and
 it picks up whatever was in the row above it — so a Saturday's worth of
 games at one venue only needs that venue (and its date, season,
-field-map link, and notes) typed once, at the top of the block:
+field-map link, and venue notes) typed once, at the top of the block:
 
 ```
-season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field    | notes
-spring-2026 | 2026-02-07 | mesquite | https://drive.google.com/uc?export=view&id=... | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
+season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field    | gameNotes
+spring-2026 | 2026-02-07 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
             |            |          |                                       |                  |          | 8:45 AM  | Hawks           | Hotshots     | Field 2  |
             |            |          |                                       |                  | 10U      | 9:30 AM  | Sol Sisters     | Oro Valley   | Field 1  |
             |            |          |                                       |                  |          | 10:15 AM | Tukee Lightning | Chandler Lax | Field 1  |
@@ -191,17 +191,19 @@ Schedule row is a narrow override, same pattern as `fieldMapUrl`: it lets
 someone add or change a note for that block without a code change. If a
 game has both, **the sheet's note wins**. If it has neither, no "Notes"
 button shows up for that venue — nothing breaks. This is a *different*
-column from `notes` (further down the row) — that one's about a single
+column from `gameNotes` (further down the row) — that one's about a single
 game ("Senior night"), this one's about the location itself.
 
 ### Adding a field-map picture
 
 `src/data/venues.ts` can already have a field-map picture hardcoded for a
 venue — that's the reliable, permanent default. `fieldMapUrl` on a
-Schedule row is a narrow override: it lets someone add or swap a picture
-for that block without a code change. If a game has both, **the sheet's
-link wins**. If it has neither, no "Field map" button shows up for that
-venue — nothing breaks.
+Schedule row is a narrow override, same pattern as `venueNotes`: it lets
+someone add or swap a picture for that block without a code change. **If
+a game has both, the sheet's link always wins over the venues.ts
+default** for that block — not merged, not "whichever loads first," a
+straight override. If it has neither, no "Field map" button shows up for
+that venue — nothing breaks.
 
 **Use Google Drive for the link** — everyone editing the sheet already
 has a Google account for it, and Drive supports a link format that
@@ -214,20 +216,17 @@ links don't — they open a viewer page instead of serving the raw image).
    **Viewer**. This step is easy to skip and the image just won't load if
    you do — a "Restricted" file returns an error page instead of the
    image no matter what URL format you use.
-3. Click **Copy link**. It looks like:
-   `https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing`
-4. Take the id out of it — the part between `/d/` and `/view` (in the
-   example above, `1AbCdEfGhIjKlMnOpQrStUvWxYz`) — and build the direct
-   link from it:
-   `https://drive.google.com/uc?export=view&id=1AbCdEfGhIjKlMnOpQrStUvWxYz`
-5. **That** URL — not the one Drive's "Copy link" button gives you — is
-   what goes in the `fieldMapUrl` cell.
-6. **Test it before pasting it into the sheet:** open that URL directly
-   in a new browser tab. If it shows just the image on its own (not a
-   Drive page around it), it'll work on the site too. The site's build
-   doesn't fetch the image itself to confirm the link actually works, so
-   a bad link wouldn't be caught until someone opens the field map and
-   sees it broken.
+3. Click **Copy link** and paste exactly what it gives you — something
+   like `https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing` —
+   straight into the `fieldMapUrl` cell.
+
+That's it — no extracting an id or hand-building a different URL. The
+site normalizes whatever shape of Drive link shows up
+(`normalizeFieldMapUrl()` in `src/lib/driveLink.ts`) into the direct-image
+form it actually needs at build time, so the "Copy link" output works
+as-is. (It only recognizes `drive.google.com` links — anything else
+passes through unchanged, so a non-Drive image URL still has to already
+be a direct link to the image itself, not a viewer page.)
 
 If you'd rather skip the link workflow entirely for a given venue:
 upload the image straight into `public/assets/field-maps/` in the
@@ -240,15 +239,15 @@ that part.
 ## Step 4 — `Standings` tab headers (Row 1, exact spelling)
 
 ```
-season_id | division | team | W | L | T | GF | GA
+season_id | division | team | wins | losses | ties | goalsFor | goalsAgainst
 ```
 
 | Column | Notes |
 |---|---|
-| `season_id` | Must exactly match a `season_id` from the `Seasons` tab — same linkage as `Schedule` rows. This is what lets more than one season's standings live in this tab at once without one overwriting another. |
-| `division` | Must be a division one of the current teams actually plays in. |
+| `season_id` | Must exactly match a `season_id` from the `Seasons` tab — same linkage as `Schedule` rows. This is what lets more than one season's standings live in this tab at once without one overwriting another. Can be left blank — see "Leave repeated cells blank" below. |
+| `division` | Must be a division one of the current teams actually plays in. Can be left blank — see below. |
 | `team` | Must exactly match a team name on the site (see "Team name matching" above). |
-| `W` / `L` / `T` / `GF` / `GA` | Whole numbers. Leave a cell blank for `0` (a team that hasn't played yet) — anything else has to actually be a number, or the row fails validation. |
+| `wins` / `losses` / `ties` / `goalsFor` / `goalsAgainst` | Whole numbers. Leave a cell blank for `0` (a team that hasn't played yet) — anything else has to actually be a number, or the row fails validation. |
 
 Example row:
 ```
@@ -260,6 +259,28 @@ anything tying a row to an individual `Schedule` game; it's a running
 total you update as results come in, the same way it always has been.
 Standings are sorted automatically on the site (points, then goal
 differential) — never sort the sheet yourself.
+
+### Leave repeated cells blank
+
+`season_id` and `division` cascade the same way they do on `Schedule`:
+leave either blank and it picks up whatever was in the row above, so a
+block of teams in the same season/division only needs those two typed
+once, at the top:
+
+```
+season_id   | division | team              | wins | losses | ties | goalsFor | goalsAgainst
+spring-2026 | 8U       | Diamonds          | 3    | 1      | 0    | 20       | 10
+            |          | Vipers            | 2    | 1      | 1    | 18       | 12
+            | 10U      | Sol Sisters       | 4    | 0      | 0    | 22       | 6
+            |          | Oro Valley        | 1    | 3      | 0    | 9        | 20
+```
+
+`division` is scoped to the `season_id` block — the moment a row gives
+its own explicit `season_id` (a new season's rows starting), the cached
+division resets, so the new season's first row can't silently inherit
+whatever division the previous season's last row happened to be. Give
+that first row of a new season block its own explicit `division` too.
+Only the very first row of the whole tab needs every column filled in.
 
 ---
 
@@ -397,7 +418,7 @@ function validateAndDeploy(editorEmail) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const seasonRows    = readTab(ss, 'Seasons');
   const gameRows      = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division', 'fieldMapUrl', 'venueNotes']);
-  const standingsRows = readTab(ss, 'Standings');
+  const standingsRows = fillDownStandings(readTab(ss, 'Standings'));
   const valid         = fetchValidValues();
   const errors        = validateData(seasonRows, gameRows, standingsRows, valid);
 
@@ -467,6 +488,29 @@ function fillDown(rows, columns) {
   });
 }
 
+// A blank `season_id` or `division` cell on Standings inherits from the
+// row above, same convenience as Schedule — must match
+// src/data/standings.ts's fillDown() exactly. `division` is scoped to
+// the season block: a row with its own explicit season_id resets it, so
+// a new season's rows can't silently inherit the previous season's
+// division.
+function fillDownStandings(rows) {
+  let lastSeasonId = '';
+  let lastDivision = '';
+  return rows.map(row => {
+    const filled = Object.assign({}, row);
+    if (filled.season_id) {
+      lastSeasonId = filled.season_id;
+      lastDivision = '';
+    } else if (lastSeasonId) {
+      filled.season_id = lastSeasonId;
+    }
+    if (filled.division) lastDivision = filled.division;
+    else if (lastDivision) filled.division = lastDivision;
+    return filled;
+  });
+}
+
 function validateData(seasonRows, gameRows, standingsRows, valid) {
   const errors = [];
   const teamNames  = new Set(valid.teamNames);
@@ -511,7 +555,7 @@ function validateData(seasonRows, gameRows, standingsRows, valid) {
     else if (!divisions.has(row.division)) errors.push('Standings row ' + row.__row + ': division "' + row.division + '" not recognized');
     if (!row.team) errors.push('Standings row ' + row.__row + ': missing team');
     else if (!teamNames.has(row.team)) errors.push('Standings row ' + row.__row + ': team "' + row.team + '" not recognized — check /valid-values.json');
-    ['W', 'L', 'T', 'GF', 'GA'].forEach(function (key) {
+    ['wins', 'losses', 'ties', 'goalsFor', 'goalsAgainst'].forEach(function (key) {
       const raw = row[key];
       if (raw === '') return; // blank means 0, always fine
       const n = Number(raw);

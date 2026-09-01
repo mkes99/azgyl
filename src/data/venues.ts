@@ -24,9 +24,10 @@
 //      in src/data/schedule.ts) — lets someone add or swap a link without
 //      touching code. If both exist, the sheet's value wins for any game
 //      that has one; a game with no `fieldMapUrl` cell falls back to
-//      whatever's hardcoded here. See GOOGLE_SHEETS_SETUP.md for the
-//      sheet column and the direct-link caveat (has to be a real image
-//      URL, not a share-page link).
+//      whatever's hardcoded here. A Google Drive share link pasted as-is
+//      (whatever "Copy link" gives you) gets rewritten into a direct
+//      image URL at build time — see normalizeFieldMapUrl() in
+//      src/lib/driveLink.ts and GOOGLE_SHEETS_SETUP.md.
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface Venue {

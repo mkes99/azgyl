@@ -42,7 +42,7 @@ spring-2026	Spring 2026	season	TRUE	2026-02-07	2026-04-11
 ## Schedule sheet — `Schedule` tab
 
 ```
-season_id	date	venue	fieldMapUrl	venueNotes	division	time	arrival	home	away	field	notes
+season_id	date	venue	fieldMapUrl	venueNotes	division	time	arrival	home	away	field	gameNotes
 spring-2026	2026-02-07	mesquite		No dogs allowed. Field 3 has a busted pipe near the edge — wet area, avoid that section (field shifted to compensate).	8U	9:00 AM	8:30 AM	Diamonds	Vipers	Field 1	Opening day
 						9:00 AM	8:30 AM	Hawks	Hotshots	Field 1	
 					10U	9:45 AM	9:15 AM	Sol Sisters	Oro Valley	Field 1	
@@ -86,7 +86,7 @@ spring-2026	2026-02-07	mesquite		No dogs allowed. Field 3 has a busted pipe near
 ```
 
 40 games, 5 weeks (Feb 7 – Mar 7), all 4 divisions, all 9 current teams —
-each team plays 5 games in its division. 7 of the 40 rows have a `notes`
+each team plays 5 games in its division. 7 of the 40 rows have a `gameNotes`
 value (opening day, a reschedule, picture day, a makeup game, senior
 night, a heat-safety reminder, the finale) — realistic density rather than
 every row, so it's obvious which games are actually flagged rather than
@@ -108,7 +108,7 @@ Every venue in `venues.ts` currently has a note hardcoded as its default —
 the seed data's `venueNotes` cell on each block's first row happens to
 repeat that same text, just to demonstrate filling the column in with a
 real example; leaving it blank would show the exact same note, inherited
-from `venues.ts` instead. Venue notes and per-game `notes` are
+from `venues.ts` instead. Venue notes and per-game `gameNotes` are
 independent either way: venue notes sit behind a click-to-open "Notes"
 button next to the venue heading (once per day, not per row); game notes
 show inline under each matchup. Swap in other valid ids from
@@ -123,7 +123,7 @@ Same spreadsheet as `Seasons`/`Schedule` — a `Standings` tab, with
 Paste this into the `Standings` tab the same way as the other two.
 
 ```
-season_id	division	team	W	L	T	GF	GA
+season_id	division	team	wins	losses	ties	goalsFor	goalsAgainst
 spring-2026	8U	Diamonds	4	1	0	32	14
 spring-2026	8U	Hawks	3	2	0	24	20
 spring-2026	8U	Vipers	2	3	0	19	23
@@ -142,7 +142,7 @@ spring-2026	14U	Sol Sisters	2	3	0	18	22
 spring-2026	14U	Hotshots	1	4	0	14	27
 ```
 
-Each row's W+L+T sums to 5 — consistent with the 5-week schedule above —
+Each row's wins+losses+ties sums to 5 — consistent with the 5-week schedule above —
 not that it matters for validation, just so it doesn't look obviously fake
 if someone cross-checks. If you'd rather skip the Sheet for standings
 entirely: leave `STANDINGS_CSV_URL` empty in `standings.ts` and edit the

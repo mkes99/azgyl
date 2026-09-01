@@ -56,8 +56,8 @@ const divs = event
           </thead>
           <tbody>
             {rows.map((row, i) => {
-              const pts  = row.W * 3 + row.T;
-              const diff = row.GF - row.GA;
+              const pts  = row.wins * 3 + row.ties;
+              const diff = row.goalsFor - row.goalsAgainst;
               return (
                 <tr class={i === 0 ? 'row-leader' : ''}>
                   <td class="td-rank">
@@ -71,12 +71,12 @@ const divs = event
                       {row.team}
                     </span>
                   </td>
-                  <td class="td-num">{row.W}</td>
-                  <td class="td-num td-muted">{row.L}</td>
-                  <td class="td-num td-muted">{row.T}</td>
+                  <td class="td-num">{row.wins}</td>
+                  <td class="td-num td-muted">{row.losses}</td>
+                  <td class="td-num td-muted">{row.ties}</td>
                   <td class="td-num td-pts">{pts}</td>
-                  <td class="td-num td-muted">{row.GF}</td>
-                  <td class="td-num td-muted">{row.GA}</td>
+                  <td class="td-num td-muted">{row.goalsFor}</td>
+                  <td class="td-num td-muted">{row.goalsAgainst}</td>
                   <td class={`td-num${diff > 0 ? ' td-pos' : diff < 0 ? ' td-neg' : ' td-muted'}`}>
                     {diff > 0 ? `+${diff}` : diff}
                   </td>
@@ -90,8 +90,8 @@ const divs = event
       {/* Mobile cards */}
       <div class="standings-cards">
         {rows.map((row, i) => {
-          const pts  = row.W * 3 + row.T;
-          const diff = row.GF - row.GA;
+          const pts  = row.wins * 3 + row.ties;
+          const diff = row.goalsFor - row.goalsAgainst;
           return (
             <div class={`stand-card${i === 0 ? ' stand-card--leader' : ''}`}>
               <div class="stand-left">
@@ -101,9 +101,9 @@ const divs = event
                 <span class="stand-team">{row.team}</span>
               </div>
               <div class="stand-stats">
-                <div class="stand-stat"><span>W</span><strong>{row.W}</strong></div>
-                <div class="stand-stat"><span>L</span><strong>{row.L}</strong></div>
-                <div class="stand-stat"><span>T</span><strong>{row.T}</strong></div>
+                <div class="stand-stat"><span>W</span><strong>{row.wins}</strong></div>
+                <div class="stand-stat"><span>L</span><strong>{row.losses}</strong></div>
+                <div class="stand-stat"><span>T</span><strong>{row.ties}</strong></div>
                 <div class="stand-stat stand-stat--pts"><span>Pts</span><strong>{pts}</strong></div>
                 <div class={`stand-stat${diff > 0 ? ' stand-stat--pos' : diff < 0 ? ' stand-stat--neg' : ''}`}>
                   <span>+/−</span><strong>{diff > 0 ? `+${diff}` : diff}</strong>

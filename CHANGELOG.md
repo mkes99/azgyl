@@ -7,6 +7,56 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.28] — 2026-09-01 — Clearer column names; Drive field-map links simplified; Standings cascades too
+
+### Changed
+
+- **Schedule tab's per-game `notes` column renamed to `gameNotes`** — now
+  unambiguous alongside `venueNotes`, since the two were easy to confuse
+  by name alone (one's about the location, the other's about a single
+  game). Renamed end-to-end: `Game.gameNotes` in `schedule.ts`, both
+  render spots in `LeagueSchedule.astro`, and every mention across
+  `GOOGLE_SHEETS_SETUP.md`, `SHEET_ENTRY_GUIDE.md`, and
+  `SHEET_SEED_DATA.md`. CSS class names (`game-note`, `scard-note`) and
+  the unrelated `Venue.notes` field (venues.ts) are untouched.
+
+- **Standings tab's `W`/`L`/`T`/`GF`/`GA` columns spelled out as
+  `wins`/`losses`/`ties`/`goalsFor`/`goalsAgainst`** — the abbreviations
+  weren't obvious to everyone filling in the sheet. Renamed end-to-end:
+  `StandingRow` in `standings.ts` (interface, `localStandings`,
+  sheet-parsing, `sortedRows()`), the display code in
+  `StandingsTable.astro`, and every doc. The site's own compact `W`/`L`/
+  `T`/`GF`/`GA` table headers are unchanged — those are just the display
+  labels (with title-attribute tooltips), not the sheet's column names.
+
+- **Adding a field-map picture no longer requires hand-building a
+  URL.** Previously, someone had to copy Drive's share link, pull the
+  file id out of it, and paste it into a `uc?export=view&id=...`
+  template — a lot to ask for a spreadsheet task. Now the raw link
+  Drive's "Copy link" button gives you goes straight into `fieldMapUrl`
+  as-is; a new `normalizeFieldMapUrl()` helper (`src/lib/driveLink.ts`)
+  rewrites whatever shape of Drive link shows up into the direct-image
+  form at build time. Cuts the documented steps from 7 down to 3.
+  `GOOGLE_SHEETS_SETUP.md`, `SHEET_ENTRY_GUIDE.md`, and `README.md`
+  updated to match, and `README.md`'s `fieldMapUrl`-overrides-`venues.ts`
+  behavior is now stated explicitly rather than implied.
+
+### Added
+
+- **Standings tab's `season_id` and `division` now cascade**, same
+  fill-down convenience the Schedule tab already had — leave either
+  blank on a row and it inherits from the row above, so a block of teams
+  in one season/division only needs those two typed once.  `division` is
+  scoped to the `season_id` block (mirrors `fieldMapUrl`/`venueNotes`'s
+  scoping to venue/date on Schedule): a row with its own explicit
+  `season_id` resets the cached division, so a new season's rows can't
+  silently inherit the previous season's division. Implemented
+  identically in `standings.ts`'s `fillDown()` and the Apps Script's new
+  `fillDownStandings()` — both documented in `GOOGLE_SHEETS_SETUP.md`,
+  `SHEET_ENTRY_GUIDE.md`, and `README.md`.
+
+---
+
 ## [3.27] — 2026-09-01 — Document empty-tab behavior everywhere, including for the end user
 
 ### Added

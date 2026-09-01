@@ -156,7 +156,9 @@ automatically, no additional Cloudflare configuration needed.
 Same Google Sheet as the schedule (see above) — a `Standings` tab,
 `season_id`-linked to `Seasons` the same way `Schedule` rows are, so
 more than one season's standings can exist without one overwriting the
-other. Set `STANDINGS_CSV_URL` in `src/data/standings.ts` to use it; full
+other. `season_id` and `division` cascade the same way they do on
+`Schedule` — leave either blank on a row and it inherits from the row
+above. Set `STANDINGS_CSV_URL` in `src/data/standings.ts` to use it; full
 column reference is in `GOOGLE_SHEETS_SETUP.md`/`SHEET_ENTRY_GUIDE.md`.
 
 Leave `STANDINGS_CSV_URL` empty to skip the Sheet and edit
@@ -164,10 +166,10 @@ Leave `STANDINGS_CSV_URL` empty to skip the Sheet and edit
 code-only fallback pattern as the schedule:
 
 ```ts
-{ team:'Diamonds', W:4, L:1, T:0, GF:38, GA:22 },
+{ team:'Diamonds', wins:4, losses:1, ties:0, goalsFor:38, goalsAgainst:22 },
 ```
 
-Standings are sorted automatically by points (W=3, T=1), then goal
+Standings are sorted automatically by points (win=3, tie=1), then goal
 differential — never sort either the sheet or the local array yourself.
 
 ---
@@ -286,10 +288,13 @@ each with two ways to set them:
   `venueNotes`/`fieldMapUrl` columns on the `Schedule` tab (same row
   where `venue` is first given for a block, so both fill down with it)
   let someone add or swap either without touching code — the sheet's
-  value wins if both exist. `fieldMapUrl` needs Google Drive specifically
-  (a regular share link won't work as an image source — full walkthrough,
-  including why, is in `SHEET_ENTRY_GUIDE.md`, "Adding a field-layout
-  picture"). Same content, more technical framing, for both is in
+  value wins if both exist. `fieldMapUrl` needs Google Drive specifically —
+  paste whatever link Drive's "Copy link" button gives you (a normal
+  share link, not a direct-image URL); `normalizeFieldMapUrl()`
+  (`src/lib/driveLink.ts`) rewrites it into the direct-image form the
+  site needs at build time, so no manual URL surgery. Full walkthrough is
+  in `SHEET_ENTRY_GUIDE.md`, "Adding a field-layout picture." Same
+  content, more technical framing, for both is in
   `GOOGLE_SHEETS_SETUP.md` too.
 
 ---

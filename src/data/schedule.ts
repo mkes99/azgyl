@@ -11,12 +11,12 @@
 //                 'tournament'. `active` is TRUE/FALSE — TRUE means it
 //                 shows on the homepage and /league.
 //
-//   Schedule tab: season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | notes
+//   Schedule tab: season_id | date | venue | fieldMapUrl | venueNotes | division | time | arrival | home | away | field | gameNotes
 //                 One row per game. Column order groups the "cascading"
 //                 fields first (season_id, date, venue, fieldMapUrl,
 //                 venueNotes, division — the ones that fill down a
 //                 block), then the per-game specifics (time, arrival,
-//                 home, away, field, notes). Order is cosmetic only —
+//                 home, away, field, gameNotes). Order is cosmetic only —
 //                 every column is read by header name, not position, so
 //                 this is purely for readability in the sheet itself.
 //
@@ -29,15 +29,21 @@
 //                 together on the site. `field` is plain, unvalidated
 //                 text — whatever that venue calls it ("Field 1",
 //                 "Chuparosa Field") — since different venues label their
-//                 fields differently. `arrival`/`notes`/`fieldMapUrl`/
+//                 fields differently. `arrival`/`gameNotes`/`fieldMapUrl`/
 //                 `venueNotes` are optional — leave the cell blank.
 //                 `fieldMapUrl` overrides the venue's hardcoded field-map
 //                 image, `venueNotes` overrides its hardcoded notes (both
 //                 in venues.ts) — typed on the same row where `venue` is
 //                 first set for a block, so both fill down along with it.
+//                 `fieldMapUrl` is normalized through normalizeFieldMapUrl()
+//                 (src/lib/driveLink.ts) — whatever share link Drive's
+//                 "Copy link" button gives someone gets rewritten into the
+//                 direct-image form the site actually needs, so nobody
+//                 has to hand-build that URL themselves.
 //                 Don't confuse `venueNotes` (about the location — "No
-//                 dogs allowed") with `notes` (about one specific game —
-//                 "Senior night") — different columns, different scope.
+//                 dogs allowed") with `gameNotes` (about one specific
+//                 game — "Senior night") — different columns, different
+//                 scope, deliberately named to not look alike.
 //
 //                 `season_id`, `date`, `venue`, `division`, `fieldMapUrl`,
 //                 and `venueNotes` don't need to be retyped on every row —
@@ -69,6 +75,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 import { fetchCSV } from '@/lib/csv';
+import { normalizeFieldMapUrl } from '@/lib/driveLink';
 import { teams } from './teams';
 import { venues } from './venues';
 
@@ -88,7 +95,7 @@ export interface Game {
   division: string;
   venue:    string;   // venue id from venues.ts — drives address/map/notes/field-map, and grouping
   field:    string;   // plain text field label at that venue — 'Field 1', 'Chuparosa Field', etc.
-  notes?:   string;
+  gameNotes?: string;    // optional — about this one game, e.g. 'Senior night'
   fieldMapUrl?: string;  // optional — overrides the venue's hardcoded field-map image for this game
   venueNotes?: string;   // optional — overrides the venue's hardcoded notes for this game
 }
@@ -199,8 +206,8 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
       division: row.division,
       venue: row.venue,
       field: row.field,
-      notes: row.notes || undefined,
-      fieldMapUrl: row.fieldMapUrl || undefined,
+      gameNotes: row.gameNotes || undefined,
+      fieldMapUrl: row.fieldMapUrl ? normalizeFieldMapUrl(row.fieldMapUrl) : undefined,
       venueNotes: row.venueNotes || undefined,
     });
   });
