@@ -232,7 +232,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                   {/* Mobile cards */}
                   <div class="sched-cards">
                     {group.games.map(g => (
-                      <div class="sched-card" data-division={g.division}>
+                      <div class="sched-card" data-division={g.division} data-home={g.home} data-away={g.away}>
                         <div class="scard-top">
                           <div class="scard-meta">
                             <span class="div-chip">{g.division}</span>
@@ -581,6 +581,15 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     background: var(--rose-bg);
   }
   .sched-venue-notes p {
+    /* Explicit — don't rely on the browser's native closed-<details>
+       hiding for this one. WebKit/Safari has a known bug where an
+       absolutely-positioned child of a closed <details> can stay
+       visually painted even though the element itself correctly
+       reports closed/not-visible — confirmed the native mechanism
+       works fine in Chrome, so this is specifically an iOS Safari
+       gap. Driving visibility off [open] via display sidesteps it
+       entirely, on every browser. */
+    display: none;
     position: absolute;
     top: calc(100% + .65rem);
     left: 0;
@@ -597,6 +606,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     line-height: 1.55;
     color: var(--muted);
   }
+  .sched-venue-notes[open] p { display: block; }
   /* Caret pointing back up at the button, so the popover reads as
      anchored to it rather than a stray floating box. Shifted right by
      JS (via --caret-shift, clamped to the box's own width) whenever the

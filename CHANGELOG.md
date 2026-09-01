@@ -7,6 +7,32 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.38] — 2026-09-01 — Fix mobile: Team filter matched nothing, Notes popover wouldn't close
+
+### Fixed
+
+- **Team filter matched zero games on mobile, regardless of which team
+  was selected** — the mobile card layout (`.sched-card`) never got the
+  `data-home`/`data-away` attributes the Team filter's `rowMatches()`
+  reads; the desktop table row (`.sched-row`) had them, mobile's
+  parallel markup was missed when the filter was added. Both now carry
+  identical `data-division`/`data-home`/`data-away`.
+- **Venue "Notes" popover's chevron flipped closed but the content
+  stayed visually painted** — confirmed via testing that the native
+  `<details>` closed-state hiding works correctly in Chrome (even for a
+  fresh, unstyled `<details>`), so this is specifically a WebKit/Safari
+  gap: a known class of bug where an absolutely-positioned child of a
+  closed `<details>` can stay rendered even though the browser correctly
+  considers it closed/not-visible. Fixed by no longer relying on native
+  `<details>` hiding for this element at all — `.sched-venue-notes p`
+  now gets explicit `display: none` / `.sched-venue-notes[open] p {
+  display: block }`, driven off the `[open]` attribute directly. Works
+  identically on every browser, sidesteps the WebKit-specific gap
+  entirely. Verified via real clicks (not just programmatic `.open`
+  toggling) through a full open→close cycle.
+
+---
+
 ## [3.37] — 2026-09-01 — Fix homepage's vacuous-truth "Season Complete" gap
 
 ### Fixed
