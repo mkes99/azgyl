@@ -88,7 +88,11 @@ const footerResourceNav = resourceNav.filter(item =>
   .footer-brand-copy { flex: 1 1 240px; min-width: 200px; }
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+    /* minmax floor keeps the brand column wide enough that logo+copy sit
+       side by side (not stacked) at normal desktop widths — see
+       .footer-brand-block below, which still falls back to stacked via
+       flex-wrap once a media query collapses this to fewer columns. */
+    grid-template-columns: minmax(440px, 1.6fr) 1fr 1fr 1fr;
     gap: 2.5rem;
     padding-bottom: 3rem;
     align-items: start;
