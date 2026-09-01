@@ -51,12 +51,12 @@ build-side check is the backstop.
 ## Step 2 — `Seasons` tab headers (Row 1, exact spelling)
 
 ```
-id | name | type | active | startDate | endDate
+season_id | name | type | active | startDate | endDate
 ```
 
 | Column | Notes |
 |---|---|
-| `id` | Unique slug, e.g. `spring-2026`. This is what rows in the `Schedule` tab reference. |
+| `season_id` | Unique slug, e.g. `spring-2026`. This is what rows in the `Schedule` tab reference — same column name in both tabs on purpose, so the link between them is obvious at a glance. |
 | `name` | Display name shown on the site, e.g. `Spring 2026`. |
 | `type` | `season` or `tournament` — exactly, lowercase. |
 | `active` | `TRUE` or `FALSE` — checkbox column recommended. `TRUE` = shown on the homepage and `/league`. More than one row can be `TRUE` at once (e.g. a season plus a tournament running alongside it). |
@@ -72,12 +72,12 @@ spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
 ## Step 3 — `Schedule` tab headers (Row 1, exact spelling)
 
 ```
-event | date | time | arrival | home | away | division | field | notes
+season_id | date | time | arrival | home | away | division | field | notes
 ```
 
 | Column | Notes |
 |---|---|
-| `event` | Must exactly match an `id` from the `Seasons` tab. This is how a game gets grouped into a season. |
+| `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. |
 | `date` | `YYYY-MM-DD`. |
 | `time` | Game time, e.g. `9:30 AM`. |
 | `arrival` | Optional — arrival/warmup time, e.g. `9:00 AM`. Leave blank if not needed. |
@@ -138,8 +138,16 @@ thing that needs updating.
 
 ## Step 7 — Add the Apps Script (validation + notify + deploy)
 
-In the Google Sheet: Extensions → Apps Script. Delete whatever's in
-`Code.gs` and paste this in full:
+**Where this lives:** Apps Script is built into Google Sheets itself — not a
+separate tool you need to install or sign up for. With the spreadsheet open
+in your browser, the menu bar across the top has File, Edit, View, Insert,
+Format, Data, Tools, **Extensions**, Help. Click **Extensions → Apps
+Script** and it opens a code editor in a new tab (at script.google.com),
+automatically tied to this specific spreadsheet. That's where the script
+below goes. It's free, and uses your existing Google account — nothing else
+to set up.
+
+In that editor, delete whatever's in `Code.gs` and paste this in full:
 
 ```javascript
 // ── CONFIG — fill these in ────────────────────────────────────────────────
@@ -232,22 +240,22 @@ function validateData(seasonRows, gameRows, valid) {
   const seasonIds  = new Set();
 
   seasonRows.forEach(row => {
-    const id = row.id;
-    if (!id) { errors.push('Seasons row ' + row.__row + ': missing id'); return; }
-    if (seasonIds.has(id)) { errors.push('Seasons row ' + row.__row + ': duplicate id "' + id + '"'); return; }
-    seasonIds.add(id);
-    if (!row.name) errors.push('Seasons row ' + row.__row + ' (' + id + '): missing name');
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push('Seasons row ' + row.__row + ': missing season_id'); return; }
+    if (seasonIds.has(seasonId)) { errors.push('Seasons row ' + row.__row + ': duplicate season_id "' + seasonId + '"'); return; }
+    seasonIds.add(seasonId);
+    if (!row.name) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): missing name');
     if (row.type !== 'season' && row.type !== 'tournament') {
-      errors.push('Seasons row ' + row.__row + ' (' + id + '): type must be "season" or "tournament", got "' + row.type + '"');
+      errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): type must be "season" or "tournament", got "' + row.type + '"');
     }
-    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + id + '): startDate "' + row.startDate + '" is not YYYY-MM-DD');
-    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + id + '): endDate "' + row.endDate + '" is not YYYY-MM-DD');
+    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): startDate "' + row.startDate + '" is not YYYY-MM-DD');
+    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): endDate "' + row.endDate + '" is not YYYY-MM-DD');
   });
 
   gameRows.forEach(row => {
-    const eventId = row.event;
-    if (!eventId) { errors.push('Schedule row ' + row.__row + ': missing event'); return; }
-    if (!seasonIds.has(eventId)) { errors.push('Schedule row ' + row.__row + ': event "' + eventId + '" doesn\'t match any Seasons row id'); return; }
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push('Schedule row ' + row.__row + ': missing season_id'); return; }
+    if (!seasonIds.has(seasonId)) { errors.push('Schedule row ' + row.__row + ': season_id "' + seasonId + '" doesn\'t match any Seasons row'); return; }
     if (!DATE_RE.test(row.date)) errors.push('Schedule row ' + row.__row + ': date "' + row.date + '" is not YYYY-MM-DD');
     if (!row.time) errors.push('Schedule row ' + row.__row + ': missing time');
     if (!row.home) errors.push('Schedule row ' + row.__row + ': missing home team');

@@ -6,16 +6,18 @@
 // full setup instructions. One Sheet, two tabs, both published to web as
 // CSV:
 //
-//   Seasons tab:  id | name | type | active | startDate | endDate
+//   Seasons tab:  season_id | name | type | active | startDate | endDate
 //                 One row per season/tournament. `type` is 'season' or
 //                 'tournament'. `active` is TRUE/FALSE — TRUE means it
 //                 shows on the homepage and /league.
 //
-//   Schedule tab: event | date | time | arrival | home | away | division | field | notes
-//                 One row per game. `event` must match a Seasons row's id.
-//                 `home`/`away` must match a team name in teams.ts exactly.
-//                 `field` must match an id in fields.ts. `arrival`/`notes`
-//                 are optional — leave the cell blank.
+//   Schedule tab: season_id | date | time | arrival | home | away | division | field | notes
+//                 One row per game. `season_id` must match a Seasons row's
+//                 `season_id` — same column name in both tabs on purpose,
+//                 so the relationship between the two is obvious at a
+//                 glance. `home`/`away` must match a team name in teams.ts
+//                 exactly. `field` must match an id in fields.ts.
+//                 `arrival`/`notes` are optional — leave the cell blank.
 //
 // Both tabs are edited together, in the same sitting, in the same sheet.
 //
@@ -45,7 +47,7 @@ const SCHEDULE_CSV_URL = ''; // paste the published Schedule-tab CSV URL here
 // "no active events" state) — useful before the sheet is set up.
 
 export interface Game {
-  id:       string;   // derived — event id + row number, not sheet input
+  id:       string;   // derived — season_id + row number, not sheet input
   date:     string;   // 'YYYY-MM-DD'
   time:     string;   // '9:30 AM'
   arrival?: string;   // '9:00 AM' — arrival/warmup time
@@ -91,18 +93,18 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
 
   seasonRows.forEach((row, i) => {
     const rowNum = i + 2; // header is row 1
-    const id = row.id;
-    if (!id) { errors.push(`Seasons row ${rowNum}: missing id`); return; }
-    if (events.has(id)) { errors.push(`Seasons row ${rowNum}: duplicate id "${id}"`); return; }
-    if (!row.name) errors.push(`Seasons row ${rowNum} (${id}): missing name`);
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push(`Seasons row ${rowNum}: missing season_id`); return; }
+    if (events.has(seasonId)) { errors.push(`Seasons row ${rowNum}: duplicate season_id "${seasonId}"`); return; }
+    if (!row.name) errors.push(`Seasons row ${rowNum} (${seasonId}): missing name`);
     if (row.type !== 'season' && row.type !== 'tournament') {
-      errors.push(`Seasons row ${rowNum} (${id}): type must be "season" or "tournament", got "${row.type}"`);
+      errors.push(`Seasons row ${rowNum} (${seasonId}): type must be "season" or "tournament", got "${row.type}"`);
     }
-    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${id}): startDate "${row.startDate}" is not YYYY-MM-DD`);
-    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${id}): endDate "${row.endDate}" is not YYYY-MM-DD`);
+    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not YYYY-MM-DD`);
+    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not YYYY-MM-DD`);
 
-    events.set(id, {
-      id,
+    events.set(seasonId, {
+      id: seasonId,
       name: row.name,
       type: (row.type === 'tournament' ? 'tournament' : 'season'),
       active: /^true$/i.test(row.active),
@@ -114,10 +116,10 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
 
   gameRows.forEach((row, i) => {
     const rowNum = i + 2;
-    const eventId = row.event;
-    if (!eventId) { errors.push(`Schedule row ${rowNum}: missing event`); return; }
-    const target = events.get(eventId);
-    if (!target) { errors.push(`Schedule row ${rowNum}: event "${eventId}" doesn't match any Seasons row id`); return; }
+    const seasonId = row.season_id;
+    if (!seasonId) { errors.push(`Schedule row ${rowNum}: missing season_id`); return; }
+    const target = events.get(seasonId);
+    if (!target) { errors.push(`Schedule row ${rowNum}: season_id "${seasonId}" doesn't match any Seasons row`); return; }
 
     if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not YYYY-MM-DD`);
     if (!row.time) errors.push(`Schedule row ${rowNum}: missing time`);
@@ -130,7 +132,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     if (!fieldIds.has(row.field)) errors.push(`Schedule row ${rowNum}: field "${row.field}" doesn't match an id in fields.ts`);
 
     target.games.push({
-      id: `${eventId}-${rowNum}`,
+      id: `${seasonId}-${rowNum}`,
       date: row.date,
       time: row.time,
       arrival: row.arrival || undefined,

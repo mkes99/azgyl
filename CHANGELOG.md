@@ -9,6 +9,15 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ## [3.13] — 2026-08-31 — Schedule & season now sourced from Google Sheets
 
+### Changed
+
+- **Sheet columns renamed for a self-evident join.** The `Seasons` tab's
+  `id` and the `Schedule` tab's `event` are now both called `season_id` —
+  same column name in both tabs, so the relationship between them (one
+  `Schedule` row references one `Seasons` row) is obvious without reading
+  the docs. Updated everywhere: `schedule.ts`'s validation and error
+  messages, `GOOGLE_SHEETS_SETUP.md`'s column tables and the Apps Script.
+
 ### Added
 
 - **Schedule and season data moved out of code and into a Google Sheet**
@@ -23,7 +32,7 @@ Open work is tracked in [TODO.md](TODO.md).
     (`SEASONS_CSV_URL`/`SCHEDULE_CSV_URL`), parses them (new
     `src/lib/csv.ts` — hand-rolled, quote/comma-aware, no dependency
     needed for data this size), validates every row (season shell
-    integrity, date formats, orphaned `event` references, team names,
+    integrity, date formats, orphaned `season_id` references, team names,
     divisions, and field ids against `teams.ts`/`fields.ts`), and throws —
     failing the build — if anything's wrong. Cloudflare Pages keeps
     serving the last successful deploy rather than a build with bad or
