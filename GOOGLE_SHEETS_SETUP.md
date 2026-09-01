@@ -352,15 +352,15 @@ thing that needs updating.
 ## Step 7 — Set up the Cloudflare deploy hook(s)
 
 A deploy hook only rebuilds the one branch it's created for — if more
-than one branch should respond to sheet edits (a feature branch while
-this is still being tested, then `develop` and `main` once it's merged),
-each one needs its own hook. Repeat this per branch:
+than one branch should respond to sheet edits (`develop` now, `main`
+once this is merged there too), each one needs its own hook. Repeat
+this per branch:
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
-2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-google-sheets-schedule`,
-   `sheets-sync-develop`, `sheets-sync-main`) — names the trigger
-   (this Sheet's Apps Script) and the target together, so the purpose is
-   obvious from the name alone later, not just which branch it points at
+2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-develop`,
+   `sheets-sync-main`) — names the trigger (this Sheet's Apps Script)
+   and the target together, so the purpose is obvious from the name
+   alone later, not just which branch it points at
 3. Point it at that specific branch
 4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URLS` in the Apps
    Script below, one entry per hook
@@ -394,13 +394,13 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 // the one branch it was created for). Name each hook sheets-sync-<branch>
 // in the Cloudflare dashboard — names the trigger (this Sheet) and the
 // target together, so what each hook is for is obvious from the name
-// alone, not just which branch it points at. Only google-sheets-schedule
-// is wired up so far; the other two are commented out below as a
-// placeholder — uncomment and fill in once develop/main get their own
-// hook (Step 7), no other code changes needed.
+// alone, not just which branch it points at. google-sheets-schedule was
+// merged into `develop` and deleted (as planned) — develop is the
+// active branch now. main is commented out below as a placeholder —
+// uncomment and fill in once main gets its own hook (Step 7), no other
+// code changes needed.
 const DEPLOY_HOOK_URLS  = [
-  'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // sheets-sync-google-sheets-schedule
-  // 'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop — uncomment once develop has its own hook
+  'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // sheets-sync-develop
   // 'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main — uncomment once main has its own hook
 ];
 // Unlike DEPLOY_HOOK_URLS (fan out to every active branch), this stays a
@@ -415,16 +415,13 @@ const DEPLOY_HOOK_URLS  = [
 // track whichever Cloudflare Pages deployment is currently relevant by
 // hand, checked fresh every time that changes — a branch merge, a
 // branch deletion, or launch itself:
-//   - NOW: google-sheets-schedule's Cloudflare Pages preview URL
-//   - The moment it's merged into `develop`: that branch is deleted
-//     immediately (as planned) — swap to develop's preview URL right
-//     then, there's no overlap window
+//   - NOW (google-sheets-schedule merged + deleted, develop active):
+//     https://develop.azgyl.pages.dev/valid-values.json — confirmed live
 //   - Once merged into `main`, before launch: main's own Cloudflare
 //     Pages URL (still not azgyl.com — that's not attached yet)
 //   - At actual launch (azgyl.com attached as the custom domain):
-//     https://azgyl.com/valid-values.json, permanently — the value
-//     below is what it'll end up as, not what it should be right now
-const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // WRONG until launch — see note above; use the current Cloudflare Pages deployment URL for whichever branch is live right now
+//     https://azgyl.com/valid-values.json, permanently
+const VALID_VALUES_URL  = 'https://develop.azgyl.pages.dev/valid-values.json';
 const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
 
