@@ -77,13 +77,13 @@ season_id | date | time | arrival | home | away | division | venue | field | not
 
 | Column | Notes |
 |---|---|
-| `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. |
-| `date` | `YYYY-MM-DD`. |
+| `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. Can be left blank — see "Leave repeated cells blank" below. |
+| `date` | `YYYY-MM-DD`. Can be left blank. |
 | `time` | Game time, e.g. `9:30 AM`. |
 | `arrival` | Optional — arrival/warmup time, e.g. `9:00 AM`. Leave blank if not needed. |
 | `home` / `away` | Team name — must exactly match a team name on the site (see "Team name matching" below). |
-| `division` | Must be a division one of the current teams actually plays in (8U/10U/12U/14U, etc.). |
-| `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). |
+| `division` | Must be a division one of the current teams actually plays in (8U/10U/12U/14U, etc.). Can be left blank. |
+| `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
 | `field` | Plain text — whatever that venue actually calls it, e.g. `Field 1`, `Field 3`, `Chuparosa Field`. Not validated against any list, since different venues label their fields differently. |
 | `notes` | Optional — e.g. `Senior night`. Leave blank if not needed. |
 
@@ -91,6 +91,30 @@ Example row:
 ```
 spring-2026 | 2026-02-07 | 8:00 AM | 7:30 AM | Diamonds | Vipers | 8U | mesquite | Field 2 | Opening day
 ```
+
+### Leave repeated cells blank
+
+`season_id`, `date`, `venue`, and `division` don't need to be retyped on
+every row. Leave any of those cells blank and it picks up whatever was in
+the row above it — so a Saturday's worth of games at one venue only needs
+that venue (and that date, and that season) typed once, at the top of the
+block:
+
+```
+season_id   | date       | time     | home       | away          | division | venue    | field    | notes
+spring-2026 | 2026-02-07 | 8:00 AM  | Diamonds   | Vipers        | 8U       | mesquite | Field 2  | Opening day
+            |            | 8:45 AM  | Hawks      | Hotshots      |          |          | Field 2  |
+            |            | 9:30 AM  | Sol Sisters| Oro Valley    | 10U      |          | Field 1  |
+            |            | 10:15 AM | Tukee Lightning | Chandler Lax |     |          | Field 1  |
+```
+
+That's 4 games with the venue, date, and season typed once instead of
+four times each. This also matches how a vertically-merged range of cells
+actually exports to CSV (Sheets puts the value in the top cell of the
+merge and leaves the rest blank), so it works equally well if you'd
+rather select those cells and merge them for a cleaner look in the sheet
+itself. Only the very first row of the whole tab needs every column
+filled in — there's nothing above it to inherit from.
 
 ### How games get grouped by venue on the site
 
@@ -206,7 +230,7 @@ function processPendingEdit() {
 function validateAndDeploy(editorEmail) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const seasonRows = readTab(ss, 'Seasons');
-  const gameRows   = readTab(ss, 'Schedule');
+  const gameRows   = fillDown(readTab(ss, 'Schedule'), ['season_id', 'date', 'venue', 'division']);
   const valid      = fetchValidValues();
   const errors     = validateData(seasonRows, gameRows, valid);
 
@@ -248,6 +272,22 @@ function fetchValidValues() {
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// A blank cell in any of `columns` inherits whatever was in the row above
+// it for that column — must match src/data/schedule.ts's fillDown()
+// exactly, since this is what lets someone leave season_id/date/venue/
+// division blank on a block of rows instead of retyping them every time.
+function fillDown(rows, columns) {
+  const last = {};
+  return rows.map(row => {
+    const filled = Object.assign({}, row);
+    columns.forEach(col => {
+      if (filled[col]) last[col] = filled[col];
+      else if (last[col]) filled[col] = last[col];
+    });
+    return filled;
+  });
+}
 
 function validateData(seasonRows, gameRows, valid) {
   const errors = [];

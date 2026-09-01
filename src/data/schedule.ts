@@ -18,12 +18,23 @@
 //                 glance. `home`/`away` must match a team name in teams.ts
 //                 exactly. `venue` must match an id in venues.ts — it's
 //                 the only thing that determines which games get grouped
-//                 together on the site, so it needs to be identified once
-//                 per game (same as season_id), not once per day. `field`
-//                 is plain, unvalidated text — whatever that venue calls
-//                 it ("Field 1", "Chuparosa Field") — since different
-//                 venues label their fields differently.
-//                 `arrival`/`notes` are optional — leave the cell blank.
+//                 together on the site. `field` is plain, unvalidated
+//                 text — whatever that venue calls it ("Field 1",
+//                 "Chuparosa Field") — since different venues label their
+//                 fields differently. `arrival`/`notes` are optional —
+//                 leave the cell blank.
+//
+//                 `season_id`, `date`, `venue`, and `division` don't need
+//                 to be retyped on every row — leave any of those blank
+//                 and it inherits whatever was in the row above (see
+//                 fillDown() below). This matches how vertically-merged
+//                 Sheet cells actually export to CSV (the value only
+//                 lands in the top row of the merge, blank cells for the
+//                 rest of it), so it works whether someone types a block
+//                 of games with those cells left blank or actually merges
+//                 the cells in the sheet. Only the very first row needs
+//                 every column filled in — there's nothing to inherit
+//                 from above it.
 //
 // Both tabs are edited together, in the same sitting, in the same sheet.
 //
@@ -90,11 +101,31 @@ async function fetchCSV(url: string, label: string): Promise<Record<string, stri
   return parseCSV(await res.text());
 }
 
+// A blank cell in any of `columns` inherits whatever was in the row above
+// it for that column — lets a block of games at the same venue/date/
+// division be typed (or pasted from a vertically-merged Sheet range)
+// without repeating that value on every single row. Row order and count
+// are untouched, so row-number-based error messages below still line up
+// with the actual sheet.
+function fillDown(rows: Record<string, string>[], columns: string[]): Record<string, string>[] {
+  const last: Record<string, string> = {};
+  return rows.map(row => {
+    const filled = { ...row };
+    for (const col of columns) {
+      if (filled[col]) last[col] = filled[col];
+      else if (last[col]) filled[col] = last[col];
+    }
+    return filled;
+  });
+}
+
 function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<string, string>[]): ScheduleEvent[] {
   const errors: string[] = [];
   const teamNames = new Set(teams.map(t => t.name));
   const validDivisions = new Set(teams.flatMap(t => t.divisions));
   const venueIds = new Set(venues.map(v => v.id));
+
+  gameRows = fillDown(gameRows, ['season_id', 'date', 'venue', 'division']);
 
   const events = new Map<string, ScheduleEvent>();
 

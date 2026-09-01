@@ -7,6 +7,48 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.20] — 2026-09-01 — Blank cells inherit from the row above (season_id/date/venue/division)
+
+### Added
+
+- **`season_id`, `date`, `venue`, and `division` can now be left blank on
+  any `Schedule` row — a blank cell inherits whatever was in the row
+  above it for that column**, so a block of games at the same venue/date
+  doesn't need those four values retyped on every single line. Matches
+  how a vertically-merged range of Sheet cells actually exports to CSV
+  (value in the top cell of the merge, blank for the rest), so it works
+  whether someone types the block with those cells left blank or
+  actually merges them in the sheet for a cleaner look. Only the very
+  first row of the whole tab needs every column filled in. Implemented
+  as `fillDown()` in `src/data/schedule.ts`, applied to the parsed rows
+  before validation — and ported line-for-line into the Apps Script
+  validator in `GOOGLE_SHEETS_SETUP.md`, since the sheet-side check has
+  to accept exactly what the build accepts or it'll reject rows the site
+  would otherwise build fine.
+- `GOOGLE_SHEETS_SETUP.md`: new "Leave repeated cells blank" section with
+  a worked multi-row example.
+- `SHEET_SEED_DATA.md`: all 40 seed rows now follow this pattern — the
+  season/date/venue/division cells are blank everywhere they'd just
+  repeat the row above, matching the entry style the setup doc now
+  recommends. Verified round-trip through the actual `fillDown()` +
+  validation code (mock CSV server): same 40 games, same 5 venue groups,
+  same division counts as before the seed data was rewritten.
+- Fixed a stale count in `SHEET_SEED_DATA.md` ("8 of the 40 rows have a
+  `notes` value") — the listed examples were always 7, not 8.
+
+### Considered and rejected
+
+- **A separate Sheet tab per division**, so `division` wouldn't need a
+  column at all. Rejected: the league distributes a whole Saturday's
+  games — every division — as one document, so splitting entry across 4
+  tabs would make the common case (enter one day's full slate) more work,
+  not less, and adding a division later would need a code change (a new
+  CSV URL) instead of just adding it to `teams.ts`. The blank-cell
+  inheritance above gets the same "don't retype it" benefit without
+  either downside.
+
+---
+
 ## [3.19] — 2026-09-01 — Venue/field data model split; field-map lightbox; filter and resize fixes
 
 Ported from `develop` (there: 3.21), plus the branch-only Sheet-side pieces
