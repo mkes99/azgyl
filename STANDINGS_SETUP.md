@@ -1,5 +1,11 @@
 # Updating Standings — Two Options
 
+> **Note (2026-08-31):** This is a separate spreadsheet from the schedule.
+> Schedule and season data now live in their own sheet with a finished,
+> automated pipeline — see `GOOGLE_SHEETS_SETUP.md`. Standings below is a
+> distinct, not-yet-automated workflow; `STANDINGS_CSV_URL` in
+> `standings.ts` is still a placeholder.
+
 ## Option A: Google Sheets (no code, recommended)
 
 Update standings from a spreadsheet. Zero code changes required after setup.

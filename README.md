@@ -38,7 +38,7 @@ npm run build    # ./dist
 
 | File | What it controls | Edit when |
 |------|-----------------|-----------|
-| `src/data/schedule.ts` | Game schedule (all seasons + tournaments) | Adding/updating games |
+| `src/data/schedule.ts` | Fetches + validates the schedule from Google Sheets at build time | Rarely — see below, games are added in the Sheet, not this file |
 | `src/data/standings.ts` | Division standings | After each game day |
 | `src/data/fields.ts` | Field locations + map links | Venues change |
 | `src/data/teams.ts` | Member club directory | Clubs change |
@@ -58,40 +58,26 @@ npm run build    # ./dist
 
 ---
 
-## Schedule — how to add and update games
+## Schedule & season — how to add and update games
 
-Open `src/data/schedule.ts`. Each **event** is a season or tournament:
+Games and seasons are **not edited in this codebase** — they live in a
+Google Sheet (two tabs: `Seasons`, `Schedule`), fetched and validated at
+build time by `src/data/schedule.ts`. Full setup and the weekly workflow are
+in **`GOOGLE_SHEETS_SETUP.md`** — start there.
 
-```ts
-{
-  id:        'spring-2026',          // unique slug
-  name:      'Spring 2026',          // shown on the site
-  type:      'season',               // 'season' or 'tournament'
-  active:    true,                   // true = shown on homepage + league page
-  startDate: '2026-02-07',
-  endDate:   '2026-04-11',
-  games: [
-    {
-      id:       'sp26-g1',
-      date:     '2026-02-07',        // YYYY-MM-DD
-      time:     '9:00 AM',
-      home:     'Diamonds',          // must match a name in teams.ts
-      away:     'Tukee Lightning',
-      division: '12U',
-      field:    'mesquite',          // must match an id in fields.ts
-      result:   'upcoming',          // 'upcoming' | 'W' | 'L' | 'T' | 'cancelled'
-      score:    '8-5',               // home score first, omit if upcoming
-      notes:    'Senior night',      // optional
-    },
-  ],
-}
-```
+The short version: open the sheet, add/update rows in `Seasons` and
+`Schedule`, save. A script validates the edit and either triggers a
+rebuild automatically (~2 min) or emails whoever made the edit exactly
+what's wrong, without publishing anything broken.
 
-**To add a new season or tournament:** copy the whole event block, change the `id`, set `active: true`.
+`src/data/schedule.ts` itself only needs touching to change the two CSV
+URLs it fetches from (a one-time setup step), or if the validation rules
+themselves need to change. It also validates independently at build time as
+a backstop — if the sheet's own check somehow lets something bad through,
+the build fails loudly rather than publishing it, and Cloudflare keeps
+serving the last good deploy.
 
-**To add a tournament alongside a regular season:** add a second event with `type: 'tournament'`. Both appear on the league page if `active: true`.
-
-**The homepage shows the first active event's upcoming games (limit 5).** The league page shows all active events with their full schedule and standings.
+**The homepage shows the next unplayed date from the first active event.** The league page shows all active events (a season and a tournament can both be `active` at once) with their full schedule.
 
 ---
 
