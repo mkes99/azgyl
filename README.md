@@ -198,10 +198,32 @@ since different venues label their fields differently):
   city:    'Gilbert',
   mapUrl:  'https://maps.google.com/?q=...',
   notes:   'No dogs allowed.',
+  fieldMapUrl: '/assets/field-maps/mesquite.png', // optional, see below
 }
 ```
 
 Venues listed on the schedule are automatically linked to Google Maps.
+
+**`fieldMapUrl`** (optional) shows a "Field map" button next to the venue
+name that opens the image in a lightbox — a diagram of where each field
+sits within the venue. Drop the image in `public/assets/field-maps/` and
+reference it as `/assets/field-maps/<filename>` — **no `/public` in the
+path**, Astro serves everything under `public/` from the site root, so
+`public/assets/field-maps/mesquite.png` on disk becomes
+`/assets/field-maps/mesquite.png` as a URL. (The `google-sheets-schedule`
+branch also supports a public-link override via an optional Sheet tab —
+not available here, since this branch's schedule isn't Sheet-driven.)
+
+### How games get grouped by venue on the site
+
+Every game that shares a `venue` value on the same date is grouped
+together on `/league` under one heading — venue name, address, map link,
+field map, and notes are all shown once per group, not once per game. If
+some games that date use a different `venue` (e.g. some divisions at
+Mesquite, others at Naranja Park), the site automatically splits that day
+into one section per venue instead. Nothing special to do for either
+case — the grouping follows straight from whatever `venue` each game
+carries in `schedule.ts`.
 
 ---
 
