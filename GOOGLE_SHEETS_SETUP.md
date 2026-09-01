@@ -392,15 +392,16 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 // One entry per branch that should rebuild when this sheet changes — each
 // Cloudflare Pages branch needs its own deploy hook (a hook only rebuilds
 // the one branch it was created for). Name each hook sheets-sync-<branch>
-// in the Cloudflare dashboard (e.g. sheets-sync-google-sheets-schedule,
-// sheets-sync-develop, sheets-sync-main) — names the trigger (this
-// Sheet) and the target together, so what each hook is for is obvious
-// from the name alone, not just which branch it points at. While it's
-// still only wired up on a feature branch, this array has one entry —
-// add more as `develop` and `main` do too, no code changes needed
-// beyond this list.
+// in the Cloudflare dashboard — names the trigger (this Sheet) and the
+// target together, so what each hook is for is obvious from the name
+// alone, not just which branch it points at. Only google-sheets-schedule
+// is wired up so far; the other two are commented out below as a
+// placeholder — uncomment and fill in once develop/main get their own
+// hook (Step 7), no other code changes needed.
 const DEPLOY_HOOK_URLS  = [
   'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // sheets-sync-google-sheets-schedule
+  // 'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop — uncomment once develop has its own hook
+  // 'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main — uncomment once main has its own hook
 ];
 const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // point at whichever deploy this sheet should validate against
 const FALLBACK_EMAIL    = 'azgirlsyouthlax@gmail.com'; // used only if we can't tell who made the edit
