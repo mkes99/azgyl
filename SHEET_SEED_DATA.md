@@ -10,11 +10,12 @@ once the automation is wired up too. `field` is plain descriptive text
 `GOOGLE_SHEETS_SETUP.md` for how `venue`/`field` work.
 
 **`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`, and
-`division` are left blank wherever they'd just repeat the row above** —
-see "Leave repeated cells blank" in `GOOGLE_SHEETS_SETUP.md`. This is
-exactly the pattern to follow when entering the real schedule: type (or
-paste) a value once at the top of a block of games that share it, leave
-it blank for the rest of that block.
+`division` are left blank wherever they'd just repeat the row above** on
+the Schedule tab, and **`season_id`/`division`** the same way on the
+Standings tab — see "Leave repeated cells blank" in
+`GOOGLE_SHEETS_SETUP.md`. This is exactly the pattern to follow when
+entering real data: type (or paste) a value once at the top of a block
+that shares it, leave it blank for the rest of that block.
 
 **Not real fixtures** — a plausible, made-up 5-week sample, enough to
 actually exercise the `/league` page's division and week filters (2 weeks
@@ -125,22 +126,27 @@ Paste this into the `Standings` tab the same way as the other two.
 ```
 season_id	division	team	wins	losses	ties	goalsFor	goalsAgainst
 spring-2026	8U	Diamonds	4	1	0	32	14
-spring-2026	8U	Hawks	3	2	0	24	20
-spring-2026	8U	Vipers	2	3	0	19	23
-spring-2026	8U	Hotshots	1	4	0	13	31
-spring-2026	10U	Sol Sisters	4	1	0	28	12
-spring-2026	10U	Oro Valley	3	1	1	22	15
-spring-2026	10U	Tukee Lightning	2	2	1	18	19
-spring-2026	10U	Chandler Lax	0	5	0	9	31
-spring-2026	12U	Hawks	4	1	0	30	16
-spring-2026	12U	Diamonds	3	2	0	26	21
-spring-2026	12U	Vipers	2	3	0	20	25
-spring-2026	12U	East Valley Bullets	1	4	0	15	29
-spring-2026	14U	Tukee Lightning	4	0	1	29	13
-spring-2026	14U	Chandler Lax	2	2	1	21	20
-spring-2026	14U	Sol Sisters	2	3	0	18	22
-spring-2026	14U	Hotshots	1	4	0	14	27
+		Hawks	3	2	0	24	20
+		Vipers	2	3	0	19	23
+		Hotshots	1	4	0	13	31
+	10U	Sol Sisters	4	1	0	28	12
+		Oro Valley	3	1	1	22	15
+		Tukee Lightning	2	2	1	18	19
+		Chandler Lax	0	5	0	9	31
+	12U	Hawks	4	1	0	30	16
+		Diamonds	3	2	0	26	21
+		Vipers	2	3	0	20	25
+		East Valley Bullets	1	4	0	15	29
+	14U	Tukee Lightning	4	0	1	29	13
+		Chandler Lax	2	2	1	21	20
+		Sol Sisters	2	3	0	18	22
+		Hotshots	1	4	0	14	27
 ```
+
+`season_id` and `division` are left blank wherever they'd just repeat
+the row above, same cascading convention as the Schedule tab above —
+only the first row of the whole block, and the first row of each new
+division, needs them typed out.
 
 Each row's wins+losses+ties sums to 5 — consistent with the 5-week schedule above —
 not that it matters for validation, just so it doesn't look obviously fake
