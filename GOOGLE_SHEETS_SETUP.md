@@ -142,26 +142,78 @@ reject it.
 
 ---
 
-## Step 4 — Publish both tabs to the web as CSV
+## Step 3½ — `Venues` tab (optional — field-map links only)
 
-For **each** tab (`Seasons`, then `Schedule`):
+Everything about a venue (name, address, map link, notes) lives in
+`src/data/venues.ts` and needs a code change to update — that's the
+reliable, permanent source. This tab is a narrow exception, **only** for
+the "Field map" image link, so someone can add or swap one without
+touching code:
+
+```
+venue_id | fieldMapUrl
+```
+
+| Column | Notes |
+|---|---|
+| `venue_id` | Must match an id in `src/data/venues.ts`. |
+| `fieldMapUrl` | A direct link to an image. **Not** a share-page link — see the caveat below. |
+
+Only add a row for a venue you're actually giving a link to — a venue
+with no row here (or a row with a blank `fieldMapUrl`) just keeps
+whatever's hardcoded in `venues.ts` (nothing, usually, until it has one).
+If a venue has both, **the sheet's link wins** — it's treated as the more
+current one.
+
+**The link has to be a direct image URL, not a share-page link.** Most
+"share" links from Google Drive, Google Photos, Dropbox, etc. open a
+viewer page, not the raw image — pasted straight into `<img src>`, they
+just fail to load. For Google Drive specifically, turn a share link into
+a direct one: take the file id out of the share URL (the part between
+`/d/` and `/view`) and use
+`https://drive.google.com/uc?export=view&id=THAT_FILE_ID`. Simplest and
+most reliable, if you have the option: upload the image straight into
+`public/assets/field-maps/` in the codebase instead of using this tab at
+all — no link-format guessing, and it can't go stale if the original
+gets moved or deleted.
+
+This tab is **not** part of the same validate → email → deploy flow as
+`Seasons`/`Schedule` (see the Apps Script below) — it's edited rarely and
+a bad link is low-stakes (a broken image, not broken game data), so it's
+just checked at build time like everything else: an unrecognized
+`venue_id` fails the build with a clear error and Cloudflare keeps
+serving the last good deploy, same as any other bad data.
+
+---
+
+## Step 4 — Publish all tabs to the web as CSV
+
+For **each** tab you're using (`Seasons`, `Schedule`, and `Venues` if
+you're using it):
 
 1. File → Share → Publish to web
 2. Under "Link", choose the specific sheet tab (not "Entire document")
 3. Choose **Comma-separated values (.csv)**
 4. Click **Publish**, copy the URL
 
-You'll get two different URLs, one per tab.
+You'll get one URL per tab.
 
 ---
 
-## Step 5 — Add both CSV URLs to the codebase
+## Step 5 — Add the CSV URL(s) to the codebase
 
 Open `src/data/schedule.ts` and fill in:
 
 ```ts
 const SEASONS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
 const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
+```
+
+If you set up the optional `Venues` tab, also open `src/data/venues.ts`
+and fill in:
+
+```ts
+const VENUES_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
 ```
 
 Commit and push. This is a one-time step — after this, the sheet is the only

@@ -7,6 +7,33 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.21] — 2026-09-01 — Optional Venues sheet tab for field-map links
+
+### Added
+
+- **A new optional `Venues` Sheet tab (`venue_id | fieldMapUrl`) lets
+  someone add or swap a venue's "Field map" image link without a code
+  change.** `src/data/venues.ts` now optionally fetches this tab
+  (`VENUES_CSV_URL`, same empty-by-default pattern as the Seasons/
+  Schedule URLs) and layers it on top of the hardcoded `venues` list —
+  the sheet's link wins if a venue has both; a venue with no row (or a
+  blank `fieldMapUrl` cell) just keeps using whatever's hardcoded, same
+  as before this existed. Everything else about a venue (name, address,
+  map link, notes) still only lives in code — this is deliberately
+  narrow, just the field-map link. `GOOGLE_SHEETS_SETUP.md` documents the
+  tab, the fallback behavior, and — the actual gotcha here — that the
+  link has to be a *direct* image URL, not a share-page link (most Google
+  Drive/Photos/Dropbox "share" links open a viewer page, not the raw
+  image, so they silently fail to load in an `<img>` tag). This tab
+  intentionally isn't wired into the Apps Script's real-time validate/
+  notify flow — low-stakes, low-frequency edit, so the existing build-time
+  check (fails loud, keeps serving the last good deploy) is enough.
+  Verified against a local mock CSV server: overriding an existing local
+  image, adding one to a venue that had none, and an unrecognized
+  `venue_id` failing the build with a clear error.
+
+---
+
 ## [3.20] — 2026-09-01 — Blank cells inherit from the row above (season_id/date/venue/division)
 
 ### Added

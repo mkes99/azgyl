@@ -14,9 +14,22 @@
 //
 // `fieldMapUrl` is optional — a diagram/image showing where each field is
 // within the venue, if one exists. Leave it unset until you have one; the
-// "Field map" button on the site just won't show up. To add one: drop the
-// image in `public/assets/field-maps/` and set this to that path.
+// "Field map" button on the site just won't show up. Two ways to set it:
+//
+//   1. Drop the image in `public/assets/field-maps/` and set this to that
+//      path (e.g. '/assets/field-maps/mesquite.png') — reliable, doesn't
+//      depend on anything outside the repo, but needs a code change.
+//   2. Paste a public link (a direct image URL, not a share-page link —
+//      see the note in the optional `Venues` tab section below) into the
+//      optional `Venues` Sheet tab, so someone can add or swap a field
+//      map without touching code. If BOTH exist, the sheet's link wins —
+//      it's treated as the more current one. If the sheet has no row (or
+//      a blank fieldMapUrl cell) for a venue, whatever's hardcoded below
+//      keeps being used. See GOOGLE_SHEETS_SETUP.md, "Venues tab" for
+//      the sheet columns and the direct-link caveat.
 // ─────────────────────────────────────────────────────────────────────────
+
+import { parseCSV } from '@/lib/csv';
 
 export interface Venue {
   id:           string;    // used in schedule.ts
@@ -26,10 +39,10 @@ export interface Venue {
   mapUrl:       string;
   notes?:       string;    // venue-wide note, shown once per day (not per game) behind a
                             // click-to-open "Notes" disclosure — plain text
-  fieldMapUrl?: string;    // optional — see note above
+  fieldMapUrl?: string;    // optional — see note above; may be overridden by the Venues sheet
 }
 
-export const venues: Venue[] = [
+export const baseVenues: Venue[] = [
 
   {
     id:      'mesquite',
@@ -87,6 +100,54 @@ export const venues: Venue[] = [
   },
 
 ];
+
+// ── OPTIONAL: field-map links via a `Venues` Sheet tab ─────────────────────
+// Entirely optional — leave VENUES_CSV_URL empty and every venue just uses
+// whatever fieldMapUrl (if any) is hardcoded above, no fetch happens at all.
+// See GOOGLE_SHEETS_SETUP.md, "Venues tab" for how to set this up.
+const VENUES_CSV_URL = ''; // paste the published Venues-tab CSV URL here (optional)
+
+async function loadFieldMapOverrides(): Promise<Record<string, string>> {
+  if (!VENUES_CSV_URL) return {};
+
+  let res: Response;
+  try {
+    res = await fetch(VENUES_CSV_URL);
+  } catch (err) {
+    throw new Error(`[venues.ts] Could not reach the Venues sheet: ${(err as Error).message}\nURL: ${VENUES_CSV_URL}`);
+  }
+  if (!res.ok) {
+    throw new Error(`[venues.ts] Venues sheet fetch failed: HTTP ${res.status}. Check it's still published to web as CSV (File → Share → Publish to web).\nURL: ${VENUES_CSV_URL}`);
+  }
+
+  const rows = parseCSV(await res.text());
+  const knownIds = new Set(baseVenues.map(v => v.id));
+  const errors: string[] = [];
+  const overrides: Record<string, string> = {};
+
+  rows.forEach((row, i) => {
+    const rowNum = i + 2; // header is row 1
+    const id = row.venue_id;
+    if (!id) { errors.push(`Venues row ${rowNum}: missing venue_id`); return; }
+    if (!knownIds.has(id)) { errors.push(`Venues row ${rowNum}: venue_id "${id}" doesn't match an id in the venues list below`); return; }
+    if (row.fieldMapUrl) overrides[id] = row.fieldMapUrl;
+  });
+
+  if (errors.length) {
+    throw new Error(
+      `[venues.ts] ${errors.length} problem(s) in the Venues sheet — fix these and rebuild:\n` +
+      errors.map(e => ` - ${e}`).join('\n')
+    );
+  }
+
+  return overrides;
+}
+
+const fieldMapOverrides = await loadFieldMapOverrides();
+
+export const venues: Venue[] = baseVenues.map(v =>
+  fieldMapOverrides[v.id] ? { ...v, fieldMapUrl: fieldMapOverrides[v.id] } : v
+);
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 export function getVenueById(id: string) {
