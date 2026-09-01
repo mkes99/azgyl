@@ -92,7 +92,7 @@ const footerResourceNav = resourceNav.filter(item =>
        side by side (not stacked) at normal desktop widths — see
        .footer-brand-block below, which still falls back to stacked via
        flex-wrap once a media query collapses this to fewer columns. */
-    grid-template-columns: minmax(440px, 1.6fr) 1fr 1fr 1fr;
+    grid-template-columns: minmax(440px, 1.6fr) .5fr .5fr .5fr;
     gap: 2.5rem;
     padding-bottom: 3rem;
     align-items: start;
@@ -162,7 +162,11 @@ const footerResourceNav = resourceNav.filter(item =>
   .footer-bottom a:hover { color: var(--rose-deep); }
 
   @media (max-width: 960px) {
-    .footer-grid { grid-template-columns: 1fr 1fr; }
+    /* Brand block spans the full row (its own row, logo still left of
+       copy — plenty of room now), nav links drop to their own row below
+       as 3 even columns. */
+    .footer-grid { grid-template-columns: repeat(3, 1fr); }
+    .footer-brand-block { grid-column: 1 / -1; }
   }
   @media (max-width: 580px) {
     .footer-grid { grid-template-columns: 1fr; }

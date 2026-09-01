@@ -12,14 +12,22 @@ Open work is tracked in [TODO.md](TODO.md).
 ### Changed
 
 - **Footer brand block merged back into the same row as the Parents/
-  Resources/Official nav columns**, per request — one `.footer-grid` with
-  4 columns (`1.3fr 1fr 1fr 1fr`) instead of 3.12's two independently-sized
-  rows. At this column width the brand block (logo + copy + badge + social)
-  wraps to logo-above-text automatically (existing `flex-wrap` on
-  `.footer-brand-block`, no extra work needed) rather than sitting beside
-  the copy. Note: this reintroduces some of the height mismatch 3.12 fixed
-  — the brand block is still taller than the short nav lists — just less
-  pronounced now that the columns sit closer together.
+  Resources/Official nav columns**, per request — one `.footer-grid`
+  instead of 3.12's two independently-sized rows.
+  `grid-template-columns: minmax(440px, 1.6fr) .5fr .5fr .5fr` — the
+  minmax floor keeps the brand column wide enough that the logo sits
+  beside the copy (not stacked above it), and the `.5fr` nav columns stay
+  proportionally narrow next to it. Note: this reintroduces some of the
+  height mismatch 3.12 fixed — the brand block is still taller than the
+  short nav lists — just less pronounced now that the columns sit closer
+  together.
+- **≤960px breakpoint**: brand block spans the full row
+  (`grid-column: 1 / -1`, still logo-beside-copy since it now has the
+  whole row's width to work with) and the three nav columns drop to their
+  own row below as `repeat(3, 1fr)`, rather than the previous 2-column
+  collapse. Verified by simulating the breakpoint via injected CSS in a
+  live tab, since the browser automation's window-resize wasn't taking
+  effect on the tab's actual viewport in this environment.
 
 ---
 
