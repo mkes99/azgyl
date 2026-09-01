@@ -98,15 +98,11 @@ fine while the live page still decapitates someone.
       keyed off role, not name, so it survives board turnover.
 - [x] **Board members are all `name: 'TBD'`** — real names added to
       `src/data/board.ts`.
-- [ ] **Marana Reapers in historical standings.** The club is commented out
-      of the directory but still appears in `standings.ts` (one 12U row).
-      Left intact deliberately — removing it leaves the 12U standings not
-      adding up. Decide which matters more: an accurate record, or a team
-      never appearing after removal. (Its historical schedule games are no
-      longer a code concern — as of 2026-08-31 `schedule.ts` has no local
-      game data at all, it's fetched from the Sheet; whether historical
-      Marana Reapers games are represented there is now a sheet-content
-      decision, not a code one.)
+- [ ] **Marana Reapers in historical results.** The club is commented out of the
+      directory but still appears in `schedule.ts` (4 games) and `standings.ts`
+      (one 12U row). Left intact deliberately — removing them rewrites completed
+      results and leaves the 12U standings not adding up. Decide which matters
+      more: an accurate record, or a team never appearing after removal.
 - [ ] **Dead per-club `contact` addresses** in `src/data/teams.ts` (9 remaining,
       e.g. `solsisters@azgyl.com`). Nothing renders this field — it is unused
       data. Either wire it into the team cards or drop it.
