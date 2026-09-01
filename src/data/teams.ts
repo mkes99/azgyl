@@ -9,9 +9,15 @@
 // Note: the schedule and standings still contain historical Marana Reapers
 // games (src/data/schedule.ts, src/data/standings.ts). Those are past results
 // and were left intact — see CHANGELOG.
+//
+// `slug` is NOT a field you set here — it's derived automatically from
+// `name` below (lowercased, spaces/punctuation collapsed to hyphens), so
+// don't add a `slug:` line to a new team entry. See `slugify()` and the
+// `export const teams` line at the bottom of this file. Changed 2026-08-31 —
+// see CHANGELOG for why.
 // ─────────────────────────────────────────────────────────────────────────
 
-export const teams = [
+const teamsRaw = [
   // {
   //   slug: 'marana-reapers',
   //   name: 'Marana Reapers',
@@ -27,7 +33,6 @@ export const teams = [
   //   color: '#8B5CF6'
   // },
   {
-    slug: 'sol-sisters',
     name: 'Sol Sisters',
     area: 'Tucson',
     city: 'Tucson',
@@ -41,7 +46,6 @@ export const teams = [
     color: '#F59E0B'
   },
   {
-    slug: 'tukee-lightning',
     name: 'Tukee Lightning',
     area: 'Ahwatukee / South Phoenix',
     city: 'Phoenix',
@@ -55,7 +59,6 @@ export const teams = [
     color: '#38BDF8'
   },
   {
-    slug: 'oro-valley',
     name: 'Oro Valley',
     area: 'Oro Valley / Catalina Foothills',
     city: 'Oro Valley',
@@ -69,7 +72,6 @@ export const teams = [
     color: '#F59E0B'
   },
   {
-    slug: 'diamonds',
     name: 'Diamonds',
     area: 'Central Phoenix / Scottsdale',
     city: 'Phoenix',
@@ -83,7 +85,6 @@ export const teams = [
     color: '#60A5FA'
   },
   {
-    slug: 'vipers',
     name: 'Vipers',
     area: 'North Phoenix',
     city: 'Phoenix',
@@ -97,7 +98,6 @@ export const teams = [
     color: '#22D3EE'
   },
   {
-    slug: 'hotshots',
     name: 'Hotshots',
     area: 'South Valley / Southeast Phoenix',
     city: 'Phoenix',
@@ -111,7 +111,6 @@ export const teams = [
     color: '#F97316'
   },
   {
-    slug: 'hawks',
     name: 'Hawks',
     area: 'North Phoenix',
     city: 'Phoenix',
@@ -139,7 +138,6 @@ export const teams = [
   //   color: '#EC4899'
   // },
   {
-    slug: 'chandler-lax',
     name: 'Chandler Lax',
     area: 'Chandler / Gilbert / South East Valley',
     city: 'Chandler',
@@ -153,7 +151,6 @@ export const teams = [
     color: '#EF4444'
   },
   {
-    slug: 'east-valley-bullets',
     name: 'East Valley Bullets',
     area: 'Mesa / Queen Creek / East Valley',
     city: 'Mesa',
@@ -181,3 +178,11 @@ export const teams = [
   //   color: '#7C3AED'
   // },
 ];
+
+// Derives a URL-safe slug from a team's name — e.g. 'Sol Sisters' -> 'sol-sisters'.
+// Lowercases, then collapses anything that isn't a-z/0-9 into a single hyphen
+// and trims leading/trailing hyphens.
+const slugify = (name: string) =>
+  name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+export const teams = teamsRaw.map(team => ({ slug: slugify(team.name), ...team }));

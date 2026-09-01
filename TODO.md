@@ -98,18 +98,69 @@ fine while the live page still decapitates someone.
       keyed off role, not name, so it survives board turnover.
 - [x] **Board members are all `name: 'TBD'`** — real names added to
       `src/data/board.ts`.
-- [ ] **Marana Reapers in historical results.** The club is commented out of the
-      directory but still appears in `schedule.ts` (4 games) and `standings.ts`
-      (one 12U row). Left intact deliberately — removing them rewrites completed
-      results and leaves the 12U standings not adding up. Decide which matters
-      more: an accurate record, or a team never appearing after removal.
+- [ ] **Marana Reapers in historical standings.** The club is commented out
+      of the directory but still appears in `standings.ts` (one 12U row).
+      Left intact deliberately — removing it leaves the 12U standings not
+      adding up. Decide which matters more: an accurate record, or a team
+      never appearing after removal. (Its historical schedule games are no
+      longer a code concern — `schedule.ts` has no local game data at all,
+      it's fetched from the Sheet; whether historical Marana Reapers games
+      are represented there is now a sheet-content decision, not a code
+      one.)
+- [ ] **`HomeSchedulePreview.astro`'s "Season Complete" logic has the same
+      vacuous-truth gap `LeagueSchedule.astro`'s `seasonOver` had before it
+      was fixed** — `seasonComplete = !nextDate`, where `nextDate =
+      allDates.find(d => d >= todayISO) ?? null`. If `allDates` is ever
+      empty (an active season with zero `Schedule` rows), `nextDate` is
+      `null` and this reads as "season complete" instead of "not scheduled
+      yet." `LeagueSchedule.astro` was fixed to require
+      `dates.length > 0 && dates.every(...)`; this component was never
+      touched and needs the same fix (plus probably its own "No games
+      scheduled yet" state, matching `LeagueSchedule.astro`'s). Currently
+      showing correctly by coincidence (Spring 2026 really has ended), not
+      because the logic is actually safe against an empty schedule. Found
+      2026-09-01 while reviewing the google-sheets-schedule → develop merge
+      locally, before push — deliberately not fixed as part of that merge.
 - [ ] **Dead per-club `contact` addresses** in `src/data/teams.ts` (9 remaining,
       e.g. `solsisters@azgyl.com`). Nothing renders this field — it is unused
       data. Either wire it into the team cards or drop it.
+- [ ] **Stale duplicate CSS in `global.css` for components that now have
+      their own scoped `<style>`.** Confirmed twice so far: `SiteFooter.astro`
+      (found + removed in 3.12 — it's what caused the logo-stacking bug
+      during that fix) and `LeagueSchedule.astro` (found 2026-08-31 while
+      adding desktop game-notes rendering — global.css's "10. Schedule &
+      Standings" section still duplicates `.sched-list-header`, `.sl-matchup`,
+      `.game-note`, etc., with slightly different values in places). Hasn't
+      caused a second visible bug yet, but it's the exact same landmine
+      shape — a scoped rule that doesn't happen to redeclare every property
+      the stale global rule sets will silently inherit the stale value.
+      Worth an actual audit: check every component with its own `<style>`
+      block against global.css for a leftover duplicate section, not just
+      react to the next one that bites.
 - [x] **Hero photography.** All 10 hero slots replaced with real AZGYL game
       photos (2026 photo drop) — no more purple-banner clash, and each page
       now has its own distinct photo instead of sharing one of 3 files across
       up to 3 pages. See `CHANGELOG.md` for the full list.
+- [ ] **Age chart division mismatch.** `AgeChart.astro` (the on-page table at
+      `/resources#age-chart`) only shows 4 grade-based rows, K–2 through 7–8
+      (8U–14U) — matching the "Grades K–8 only" language stated as policy
+      elsewhere on the site (README's bylaw list, homepage, `/resources`,
+      `/parents`). The downloadable chart (`azgyl-age-chart-2026.pdf`/`.jpg`)
+      goes further — a birth-year grid covering 6U through **18U**. Confirmed
+      2026-08-31 that the graphic is correct and the league now goes past 8th
+      grade; the on-page table and the K–8 bylaw text were deliberately left
+      unchanged pending the real grade/age mapping for the added divisions
+      (15U–18U) — grade doesn't translate to birth-year cleanly (redshirting,
+      cutoffs), and a birth-year table would need updating every year, so
+      don't just transcribe the PDF's rows without checking with the board
+      first. Needs: the real mapping, and updated bylaw wording, before either
+      is edited.
+- [x] **Boundaries hidden site-wide** (2026-08-31) — not back on the table
+      until spring. All links removed (nav, footer, resource cards,
+      committees); `/boundaries` now redirects to `/teams`
+      (`astro.config.mjs`). Page source preserved at
+      `src/pages/_disabled/boundaries.astro` — see the comment at the top of
+      that file for how to restore it.
 
 ---
 

@@ -3,7 +3,7 @@
 // Current week is determined purely by today's date.
 // No results, no status tracking — the schedule just shows games.
 import { scheduleEvents } from '@/data/schedule';
-import { getFieldById }   from '@/data/fields';
+import { getVenueById }   from '@/data/venues';
 
 const DIV_ORDER = ['8U', '10U', '12U', '14U'];
 
@@ -11,6 +11,10 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   const games     = event.games;
   const dates     = [...new Set(games.map(g => g.date))].sort();
   const divisions = DIV_ORDER.filter(d => games.some(g => g.division === d));
+  // Built from this event's own games, not the full roster in teams.ts —
+  // not every team plays every season, so the filter should only ever
+  // offer teams that actually show up here.
+  const teamNames = [...new Set(games.flatMap(g => [g.home, g.away]))].sort();
 
   // Today in YYYY-MM-DD local time
   const todayISO = new Date().toLocaleDateString('en-CA');
@@ -18,17 +22,28 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   // Current week = soonest game date on or after today.
   // Falls back to last date when season is over.
   const currentDate = dates.find(d => d >= todayISO) ?? dates[dates.length - 1];
-  const seasonOver  = dates.every(d => d < todayISO);
+  // `dates.every(...)` on an empty array is vacuously true in JS — an
+  // active event with zero games (Schedule tab has a season row but no
+  // game rows yet, or every game row failed to parse) would otherwise
+  // read as "season complete" instead of "nothing scheduled yet". Those
+  // are different states and shouldn't share a banner.
+  const seasonOver  = dates.length > 0 && dates.every(d => d < todayISO);
 
-  const fmtDate   = (iso: string) =>
+  const fmtDate     = (iso: string) =>
     new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric',
     });
-  const fieldName = (id: string) => getFieldById(id)?.label ?? getFieldById(id)?.name ?? id;
-  const mapUrl    = (id: string) => getFieldById(id)?.mapUrl ?? '#';
-  const fieldNote = (id: string) => getFieldById(id)?.notes ?? '';
+  const venueName    = (id: string) => getVenueById(id)?.name ?? id;
+  const venueAddress = (id: string) => getVenueById(id)?.address ?? '';
+  const mapUrl        = (id: string) => getVenueById(id)?.mapUrl ?? '#';
+  // `override` is a game's own fieldMapUrl/venueNotes, typed on the sheet
+  // alongside `venue` and filled down the same block — wins over the
+  // hardcoded venues.ts value when present, since it's the more current
+  // one.
+  const venueMapImg   = (id: string, override?: string) => override || getVenueById(id)?.fieldMapUrl || '';
+  const venueNote     = (id: string, override?: string) => override || getVenueById(id)?.notes || '';
 
-  return { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldName, mapUrl, fieldNote, todayISO };
+  return { games, dates, divisions, teamNames, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO };
 }
 
 const activeEvents = scheduleEvents.filter(e => e.active);
@@ -40,14 +55,14 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       <div class="info-panel">
         <div class="section-kicker">No active events</div>
         <h3>Schedule coming soon</h3>
-        <p>Open <code>src/data/schedule.ts</code>, add games, and set <code>active: true</code>.</p>
+        <p>Add a season and its games in the Schedule Google Sheet and mark it <code>active</code> — see <code>GOOGLE_SHEETS_SETUP.md</code>.</p>
       </div>
     </div>
   </section>
 )}
 
 {activeEvents.map(event => {
-  const { games, dates, divisions, currentDate, seasonOver, fmtDate, fieldName, mapUrl, fieldNote, todayISO } = buildEventData(event);
+  const { games, dates, divisions, teamNames, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO } = buildEventData(event);
 
   return (
     <section class="league-sched-section">
@@ -63,6 +78,19 @@ const activeEvents = scheduleEvents.filter(e => e.active);
           </div>
         )}
 
+        {/* An active event with zero games — a season row exists in the
+            sheet but the Schedule tab has no game rows for it yet (or
+            none parsed) — gets its own notice instead of an empty filter
+            bar with nothing beneath it. */}
+        {dates.length === 0 && (
+          <div class="info-panel">
+            <div class="section-kicker">{event.name}</div>
+            <h3>No games scheduled yet</h3>
+            <p>This season is active but the Schedule tab doesn't have any games for it yet.</p>
+          </div>
+        )}
+
+        {dates.length > 0 && (<>
         {/* ── Filter bar ─────────────────────────── */}
         <div class="sched-filters" data-sched-filters={event.id}>
 
@@ -79,12 +107,13 @@ const activeEvents = scheduleEvents.filter(e => e.active);
           <div class="sched-filter-row">
             <span class="sched-filter-label">Week</span>
             <div class="sched-filter-tabs" role="tablist" aria-label="Filter by week">
+              <button class="sched-tab" data-week-filter="all" role="tab" aria-selected="false">All</button>
               {dates.map((date, i) => {
                 const isPast    = date < todayISO;
                 const isCurrent = date === currentDate;
                 return (
                   <button
-                    class={`sched-tab${isCurrent ? ' sched-tab--active' : ''}${isPast && !isCurrent ? ' sched-tab--past' : ''}`}
+                    class={`sched-tab${isCurrent ? ' sched-tab--active' : ''}${isPast ? ' sched-tab--past' : ''}`}
                     data-week-filter={date}
                     role="tab"
                     aria-selected={isCurrent ? 'true' : 'false'}
@@ -97,13 +126,39 @@ const activeEvents = scheduleEvents.filter(e => e.active);
             </div>
           </div>
 
+          <div class="sched-filter-row">
+            <span class="sched-filter-label">Team</span>
+            <div class="sched-filter-tabs" role="tablist" aria-label="Filter by team">
+              <button class="sched-tab sched-tab--active" data-team-filter="all" role="tab" aria-selected="true">All</button>
+              {teamNames.map(team => (
+                <button class="sched-tab" data-team-filter={team} role="tab" aria-selected="false">{team}</button>
+              ))}
+            </div>
+          </div>
+
         </div>
 
         {/* ── One panel per week ─────────────────── */}
         {dates.map((date, weekIdx) => {
           const dayGames = games.filter(g => g.date === date);
-          const venue    = getFieldById(dayGames[0]?.field)?.venue ?? '';
           const isPast   = date < todayISO;
+
+          // Group by venue — usually one group (the whole league at one
+          // host site), but divisions can legitimately be at different
+          // venues the same day. Each group gets its own venue heading
+          // (map link + warning + field map) shown once, however many
+          // games are in it — never repeated per row. Grouping key is the
+          // venue id straight off each game — no lookup needed to know
+          // which games share a venue.
+          const venueGroups: { venue: string; games: typeof dayGames }[] = [];
+          for (const g of dayGames) {
+            let group = venueGroups.find(vg => vg.venue === g.venue);
+            if (!group) {
+              group = { venue: g.venue, games: [] };
+              venueGroups.push(group);
+            }
+            group.games.push(g);
+          }
 
           return (
             <div
@@ -117,74 +172,113 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                     {isPast && <span class="week-status-past">Past</span>}
                   </span>
                   <h3 class="sched-day-date">{fmtDate(date)}</h3>
-                  {venue && <span class="sched-day-venue">{venue}</span>}
                 </div>
               </div>
 
-              {/* Game list — CSS grid rows, no table */}
-              <div class="sched-list" role="list" aria-label={`Week ${weekIdx + 1} schedule`}>
-                <div class="sched-list-header" aria-hidden="true">
-                  <span>Div</span>
-                  <span>Start</span>
-                  <span>Matchup</span>
-                  <span class="sl-field-head">Field</span>
-                </div>
-                {dayGames.map(g => (
-                  <div class="sched-row" role="listitem" data-division={g.division}>
-                    <span class="sl-div"><span class="div-chip">{g.division}</span></span>
-                    <span class="sl-time">
-                      <strong>{g.time}</strong>
-                      {g.arrival && <span class="sl-arrive">{g.arrival} arrival</span>}
-                    </span>
-                    <span class="sl-matchup">
-                      <span class="sl-home">{g.home}</span>
-                      <span class="sl-vs">vs</span>
-                      <span class="sl-away">{g.away}</span>
-                    </span>
-                    <span class="sl-field">
-                      <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="sl-field-link">
-                        {fieldName(g.field)}
+              {venueGroups.map(group => (
+                <div class="sched-venue-group">
+                  {group.venue && (
+                    <div class="sched-day-venue-row">
+                      <a class="sched-day-venue" href={mapUrl(group.venue)} target="_blank" rel="noreferrer">
+                        {venueName(group.venue)}
                       </a>
-                      {fieldNote(g.field).startsWith('⚠️') && (
-                        <span class="field-warn" title={fieldNote(g.field)}>⚠️</span>
+                      {venueMapImg(group.venue, group.games[0]?.fieldMapUrl) && (
+                        <a class="sched-day-fieldmap" href={venueMapImg(group.venue, group.games[0]?.fieldMapUrl)} target="_blank" rel="noreferrer">
+                          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M7 3.5 3 5v11.5l4-1.5 6 2 4-1.5V4l-4 1.5-6-2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M7 3.5v11.5M13 5.5V17" stroke="currentColor" stroke-width="1.4"/>
+                          </svg>
+                          Field map
+                        </a>
                       )}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                      {venueNote(group.venue, group.games[0]?.venueNotes) && (
+                        <details class="sched-venue-notes">
+                          <summary>Notes</summary>
+                          <p>{venueNote(group.venue, group.games[0]?.venueNotes)}</p>
+                        </details>
+                      )}
+                    </div>
+                  )}
+                  {venueAddress(group.venue) && (
+                    <p class="sched-day-address">{venueAddress(group.venue)}</p>
+                  )}
 
-              {/* Mobile cards */}
-              <div class="sched-cards">
-                {dayGames.map(g => (
-                  <div class="sched-card" data-division={g.division}>
-                    <div class="scard-top">
-                      <div class="scard-meta">
-                        <span class="div-chip">{g.division}</span>
-                        <span class="scard-time">{g.time}</span>
-                        {g.arrival && <span class="scard-arrive">Arrive {g.arrival}</span>}
+                  {/* Game list — CSS grid rows, no table */}
+                  <div class="sched-list" role="list" aria-label={`Week ${weekIdx + 1} schedule, ${venueName(group.venue)}`}>
+                    <div class="sched-list-header" aria-hidden="true">
+                      <span>Div</span>
+                      <span>Start</span>
+                      <span>Matchup</span>
+                      <span class="sl-field-head">Field</span>
+                    </div>
+                    {group.games.map(g => (
+                      <div class="sched-row" role="listitem" data-division={g.division} data-home={g.home} data-away={g.away}>
+                        <span class="sl-div"><span class="div-chip">{g.division}</span></span>
+                        <span class="sl-time">
+                          <strong>{g.time}</strong>
+                          {g.arrival && <span class="sl-arrive">{g.arrival} arrival</span>}
+                        </span>
+                        <span class="sl-matchup">
+                          <span class="sl-home">{g.home}</span>
+                          <span class="sl-vs">vs</span>
+                          <span class="sl-away">{g.away}</span>
+                          {g.gameNotes && <span class="game-note">{g.gameNotes}</span>}
+                        </span>
+                        <span class="sl-field">{g.field}</span>
                       </div>
-                    </div>
-                    <div class="scard-matchup">
-                      <span class="scard-home">{g.home}</span>
-                      <span class="scard-vs">vs</span>
-                      <span class="scard-away">{g.away}</span>
-                    </div>
-                    <a href={mapUrl(g.field)} target="_blank" rel="noreferrer" class="scard-field field-link">
-                      📍 {fieldName(g.field)}
-                    </a>
-                    {g.notes && <div class="scard-note">{g.notes}</div>}
+                    ))}
                   </div>
-                ))}
-              </div>
+
+                  {/* Mobile cards */}
+                  <div class="sched-cards">
+                    {group.games.map(g => (
+                      <div class="sched-card" data-division={g.division}>
+                        <div class="scard-top">
+                          <div class="scard-meta">
+                            <span class="div-chip">{g.division}</span>
+                            <span class="scard-time">{g.time}</span>
+                            {g.arrival && <span class="scard-arrive">Arrive {g.arrival}</span>}
+                          </div>
+                        </div>
+                        <div class="scard-matchup">
+                          <span class="scard-home">{g.home}</span>
+                          <span class="scard-vs">vs</span>
+                          <span class="scard-away">{g.away}</span>
+                        </div>
+                        <span class="scard-field">{g.field}</span>
+                        {g.gameNotes && <div class="scard-note">{g.gameNotes}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
             </div>
           );
         })}
+        </>)}
 
       </div>
     </section>
   );
 })}
+
+{/* Single reusable lightbox for every "Field map" link on the page —
+    populated with whichever image was clicked (see the script below). */}
+<div class="fieldmap-lightbox" id="fieldmap-lightbox" hidden>
+  <button type="button" class="fieldmap-lightbox-backdrop" aria-label="Close field map"></button>
+  <figure class="fieldmap-lightbox-figure">
+    <button type="button" class="fieldmap-lightbox-close" aria-label="Close field map">&times;</button>
+    <img class="fieldmap-lightbox-img" src="" alt="Field map" />
+    {/* Shown instead of the image if it fails to load (e.g. a Drive
+        hiccup) — the link still opens the source directly rather than
+        leaving a permanently broken image icon with no way forward. */}
+    <p class="fieldmap-lightbox-fallback" hidden>
+      Couldn't load the field map image.
+      <a class="fieldmap-lightbox-fallback-link" href="" target="_blank" rel="noreferrer">Open it directly</a>
+    </p>
+  </figure>
+</div>
 
 <script is:inline>
 (function () {
@@ -193,7 +287,16 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     if (!section) return;
 
     var activeDiv  = 'all';
+    var activeTeam = 'all';
     var activeWeek = (section.querySelector('.sched-day:not(.sched-day--hidden)') || {}).dataset?.weekDate || '';
+
+    // Division, Week, and Team all combine (AND) — a row has to satisfy
+    // whichever of the three are active, not just one of them.
+    function rowMatches(el) {
+      var divMatch  = activeDiv === 'all' || el.dataset.division === activeDiv;
+      var teamMatch = activeTeam === 'all' || el.dataset.home === activeTeam || el.dataset.away === activeTeam;
+      return divMatch && teamMatch;
+    }
 
     function applyFilters() {
       section.querySelectorAll('.sched-day').forEach(function (day) {
@@ -201,7 +304,16 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       });
       section.querySelectorAll('.sched-day:not(.sched-day--hidden)').forEach(function (day) {
         day.querySelectorAll('[data-division]').forEach(function (el) {
-          el.style.display = (activeDiv === 'all' || el.dataset.division === activeDiv) ? '' : 'none';
+          el.style.display = rowMatches(el) ? '' : 'none';
+        });
+        // A venue group can end up with every one of its games filtered
+        // out (e.g. a division-only host at a venue, filtered to a
+        // different division, or a team that didn't play there) — hide
+        // the whole group, not just leave its heading sitting above an
+        // empty table.
+        day.querySelectorAll('.sched-venue-group').forEach(function (group) {
+          var hasMatch = Array.prototype.some.call(group.querySelectorAll('[data-division]'), rowMatches);
+          group.style.display = hasMatch ? '' : 'none';
         });
       });
     }
@@ -217,9 +329,20 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       });
     });
 
+    filterRoot.querySelectorAll('[data-team-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeTeam = btn.dataset.teamFilter;
+        filterRoot.querySelectorAll('[data-team-filter]').forEach(function (b) {
+          b.classList.toggle('sched-tab--active', b === btn);
+          b.setAttribute('aria-selected', String(b === btn));
+        });
+        applyFilters();
+      });
+    });
+
     filterRoot.querySelectorAll('[data-week-filter]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        activeWeek = btn.dataset.weekFilter;
+        activeWeek = btn.dataset.weekFilter === 'all' ? '' : btn.dataset.weekFilter;
         filterRoot.querySelectorAll('[data-week-filter]').forEach(function (b) {
           b.classList.toggle('sched-tab--active', b === btn);
           b.setAttribute('aria-selected', String(b === btn));
@@ -228,6 +351,94 @@ const activeEvents = scheduleEvents.filter(e => e.active);
       });
     });
   });
+
+  // Notes popover: left-anchored by default. Venue names of varying
+  // length put the button at an unpredictable horizontal position, so on
+  // narrow screens the box can run past the right edge of the viewport —
+  // shift it left by exactly the overflow amount (never more, so it can
+  // never push past the LEFT edge either: shifting by the full overflow
+  // always lands the box's left edge at `innerWidth - boxWidth`, which is
+  // safe as long as the box itself is narrower than the viewport, which
+  // its max-width already guarantees). The caret gets nudged the same
+  // amount in the opposite direction so it still points at the button.
+  // Recomputed on open AND on window resize — a box left open while the
+  // window is dragged narrower (or the device rotates) would otherwise
+  // keep whatever shift (or none) was correct for the old width.
+  function applyNotesOverflowShift(details) {
+    var p = details.querySelector('p');
+    if (!p) return;
+    p.style.transform = '';
+    p.style.removeProperty('--caret-shift');
+    if (!details.open) return;
+    var overflow = p.getBoundingClientRect().right - window.innerWidth + 8;
+    if (overflow > 0) {
+      p.style.transform = 'translateX(-' + overflow + 'px)';
+      p.style.setProperty('--caret-shift', overflow + 'px');
+    }
+  }
+  var allNotes = document.querySelectorAll('.sched-venue-notes');
+  allNotes.forEach(function (details) {
+    details.addEventListener('toggle', function () { applyNotesOverflowShift(details); });
+  });
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      allNotes.forEach(function (details) {
+        if (details.open) applyNotesOverflowShift(details);
+      });
+    }, 100);
+  });
+
+  // Field map lightbox — one shared overlay, populated from whichever
+  // "Field map" link was clicked. Falls back to opening the image in a
+  // new tab (the link's normal target="_blank" behavior) if the lightbox
+  // markup isn't on the page for some reason.
+  var lightbox = document.getElementById('fieldmap-lightbox');
+  if (lightbox) {
+    var lightboxImg      = lightbox.querySelector('.fieldmap-lightbox-img');
+    var lightboxFallback = lightbox.querySelector('.fieldmap-lightbox-fallback');
+    var lightboxFallbackLink = lightbox.querySelector('.fieldmap-lightbox-fallback-link');
+    var openerEl = null;
+
+    // A failed image load (e.g. a transient hiccup from whatever's
+    // hosting it) used to leave a permanently broken icon with no way
+    // forward — swap in a link to open the source directly instead.
+    lightboxImg.addEventListener('error', function () {
+      if (!lightboxImg.src) return; // src cleared on close — not a real failure
+      lightboxImg.hidden = true;
+      lightboxFallbackLink.href = lightboxImg.src;
+      lightboxFallback.hidden = false;
+    });
+
+    function openLightbox(href, opener) {
+      lightboxImg.hidden = false;
+      lightboxFallback.hidden = true;
+      lightboxImg.src = href;
+      lightbox.hidden = false;
+      document.body.style.overflow = 'hidden';
+      openerEl = opener || null;
+      lightbox.querySelector('.fieldmap-lightbox-close').focus();
+    }
+    function closeLightbox() {
+      lightbox.hidden = true;
+      lightboxImg.src = '';
+      document.body.style.overflow = '';
+      if (openerEl) openerEl.focus();
+    }
+
+    document.querySelectorAll('.sched-day-fieldmap').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        openLightbox(link.href, link);
+      });
+    });
+    lightbox.querySelector('.fieldmap-lightbox-backdrop').addEventListener('click', closeLightbox);
+    lightbox.querySelector('.fieldmap-lightbox-close').addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+    });
+  }
 })();
 </script>
 
@@ -262,13 +473,6 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     transition: background .15s, color .15s, border-color .15s;
   }
   .sched-tab:hover   { background: var(--surface-soft); color: var(--text); border-color: var(--text); }
-  /* Active: solid filled — no opacity, full contrast */
-  .sched-tab--active {
-    background: var(--charcoal);
-    color: #fff;
-    border-color: var(--charcoal);
-    font-weight: 700;
-  }
   /* Past weeks: slightly muted text, still fully legible */
   .sched-tab--past {
     color: var(--soft);
@@ -276,8 +480,26 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     border-color: var(--line-strong);
   }
   .sched-tab--past:hover { color: var(--text); background: var(--surface-soft); }
+  /* Active: solid filled — no opacity, full contrast. Declared after
+     --past so a week that's both past AND active (e.g. the season's
+     last week, active by default) still renders active — a button can
+     carry both classes at once since --past is baked in server-side
+     purely from the date, independent of which week is selected. */
+  .sched-tab--active {
+    background: var(--charcoal);
+    color: #fff;
+    border-color: var(--charcoal);
+    font-weight: 700;
+  }
 
   /* ── Day panel ───────────────────────────────── */
+  /* Only one panel used to ever be visible at a time, so there was never
+     a need for space between them — now that the Week filter's "All"
+     option shows every week stacked, consecutive panels need real
+     separation. Doesn't affect the single-panel view beyond a little
+     trailing space before whatever section comes next. */
+  .sched-day { margin-bottom: 3rem; padding-bottom: 3rem; border-bottom: 1px solid var(--line); }
+  .sched-day:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
   .sched-day--hidden { display: none; }
   .sched-day-hdr { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 2px solid var(--line); }
   .sched-day-week { display: block; font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--rose-deep); margin-bottom: .2rem; }
@@ -289,7 +511,108 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     vertical-align: middle; border: 1px solid var(--line);
   }
   .sched-day-date  { margin: 0 0 .2rem; font-size: 1.3rem; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
-  .sched-day-venue { font-size: .88rem; color: var(--muted); }
+  /* One block per venue that day — almost always just one, but can be more
+     when divisions are hosted at different parks the same day. */
+  .sched-venue-group + .sched-venue-group { margin-top: 2rem; }
+  .sched-day-venue-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .3rem; }
+  .sched-day-address { font-size: .82rem; color: var(--soft); margin-bottom: .85rem; }
+  .sched-day-venue {
+    font-size: .88rem;
+    color: var(--rose-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .sched-day-venue:hover { text-decoration: underline; }
+  /* Filled/tinted, with an icon — deliberately a different treatment
+     from the outlined "Notes" toggle next to it, so the two don't read
+     as the same kind of control (one opens an image, the other reveals
+     text inline). */
+  .sched-day-fieldmap {
+    display: inline-flex;
+    align-items: center;
+    gap: .32rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--rose-deep);
+    text-decoration: none;
+    background: var(--rose-bg);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: .15rem .7rem .15rem .55rem;
+    transition: background .15s, border-color .15s;
+  }
+  .sched-day-fieldmap svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .sched-day-fieldmap:hover { background: var(--rose-deep); color: #fff; }
+  /* Click-to-open, not a hover tooltip — shows for any venue note, not
+     just ones that happen to sound like a warning. The revealed text is a
+     floating popover anchored to the button (position:relative on the
+     <details>, position:absolute on the <p>) rather than part of normal
+     flex flow — the button's own position never changes between closed
+     and open, only a small card appears near it. */
+  .sched-venue-notes { position: relative; }
+  .sched-venue-notes summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: .15rem .6rem .15rem .7rem;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .sched-venue-notes summary::-webkit-details-marker { display: none; }
+  .sched-venue-notes summary::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-1px);
+    transition: transform .15s;
+  }
+  .sched-venue-notes[open] summary::after { transform: rotate(-135deg) translateY(1px); }
+  .sched-venue-notes summary:hover,
+  .sched-venue-notes[open] summary {
+    color: var(--rose-deep);
+    border-color: var(--rose-deep);
+    background: var(--rose-bg);
+  }
+  .sched-venue-notes p {
+    position: absolute;
+    top: calc(100% + .65rem);
+    left: 0;
+    z-index: 5;
+    margin: 0;
+    width: max-content;
+    max-width: min(340px, calc(100vw - 2.5rem));
+    padding: .7rem .9rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    font-size: .82rem;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  /* Caret pointing back up at the button, so the popover reads as
+     anchored to it rather than a stray floating box. Shifted right by
+     JS (via --caret-shift, clamped to the box's own width) whenever the
+     box itself got nudged left to stay clear of the viewport edge — see
+     the toggle listener below. */
+  .sched-venue-notes p::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: min(calc(16px + var(--caret-shift, 0px)), calc(100% - 28px));
+    width: 11px; height: 11px;
+    background: var(--surface);
+    border-left: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+    transform: rotate(45deg);
+  }
 
   /* ── Game list ───────────────────────────────── */
   .sched-list {
@@ -343,11 +666,11 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   .sl-vs      { font-size: .68rem; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
   .sl-away    { color: var(--text); font-size: .9rem; }
 
-  .sl-field       { display: flex; align-items: center; justify-content: flex-end; gap: .3rem; }
-  .sl-field-link  { font-size: .84rem; color: var(--rose-deep); text-decoration: none; font-weight: 600; white-space: nowrap; }
-  .sl-field-link:hover { text-decoration: underline; }
-  .field-warn     { cursor: help; flex-shrink: 0; }
-  .game-note      { font-size: .7rem; color: var(--soft); font-style: italic; }
+  .sl-field       { font-size: .84rem; color: var(--muted); text-align: right; white-space: nowrap; }
+  /* flex-basis:100% forces this onto its own line within .sl-matchup's
+     wrapping flex row, below the home/vs/away, without needing a separate
+     grid column — was styled but never rendered until now (see CHANGELOG). */
+  .game-note      { font-size: .7rem; color: var(--soft); font-style: italic; flex-basis: 100%; margin-top: .1rem; }
 
   /* ── Mobile cards ────────────────────────────── */
   .sched-cards { display: none; flex-direction: column; gap: .6rem; }
@@ -368,4 +691,72 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     .sched-cards { display: flex; }
     .sched-filter-label { min-width: 50px; }
   }
+
+  /* ── Field map lightbox ──────────────────────── */
+  /* The [hidden] attribute is how the script shows/hides this — its
+     default `display:none` UA rule loses to any author rule setting
+     `display` on the same element, so the non-hidden layout has to be
+     scoped to :not([hidden]) or it renders open on every page load. */
+  .fieldmap-lightbox:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 5vw, 48px);
+  }
+  .fieldmap-lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(20, 16, 14, 0.78);
+    cursor: pointer;
+  }
+  .fieldmap-lightbox-figure {
+    position: relative;
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    line-height: 0;
+  }
+  .fieldmap-lightbox-img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - clamp(32px, 10vw, 96px));
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+  }
+  .fieldmap-lightbox-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+  }
+  .fieldmap-lightbox-close:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
+  .fieldmap-lightbox-fallback {
+    margin: 0;
+    padding: 2.5rem 3rem;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    color: var(--muted);
+    font-size: .9rem;
+    text-align: center;
+    max-width: 320px;
+  }
+  .fieldmap-lightbox-fallback-link { display: inline-block; margin-top: .5rem; color: var(--rose-deep); font-weight: 700; }
 </style>

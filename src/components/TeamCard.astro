@@ -2,11 +2,12 @@
 interface Props {
   team: {
     name: string;
-    notes: string;
+    notes?: string;
     city: string;
-    district: string;
+    district?: string;
     area?: string;
     divisions: string[];
+    zipcode?: string[];
     href: string;
     logo?: string;
     color?: string;
@@ -20,10 +21,10 @@ const { team, compact = false } = Astro.props;
     {team.logo && <img class="team-logo" src={team.logo} alt="" loading="lazy" />}
     <div>
       <h3>{team.name}</h3>
-      <div class="team-meta">{team.city} · {team.district}</div>
+      <div class="team-meta">{team.district ? `${team.city} · ${team.district}` : team.city}</div>
     </div>
   </div>
-  <p>{team.notes}</p>
+  {team.notes && <p>{team.notes}</p>}
   {!compact && <div class="team-meta soft">{team.divisions.join(' · ')}</div>}
   <div class="team-actions">
     <a class="button button-outline button-sm" href={team.href} target="_blank" rel="noreferrer">View program</a>

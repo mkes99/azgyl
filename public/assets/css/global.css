@@ -201,7 +201,6 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .metrics-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.25rem; }
 .team-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.25rem; }
 .leadership-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.25rem; }
-.footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem; }
 
 /* Section header patterns */
 .section-header-clean {
@@ -333,7 +332,18 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   transition: background .12s, color .12s;
 }
 .nav-dropdown a:hover { background: rgba(75,76,48,.10); color: var(--olive-deep); }
-.header-actions { display: flex; align-items: center; gap: .75rem; justify-content: flex-end; }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  justify-content: flex-end;
+  /* Pin to the 3rd column explicitly. .desktop-nav (the middle column)
+     is display:none below 960px, which removes it from the grid entirely
+     — without this, auto-placement shifts header-actions into the now-
+     empty middle track, leaving the real 3rd track (and its gap) empty
+     and pushing everything left by one gap-width. */
+  grid-column: 3;
+}
 
 /* Mobile menu */
 .menu-toggle {
@@ -352,7 +362,7 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 .menu-toggle span { display: block; width: 18px; height: 2px; background: var(--olive); border-radius: 2px; }
 .mobile-menu { background: var(--cream-soft); border-top: 1px solid var(--cream-line); }
 .mobile-menu-inner { display: grid; gap: .2rem; padding: 1rem 0 1.25rem; }
-.mobile-menu a,
+.mobile-menu a:not(.button),
 .mobile-group summary {
   color: var(--olive);
   font-weight: 600;
@@ -364,7 +374,7 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
   transition: color .12s;
 }
 .mobile-group summary::-webkit-details-marker { display: none; }
-.mobile-menu a:hover,
+.mobile-menu a:not(.button):hover,
 .mobile-group summary:hover { color: var(--rose-deep); }
 .mobile-subnav { padding-left: 1rem; display: grid; gap: .15rem; }
 .mobile-subnav a { color: var(--muted); font-weight: 500; padding: .5rem 0; font-size: .88rem; }
@@ -380,53 +390,12 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
 /* ─────────────────────────────────────────────────────────
    5. FOOTER
    ───────────────────────────────────────────────────────── */
-
-.site-footer {
-  background: var(--cream);
-  color: var(--muted);
-  border-top: 1px solid var(--cream-line);
-  padding-top: 4rem;
-}
-.footer-brand-block { display: flex; flex-direction: column; gap: .75rem; }
-.footer-brand img {
-  height: 104px;
-  width: auto;
-  max-width: 300px;
-  object-fit: contain;
-}
-.footer-tagline { font-weight: 600; color: var(--olive-deep); }
-.footer-badge {
-  display: flex; align-items: center; gap: .5rem;
-  font-size: .72rem; color: var(--soft);
-  letter-spacing: .06em; text-transform: uppercase;
-  margin-top: .5rem;
-}
-.footer-badge-dot { color: var(--rose); }
-.footer-title {
-  font-size: .7rem; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
-  color: var(--olive);
-  margin-bottom: 1rem;
-}
-.footer-links { display: grid; gap: .55rem; }
-.footer-links a { color: var(--muted); font-size: .9rem; transition: color .15s; }
-.footer-links a:hover { color: var(--rose-deep); }
-.footer-divider { border: none; border-top: 1px solid var(--cream-line); margin-top: 3rem; }
-.footer-bottom {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 1rem;
-  padding: 1.2rem 0;
-  font-size: .8rem;
-  color: var(--soft);
-}
-.footer-bottom a { color: var(--muted); transition: color .15s; }
-.footer-bottom a:hover { color: var(--rose-deep); }
-.footer-legal {
-  padding-top: 1rem; margin-top: 2rem;
-  border-top: 1px solid var(--cream-line);
-  color: var(--soft);
-  font-size: .82rem;
-}
+/* Footer styling lives entirely in SiteFooter.astro's own scoped <style> —
+   this section intentionally left empty. A stale duplicate copy used to
+   live here (pre-dating that scoped block) and silently fought it on
+   properties the scoped rules didn't happen to redeclare (e.g.
+   flex-direction) — removed 2026-08-31. If you're adding footer styles,
+   they belong in the component, not here. */
 
 /* ─────────────────────────────────────────────────────────
    6. BUTTONS
@@ -701,7 +670,7 @@ section { padding: clamp(64px, 8vw, 100px) 0; }
    9. FORMS
    ───────────────────────────────────────────────────────── */
 
-.contact-layout { display: grid; grid-template-columns: 1fr 320px; gap: 3rem; align-items: start; }
+.contact-form-wrap { max-width: 720px; }
 .contact-form-inner { display: grid; gap: 1.1rem; }
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 
@@ -981,6 +950,8 @@ select { cursor: pointer; }
 .team-finder-inline { padding: 0; background: transparent; border: 0; box-shadow: none; }
 .team-finder-inline .team-finder-form { padding: 0 1.2rem 1.2rem; border: 0; background: transparent; }
 .team-finder-inline + .team-grid { margin-top: .5rem; }
+/* Directory filter hidden for the time being — remove this rule to bring it back */
+.team-finder-inline { display: none; }
 .team-finder-head { margin-bottom: 1.25rem; }
 .team-finder-title { font-size: 1rem; font-weight: 700; margin-bottom: .2rem; }
 .team-finder-intro { color: var(--muted); font-size: .88rem; }
@@ -1070,6 +1041,7 @@ select { cursor: pointer; }
 }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item summary:hover { background: var(--surface-soft); }
+.faq-item[open] summary:hover { background: transparent; }
 .faq-item summary span { flex: 1; }
 .faq-item summary::after {
   content: '+';
@@ -1092,10 +1064,8 @@ select { cursor: pointer; }
 }
 .boundary-map { width: 100%; border-radius: var(--radius); }
 
-/* Contact aside */
-.contact-aside { display: grid; gap: 1rem; }
-.contact-aside-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 0; }
-.contact-aside-title-wrap { margin-bottom: 0; }
+/* Contact — common topics grid */
+.topics-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; }
 
 /* Homepage schedule preview */
 .hsp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
@@ -1135,14 +1105,13 @@ select { cursor: pointer; }
    ───────────────────────────────────────────────────────── */
 
 @media (max-width: 1080px) {
-  .contact-layout { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr 1fr; }
   .section-header-clean { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 960px) {
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
   .team-grid { grid-template-columns: repeat(2, 1fr); }
+  .topics-grid { grid-template-columns: repeat(2, 1fr); }
   .desktop-nav { display: none; }
   .menu-toggle { display: flex; }
   .finder-grid-parents { grid-template-columns: 1fr; }
@@ -1154,6 +1123,7 @@ select { cursor: pointer; }
   .two-col { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .resources-cards { grid-template-columns: 1fr; }
+  .topics-grid { grid-template-columns: 1fr; }
   .hsp-grid { grid-template-columns: 1fr 1fr; }
 }
 
@@ -1163,7 +1133,5 @@ select { cursor: pointer; }
   .leadership-grid { grid-template-columns: 1fr; }
   .standings-table-shell { display: none; }
   .standings-cards { display: flex; }
-  .footer-grid { grid-template-columns: 1fr; }
-  .footer-bottom { flex-direction: column; align-items: flex-start; gap: .5rem; }
   .hsp-grid { grid-template-columns: 1fr; }
 }

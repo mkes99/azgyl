@@ -14,13 +14,14 @@ import ContactAside from '@/components/ContactAside.astro';
   />
 
   <section>
-    <div class="container contact-layout">
-      <div class="contact-form-column">
-        <ContactForm />
-      </div>
-      <div class="contact-aside">
-        <ContactAside />
-      </div>
+    <div class="container contact-form-wrap">
+      <ContactForm />
+    </div>
+  </section>
+
+  <section class="section-alt">
+    <div class="container">
+      <ContactAside />
     </div>
   </section>
 </BaseLayout>

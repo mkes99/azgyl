@@ -1,6 +1,14 @@
 ---
 import { siteMeta, parentNav, resourceNav } from '@/data/site-meta';
 import { officialLinks } from '@/data/official-links';
+import SocialIcons from '@/components/SocialIcons.astro';
+
+// Age chart / Code of conduct already appear in the Parents column right
+// next to this one — skip them here so the two columns don't drift apart in
+// height over duplicate content.
+const footerResourceNav = resourceNav.filter(item =>
+  !['/resources', '/resources#age-chart', '/resources#code-of-conduct'].includes(item.href)
+);
 ---
 <footer class="site-footer">
   <div class="container footer-grid">
@@ -9,14 +17,19 @@ import { officialLinks } from '@/data/official-links';
       <a class="footer-brand" href="/" aria-label="AZGYL home">
         <img src="/assets/brand/logo-transparent.webp" alt="AZGYL — Arizona Girls Youth Lacrosse" width="240" height="250" loading="lazy" />
       </a>
-      <p class="footer-tagline">{siteMeta.tagline}</p>
-      <p>The governing body for girls youth recreational lacrosse across Arizona — grades K through 8.</p>
-      <div class="footer-badge">
-        <span>Est. Arizona</span>
-        <span class="footer-badge-dot">·</span>
-        <span>Grades K–8</span>
-        <span class="footer-badge-dot">·</span>
-        <span>Non-profit</span>
+      <div class="footer-brand-copy">
+        <p class="footer-tagline">{siteMeta.tagline}</p>
+        <p>The governing body for girls youth recreational lacrosse across Arizona — grades K through 8.</p>
+        <div class="footer-badge">
+          <span>Est. Arizona</span>
+          <span class="footer-badge-dot">·</span>
+          <span>Grades K–8</span>
+          <span class="footer-badge-dot">·</span>
+          <span>Non-profit</span>
+        </div>
+        <div class="footer-social-wrap">
+          <SocialIcons />
+        </div>
       </div>
     </div>
 
@@ -31,7 +44,7 @@ import { officialLinks } from '@/data/official-links';
     <div>
       <div class="footer-title">Resources</div>
       <div class="footer-links">
-        {resourceNav.filter(item => item.href !== '/resources').map(item => (
+        {footerResourceNav.map(item => (
           <a href={item.href}>{item.label}</a>
         ))}
         <a href="/leadership">Leadership</a>
@@ -66,11 +79,23 @@ import { officialLinks } from '@/data/official-links';
     padding-top: 4rem;
     padding-bottom: 0;
   }
+  .footer-brand-block {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .footer-brand-copy { flex: 1 1 240px; min-width: 200px; }
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.6fr 1fr 1fr 1fr;
-    gap: 3rem;
+    /* minmax floor keeps the brand column wide enough that logo+copy sit
+       side by side (not stacked) at normal desktop widths — see
+       .footer-brand-block below, which still falls back to stacked via
+       flex-wrap once a media query collapses this to fewer columns. */
+    grid-template-columns: minmax(440px, 1.6fr) .5fr .5fr .5fr;
+    gap: 2.5rem;
     padding-bottom: 3rem;
+    align-items: start;
   }
   /* The footer is now the same cream the logo was drawn on, so the mark no
      longer needs its own tile — it sits directly on the background. */
@@ -78,7 +103,6 @@ import { officialLinks } from '@/data/official-links';
     height: 156px;
     width: auto;
     object-fit: contain;
-    margin-bottom: 1rem;
   }
   .footer-tagline {
     font-weight: 600;
@@ -96,6 +120,7 @@ import { officialLinks } from '@/data/official-links';
     text-transform: uppercase;
   }
   .footer-badge-dot { color: #d7657b; }
+  .footer-social-wrap { margin-top: 1.25rem; }
   .footer-title {
     font-size: .72rem;
     font-weight: 700;
@@ -137,10 +162,17 @@ import { officialLinks } from '@/data/official-links';
   .footer-bottom a:hover { color: var(--rose-deep); }
 
   @media (max-width: 960px) {
-    .footer-grid { grid-template-columns: 1fr 1fr; }
+    /* Brand block spans the full row (its own row, logo still left of
+       copy — plenty of room now), nav links drop to their own row below
+       as 3 even columns. */
+    .footer-grid { grid-template-columns: repeat(3, 1fr); }
+    .footer-brand-block { grid-column: 1 / -1; }
   }
   @media (max-width: 580px) {
     .footer-grid { grid-template-columns: 1fr; }
+    /* Force logo-above-copy at this width rather than relying on
+       flex-wrap's own width math — deterministic on narrow phones. */
+    .footer-brand-block { flex-direction: column; align-items: flex-start; }
     .footer-bottom { flex-direction: column; align-items: flex-start; gap: .5rem; }
   }
 </style>

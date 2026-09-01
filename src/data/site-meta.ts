@@ -10,6 +10,13 @@ export const siteMeta = {
   tagline:     'Statewide rec girls lacrosse, built for real families.',
 };
 
+// Social links — referenced from SocialIcons.astro (footer) and the contact
+// page. To add a platform: add an entry here, then add a matching icon to
+// the `icons` map in SocialIcons.astro.
+export const socialLinks = [
+  { platform: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/arizonagirlsyouthlacrosse/' },
+];
+
 // Desktop nav (top-level links + dropdown groups)
 export const primaryNav = [
   { label: 'Parents',    href: '/parents'   },
@@ -34,7 +41,9 @@ export const resourceNav = [
   { label: 'Teams',             href: '/teams'                },
   { label: 'Rules',             href: '/rules'                },
   { label: 'League schedule',   href: '/league'               },
-  { label: 'Boundaries',        href: '/boundaries'           },
+  // 'Boundaries' hidden site-wide 2026-08-31 — not back on the table until
+  // spring. Restore this row (and see astro.config.mjs / src/pages/_disabled)
+  // when it's ready to relaunch.
   { label: 'Age chart',         href: '/resources#age-chart'  },
   { label: 'Code of conduct',   href: '/resources#code-of-conduct' },
 ];
