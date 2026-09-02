@@ -7,6 +7,28 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.48] — 2026-09-01 — Fix: deploy-hook network failure crashed silently
+
+### Fixed
+
+- **Real incident, 2026-09-01**: `processPendingEdit` crashed with
+  `Exception: Address unavailable: <deploy hook URL>` thrown straight
+  out of the `UrlFetchApp.fetch()` call in `validateAndDeploy()`.
+  `muteHttpExceptions: true` only suppresses HTTP-level error
+  *responses* (4xx/5xx) — it does nothing for a network-level failure
+  like this one (DNS, "Address unavailable," connection refused), so
+  the exception propagated uncaught. The sheet had already validated
+  cleanly at that point, so there was no error email either — the
+  failure was completely invisible outside the Apps Script Executions
+  log. Extracted the deploy call into `fireDeployHook()`, wrapped in a
+  real try/catch, and added `notifyDeployHookFailure()` — emails
+  `ADMIN_EMAIL` only (never the editor, since valid data isn't their
+  mistake) with a distinct subject line whenever the deploy hook itself
+  fails, whether from a thrown exception or a muted-but-bad HTTP status.
+  Documented in "A note on error notifications."
+
+---
+
 ## [3.47] — 2026-09-01 — Fix: Apps Script `formatCell()` always ISO'd real Date cells
 
 ### Fixed

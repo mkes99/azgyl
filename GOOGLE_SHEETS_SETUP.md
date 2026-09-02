@@ -522,10 +522,44 @@ function validateAndDeploy(editorEmail) {
     notifyError(editorEmail, errors);
     return;
   }
-  // muteHttpExceptions so a stale/deleted hook fails quietly instead of
-  // throwing out of validateAndDeploy — a broken deploy hook isn't a
-  // validation error, and shouldn't be reported to the editor as one.
-  UrlFetchApp.fetch(DEPLOY_HOOK_URL, { method: 'post', muteHttpExceptions: true });
+  fireDeployHook();
+}
+
+// muteHttpExceptions only covers HTTP-level error RESPONSES (4xx/5xx) —
+// it does NOT stop a network-level failure (DNS, "Address unavailable",
+// connection refused) from throwing, so this still needs its own
+// try/catch, or a deploy-hook problem crashes processPendingEdit()
+// silently: nothing goes live, nothing gets logged anywhere a human
+// would see it, and the sheet itself already validated clean, so
+// there's no error email either — the whole thing just quietly does
+// nothing. Confirmed for real, 2026-09-01 (Executions log showed
+// "Exception: Address unavailable: <hook url>" thrown straight out of
+// this line). Data already validated at this point, so this is never
+// the editor's fault — only ADMIN_EMAIL is notified, not editorEmail.
+function fireDeployHook() {
+  try {
+    const res = UrlFetchApp.fetch(DEPLOY_HOOK_URL, { method: 'post', muteHttpExceptions: true });
+    const code = res.getResponseCode();
+    if (code < 200 || code >= 300) {
+      notifyDeployHookFailure('HTTP ' + code + ': ' + res.getContentText());
+    }
+  } catch (err) {
+    notifyDeployHookFailure(err.message || String(err));
+  }
+}
+
+function notifyDeployHookFailure(detail) {
+  MailApp.sendEmail(
+    ADMIN_EMAIL,
+    'AZGYL sheet: data is valid, but the deploy hook failed to fire',
+    'The sheet validated cleanly, but the Cloudflare deploy hook call itself failed, ' +
+    'so the site was NOT rebuilt:\n\n' + detail +
+    '\n\nCheck that DEPLOY_HOOK_URL in this script still matches a real, ' +
+    'non-deleted deploy hook in Cloudflare Pages (Settings → Builds & ' +
+    'deployments → Deploy hooks). If the hook itself looks fine, this may ' +
+    'just be a transient network issue — any new edit to the sheet will ' +
+    'retry automatically.'
+  );
 }
 
 function readTab(ss, tabName) {
@@ -739,6 +773,15 @@ is shared and Google's own privacy rules, it can come back empty, in
 which case only `ADMIN_EMAIL` gets notified. If the editor's own
 notification seems to be missing sometimes, that's why — it's a known
 limitation of Apps Script's editor detection, not a bug in this script.
+
+**A second, separate kind of failure notification**: if the sheet
+validates *cleanly* but the actual Cloudflare deploy hook call fails
+(a network hiccup, or the hook itself was deleted/regenerated in
+Cloudflare without updating `DEPLOY_HOOK_URL` here), that's not a
+validation error — it's caught in `fireDeployHook()` and emailed to
+`ADMIN_EMAIL` only, with a distinct subject line ("data is valid, but
+the deploy hook failed to fire"), never to the editor, since it's never
+their mistake.
 
 ---
 
