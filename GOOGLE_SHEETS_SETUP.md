@@ -12,13 +12,30 @@ ever change.
 
 The game schedule, the season/tournament shell it belongs to (name,
 dates, which one is currently live), *and* division standings are all
-managed from **one Google Sheet** — not from code, and not from separate
-spreadsheets. Update the sheet → the site validates it → if it's clean,
-the site rebuilds automatically within a couple of minutes. If it's not
-clean, nothing goes live and whoever made the edit gets an email
-explaining why.
+managed from a Google Sheet — not from code. Update the sheet → the
+site validates it → if it's clean, the site rebuilds automatically
+within a couple of minutes. If it's not clean, nothing goes live and
+whoever made the edit gets an email explaining why.
 
-One sheet, four tabs:
+**There are two separate spreadsheets, one per environment — not one
+sheet shared across branches.** "Develop AZGYL Season Data" feeds
+`develop` only; a separate production spreadsheet feeds `main` only.
+Each has its own Apps Script (Step 8) with its own single deploy hook
+(Step 7), pointed at exactly one branch. This is deliberate: `develop`
+existing separately from `main` is supposed to let a risky change (a
+new validation rule, a column format change) get tested in isolation
+before it can affect real production data — that isolation doesn't
+actually exist if both branches validate against the *same* live sheet,
+since any edit then has to satisfy both branches' code at once,
+regardless of which one is actually ready. (This happened for real:
+2026-09-01's date-format change broke `main`'s build the moment the
+shared sheet was updated for `develop`, and had to be walked back.)
+Whichever spreadsheet you're setting up, every step below is identical
+— tabs, columns, validation rules, Apps Script. Only `DEPLOY_HOOK_URLS`
+and `VALID_VALUES_URL` in Step 8 differ, since each sheet's script only
+ever talks to its own one branch.
+
+One spreadsheet, four tabs:
 
 - **`Seasons`** — one row per season/tournament.
 - **`Schedule`** — one row per game.
@@ -349,20 +366,24 @@ thing that needs updating.
 
 ---
 
-## Step 7 — Set up the Cloudflare deploy hook(s)
+## Step 7 — Set up the Cloudflare deploy hook
 
-A deploy hook only rebuilds the one branch it's created for — both
-`develop` and `main` carry the Sheets integration now, so both need a
-hook to respond to sheet edits. Repeat this per branch:
+A deploy hook only rebuilds the one branch it's created for. This
+sheet ("Develop AZGYL Season Data") only ever talks to `develop` — one
+hook, one branch, on purpose (see the note above `DEPLOY_HOOK_URLS`
+below for why: two branches sharing one sheet meant a schema change
+couldn't be tested in isolation, which was the whole point of having a
+separate branch). The real production sheet (feeding `main`) is a
+separate spreadsheet with its own copy of this entire setup, including
+its own single hook pointed at `main`.
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
-2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-develop`,
-   `sheets-sync-main`) — names the trigger (this Sheet's Apps Script)
-   and the target together, so the purpose is obvious from the name
-   alone later, not just which branch it points at
-3. Point it at that specific branch
+2. Name it `sheets-sync-develop` — names the trigger (this Sheet's
+   Apps Script) and the target together, so the purpose is obvious
+   from the name alone later
+3. Point it at the `develop` branch
 4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URLS` in the Apps
-   Script below, one entry per hook
+   Script below
 
 ---
 
@@ -388,28 +409,26 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 
 ```javascript
 // ── CONFIG — fill these in ────────────────────────────────────────────────
-// One entry per branch that should rebuild when this sheet changes — each
-// Cloudflare Pages branch needs its own deploy hook (a hook only rebuilds
-// the one branch it was created for). Name each hook sheets-sync-<branch>
-// in the Cloudflare dashboard — names the trigger (this Sheet) and the
-// target together, so what each hook is for is obvious from the name
-// alone, not just which branch it points at. google-sheets-schedule was
-// merged into `develop`, `develop` was merged into `main`, and the
-// feature branch was deleted (as planned) — both develop and main carry
-// the Sheets integration now, so both get a hook.
+// This spreadsheet ("Develop AZGYL Season Data") is the TESTING sheet —
+// it only ever talks to `develop`, on purpose, so a schema/format
+// change can actually be isolated there instead of also hitting
+// whatever real production data `main` is serving. There's a separate
+// production sheet feeding `main`'s own Apps Script + deploy hook (not
+// this one) — don't add a second entry here to "cover" main; that's
+// exactly the coupling this split was meant to remove. Name the hook
+// sheets-sync-<branch> in the Cloudflare dashboard either way — names
+// the trigger (this Sheet) and the target together.
 const DEPLOY_HOOK_URLS  = [
   'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop
-  'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main
 ];
-// Unlike DEPLOY_HOOK_URLS (fan out to every active branch), this stays a
-// SINGLE url — it's the one source of truth for which team/division/
-// venue names are currently valid. Use the bare <project>.pages.dev
-// domain (no branch prefix) — Cloudflare always points that at whichever
-// branch is set as the project's Production branch (main), so this
-// value doesn't need to change again even at real launch: azgyl.com
-// just becomes a second custom domain pointed at that same production
-// branch, not a replacement for pages.dev. Confirmed live.
-const VALID_VALUES_URL  = 'https://azgyl.pages.dev/valid-values.json';
+// Unlike DEPLOY_HOOK_URLS, this stays a SINGLE url — it's the one
+// source of truth for which team/division/venue names are currently
+// valid, and has to match whichever deployment THIS sheet actually
+// feeds. Since this sheet only talks to develop now, that's develop's
+// own Cloudflare Pages URL — NOT the bare <project>.pages.dev domain,
+// which tracks the Production branch (main) and reflects the OTHER
+// sheet's data, not this one's.
+const VALID_VALUES_URL  = 'https://develop.azgyl.pages.dev/valid-values.json';
 const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
 

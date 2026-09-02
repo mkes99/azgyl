@@ -7,6 +7,30 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.44] — 2026-09-01 — Documented: separate develop/main sheets, not one shared sheet
+
+### Changed
+
+- **`GOOGLE_SHEETS_SETUP.md` updated for a real architecture change**:
+  a single sheet feeding both `develop` and `main`'s deploy hooks
+  removed the isolation `develop` existing separately from `main` is
+  supposed to provide — any sheet edit had to satisfy both branches'
+  code simultaneously, which is exactly what broke on 2026-09-01 (see
+  3.42/3.43). Going forward: two separate spreadsheets, one per
+  environment — "Develop AZGYL Season Data" feeds `develop` only; a
+  separate production sheet feeds `main` only. Corrected a now-false
+  claim in the doc's own intro ("managed from one Google Sheet... not
+  from separate spreadsheets") and added an explicit explanation up
+  top plus updated Step 7/8's config example to a single deploy hook
+  (`DEPLOY_HOOK_URLS` down to one entry) and `VALID_VALUES_URL` pointed
+  at `develop.azgyl.pages.dev` specifically, not the bare
+  `azgyl.pages.dev` production domain. The backward-compatible date
+  validation from 3.43 stays regardless — cheap insurance, and it means
+  a future schema change doesn't force coordinating a sheet-format
+  update with whoever's editing it.
+
+---
+
 ## [3.43] — 2026-09-01 — Date validation accepts both formats (multi-branch deploy hooks need it)
 
 ### Fixed
