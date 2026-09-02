@@ -86,6 +86,25 @@ spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vi
 
 ---
 
+## After pasting in a whole new season's worth of dates
+
+Pasting in a big block of new rows can sometimes make Google Sheets
+quietly change how the date column is set up behind the scenes — even
+though the dates still *look* right on screen. If that happens, every
+date in that column (including old ones that were already fine) will
+fail when the sheet checks itself, and you'll get an email listing
+every row affected. It's not harmful — nothing goes live broken, the
+site just won't update until it's fixed.
+
+If you get an email like that after a big paste: select the whole date
+column, **Format → Number → Custom date and time**, type `m/dd/yyyy`,
+and save again — that resets it back to the right format for every row
+at once. If you don't hit this at all, there's nothing to do — it
+doesn't happen on every edit, just sometimes after pasting a lot of new
+dated rows at once.
+
+---
+
 ## Save yourself the retyping
 
 You don't need to retype the season, date, venue, picture link, venue

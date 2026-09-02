@@ -7,6 +7,65 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.46] — 2026-09-01 — Season switcher on /league; date-format gotcha documented
+
+### Changed
+
+- **`/league`'s Schedule and Standings both switch to a per-season
+  selector instead of stacking every active season's content one after
+  another.** With two active seasons (Spring 2026 + Fall 2026 test
+  data), Schedule was rendering two complete, *unlabeled* Division/
+  Week/Team filter bars back to back — no heading distinguished them.
+  Standings had the opposite problem: each season already had its own
+  label, but stacking full sections (heading, intro copy, legend, and
+  tables, repeated per season) produced a large dead gap and duplicated
+  copy. Both are now: one shared heading/intro/legend, a season
+  switcher when there's a real choice to make (no switcher, just a
+  plain label, when only one season is active), and exactly one
+  season's content visible at a time.
+- **Season is a switcher, not a filter** — deliberately never gets an
+  "All" option, unlike Division/Week/Team. Division/Week/Team subtract
+  from one shared list of games; a season *is* the list, so "All"
+  would mean showing multiple unrelated datasets in the same space at
+  once — the exact stacking problem this replaces. Default selection
+  uses the same "soonest upcoming game wins" rule as
+  `HomeSchedulePreview.astro`, computed independently in Schedule and
+  Standings (Standings only offers seasons that actually have data,
+  which can differ from Schedule's own selection).
+- `StandingsTable.astro` no longer renders its own W/L/T/Pts/GF/GA
+  legend — moved up to `LeagueStandings.astro` so it renders once per
+  page, not once per season.
+- Fixed a stray `.sched-day` divider line — a leftover from an earlier
+  fix that let all weeks show at once under Week: All. It sat in the
+  middle of a large empty gap between weeks, not attached to either
+  panel; removed in favor of whitespace only, since each week already
+  has its own heading rule.
+
+### Documented
+
+- **Real incident, 2026-09-01**: pasting a new block of dated rows into
+  the live sheet made Google Sheets silently re-apply its own default
+  date format to the whole column, overriding the `m/dd/yyyy` format
+  already set — even though the cells still looked correct in the
+  Sheets UI. The published CSV then emitted ISO `YYYY-MM-DD`, which
+  failed validation for every row in the column, old ones included (52
+  errors). The pipeline caught it correctly (error email, deploy
+  skipped, nothing bad went live) — the only real gap was that this
+  wasn't a known, documented risk. Added a "Formatting the date
+  columns" section to `GOOGLE_SHEETS_SETUP.md` and a plain-language
+  version to `SHEET_ENTRY_GUIDE.md`: use **Format → Number → Custom
+  date and time** → `m/dd/yyyy` specifically (not the plain **Date**
+  preset, which follows Sheets' locale default instead), and reapply it
+  after pasting in a new season's worth of rows.
+- Fixed a dead link: `SHEET_ENTRY_GUIDE.md`'s "Getting names right"
+  pointed at `https://azgyl.com/valid-values.json`, a domain that isn't
+  live yet — switched to a relative `/valid-values.json` link, which
+  resolves correctly on whichever deployment is actually showing the
+  page. Same fix applied to the equivalent reference in
+  `GOOGLE_SHEETS_SETUP.md`.
+
+---
+
 ## [3.45] — 2026-09-01 — Date validation back to MM/DD/YYYY only; single deploy hook, not an array
 
 ### Changed

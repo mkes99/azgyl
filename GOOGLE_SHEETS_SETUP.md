@@ -146,6 +146,30 @@ Example row:
 spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
 ```
 
+### Formatting the date columns
+
+`startDate`/`endDate` (Seasons) and `date` (Schedule) all need their
+column set to a real Date format, displayed as `m/dd/yyyy` specifically
+— select the column → **Format → Number → Custom date and time** →
+type `m/dd/yyyy`. Don't use the plain **Format → Number → Date**
+preset — it applies whatever Sheets' locale default is, which isn't
+guaranteed to be `m/dd/yyyy`.
+
+**Known gotcha, confirmed for real (2026-09-01):** pasting a block of new
+rows with dates in them can make Sheets silently re-apply its own
+default date format to the *whole column*, overriding the `m/dd/yyyy`
+format already set — even when the cells still look right in the Sheets
+UI. When that happens, the **published CSV export** emits ISO
+`YYYY-MM-DD` instead of `M/D/YYYY`, which fails the site's validation —
+every row in the column fails at once, old rows included, not just the
+new ones. Not dangerous (the fail-loud check catches it, emails
+whoever's listed as `ADMIN_EMAIL`, and skips the deploy rather than
+publishing bad data — see "A note on error notifications" below), but
+it does mean the site won't update until it's fixed. **After pasting in
+a new block of dated rows, reselect the whole date column and reapply
+the `m/dd/yyyy` format before assuming the sheet is done** — don't rely
+on the cells still looking correct as proof the export will be too.
+
 ### Leave repeated cells blank
 
 `season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`, and `division`
@@ -197,9 +221,12 @@ validation. `field` never fails validation — it's just descriptive text.
 ### Team name matching
 
 Team and venue names must match **exactly** what's on the site. Check
-`https://azgyl.com/valid-values.json` any time — it lists every currently
-valid team name, division, and venue id. This is the same list the
-validator checks against, so if a name isn't in that file, the sheet will
+`/valid-values.json` on whichever deployment this sheet feeds
+(`develop.azgyl.pages.dev/valid-values.json` for the develop sheet;
+the real production domain once it's live, for the production sheet)
+any time — it lists every currently valid team name, division, and
+venue id. This is the same list the validator checks against, so if a
+name isn't in that file, the sheet will
 reject it.
 
 ### Overriding a venue's notes

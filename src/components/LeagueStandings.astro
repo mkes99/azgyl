@@ -13,25 +13,128 @@ const activeEvents = scheduleEvents.filter(e => e.active);
 const activeWithStandings = activeEvents.filter(e =>
   standings.some(s => s.eventId === e.id)
 );
+
+// Same "soonest upcoming game wins" default as LeagueSchedule.astro and
+// HomeSchedulePreview.astro — kept independent of Schedule's own
+// selection (see this session's design discussion: Standings isn't
+// wired to whichever season Schedule has picked, it makes its own pick
+// from whichever seasons actually have standings data).
+function soonestUpcoming(evt: typeof scheduleEvents[0]) {
+  const dates = [...new Set(evt.games.map(g => g.date))].sort();
+  const todayISO = new Date().toLocaleDateString('en-CA');
+  return dates.find(d => d >= todayISO) ?? null;
+}
+const defaultEvent = activeWithStandings.reduce((best, evt) => {
+  const nextForEvt = soonestUpcoming(evt);
+  if (!nextForEvt) return best;
+  const nextForBest = best ? soonestUpcoming(best) : null;
+  return (!best || !nextForBest || nextForEvt < nextForBest) ? evt : best;
+}, null as typeof scheduleEvents[0] | null) ?? activeWithStandings[0];
+const defaultEventId = defaultEvent?.id;
 ---
 
-{activeWithStandings.map(event => (
+{activeWithStandings.length > 0 && (
   <section class="section-alt">
     <div class="container">
       <div class="section-header-clean" style="margin-bottom:1.8rem">
         <div>
-          <div class="section-kicker">{event.name}</div>
+          {/* One season: same eyebrow label as before. More than one:
+              a switcher standing in for it — same "not a filter, always
+              exactly one selected, no All" pattern as Schedule's, kept
+              as a separate pick since Standings only offers seasons
+              that actually have data, which can differ from Schedule's
+              own selection. */}
+          {activeWithStandings.length > 1 ? (
+            <div class="season-switcher" role="tablist" aria-label="Select season">
+              {activeWithStandings.map(event => (
+                <button
+                  type="button"
+                  class={`season-tab${event.id === defaultEventId ? ' season-tab--active' : ''}`}
+                  data-standings-tab={event.id}
+                  role="tab"
+                  aria-selected={event.id === defaultEventId ? 'true' : 'false'}
+                >
+                  {event.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div class="section-kicker">{activeWithStandings[0].name}</div>
+          )}
           <h2>Division Standings</h2>
         </div>
         <div class="section-header-copy">
           <p>Who's on top, who's climbing — updated after every game day.</p>
         </div>
       </div>
-      <StandingsTable eventId={event.id} />
+
+      <p class="standings-legend">
+        <strong>W</strong> Wins · <strong>L</strong> Losses · <strong>T</strong> Ties ·
+        <strong> Pts</strong> Points · <strong>GF</strong> Goals For · <strong>GA</strong> Goals Against ·
+        <strong> +/−</strong> Goal differential (used to break ties in points)
+      </p>
+
+      {activeWithStandings.map(event => (
+        <div class="standings-block" data-standings-block={event.id} hidden={event.id !== defaultEventId}>
+          <StandingsTable eventId={event.id} />
+        </div>
+      ))}
     </div>
   </section>
-))}
+)}
+
+<script is:inline>
+(function () {
+  // Independent of LeagueSchedule.astro's own season switcher — distinct
+  // data attributes (data-standings-tab/-block, not data-season-tab/
+  // -block) so the two never cross-talk even when a season id happens
+  // to match on both.
+  document.querySelectorAll('[data-standings-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var id = tab.dataset.standingsTab;
+      document.querySelectorAll('[data-standings-tab]').forEach(function (t) {
+        t.classList.toggle('season-tab--active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+      document.querySelectorAll('[data-standings-block]').forEach(function (block) {
+        block.hidden = block.dataset.standingsBlock !== id;
+      });
+    });
+  });
+})();
+</script>
 
 <style>
   code { background: var(--surface-soft); padding: .15rem .4rem; border-radius: 6px; font-size: .85em; }
+
+  .standings-legend { margin: 0 0 2.1rem; font-size: .78rem; color: var(--muted); line-height: 1.6; }
+  .standings-legend strong { color: var(--soft); font-weight: 700; }
+
+  /* Same visual language as LeagueSchedule.astro's switcher — Astro
+     scopes styles per component, so this is a deliberate duplicate, not
+     a shared import; kept identical on purpose so the two read as one
+     interaction pattern across the page. */
+  .season-switcher {
+    display: flex; flex-wrap: wrap;
+    gap: .5rem 1.75rem;
+    margin-bottom: .8rem;
+  }
+  .season-tab {
+    position: relative;
+    padding: 0 0 .5rem;
+    background: none; border: none;
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+    font-weight: 800;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color .15s;
+  }
+  .season-tab:hover { color: var(--text); }
+  .season-tab--active { color: var(--rose-deep); }
+  .season-tab--active::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: -2px;
+    height: 3px; border-radius: 3px 3px 0 0;
+    background: var(--rose-deep);
+  }
 </style>
