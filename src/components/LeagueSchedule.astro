@@ -560,36 +560,44 @@ const defaultEventId = defaultEvent?.id;
     letter-spacing: -.01em;
     margin: 0 0 1.75rem;
   }
-  /* The multi-season case: pills, same idiom as every other selector on
-     this site (.sched-tab below, .div-chip, .section-kicker) rather
-     than a one-off underline-tab pattern that didn't match anything
-     else here. Bigger and rose-accented (not the charcoal .sched-tab
-     uses) so it still reads as a different tier of control than
-     Division/Week/Team below it — it picks which games exist to filter
-     in the first place — without introducing a new visual language to
-     do it. */
+  /* The multi-season case: underline tabs — this switcher sits directly
+     under the page hero as the top-level way to pick which season's
+     entire view (filter bar + every game) is showing, the same role
+     section-level tab bars play elsewhere (GitHub's Code/Issues/PRs,
+     a profile's Posts/Replies/Media): a full view swap, not a
+     refinement. Deliberately NOT styled like the Division/Week/Team
+     pill filters below (.sched-tab) — different class entirely, and
+     this rule is scoped to .season-switcher .season-tab specifically —
+     so it reads as a different tier of control than they do. Standings
+     uses pills instead for the same
+     switcher pattern (LeagueStandings.astro) — it sits under its own
+     "Division Standings" heading as an in-section selector next to a
+     data table, the role pill/chip selectors play in stats-heavy UIs
+     (ESPN standings, Google Flights filters, a stock app's 1D/1W/1M
+     range picker) rather than section-level navigation. */
   .season-switcher {
     display: flex; flex-wrap: wrap;
-    gap: .5rem;
+    gap: .5rem 1.75rem;
     margin-bottom: 1.75rem;
+    border-bottom: 2px solid var(--line);
   }
-  .season-tab {
-    padding: .55rem 1.3rem;
-    border-radius: 999px;
-    border: 1.5px solid var(--line-strong);
-    background: var(--surface);
+  .season-switcher .season-tab {
+    position: relative;
+    padding: 0 0 .85rem;
+    background: none; border: none;
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+    font-weight: 800;
     color: var(--muted);
-    font-size: .92rem;
-    font-weight: 700;
     cursor: pointer;
-    white-space: nowrap;
-    transition: background .15s, color .15s, border-color .15s;
+    transition: color .15s;
   }
-  .season-tab:hover { background: var(--surface-soft); color: var(--text); border-color: var(--text); }
-  .season-tab--active {
+  .season-switcher .season-tab:hover { color: var(--text); }
+  .season-switcher .season-tab--active { color: var(--rose-deep); }
+  .season-switcher .season-tab--active::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: -2px;
+    height: 3px; border-radius: 3px 3px 0 0;
     background: var(--rose-deep);
-    border-color: var(--rose-deep);
-    color: #fff;
   }
 
   .season-complete-notice {
