@@ -155,20 +155,11 @@ type `m/dd/yyyy`. Don't use the plain **Format → Number → Date**
 preset — it applies whatever Sheets' locale default is, which isn't
 guaranteed to be `m/dd/yyyy`.
 
-**Known gotcha, confirmed for real (2026-09-01):** pasting a block of new
-rows with dates in them can make Sheets silently re-apply its own
-default date format to the *whole column*, overriding the `m/dd/yyyy`
-format already set — even when the cells still look right in the Sheets
-UI. When that happens, the **published CSV export** emits ISO
-`YYYY-MM-DD` instead of `M/D/YYYY`, which fails the site's validation —
-every row in the column fails at once, old rows included, not just the
-new ones. Not dangerous (the fail-loud check catches it, emails
-whoever's listed as `ADMIN_EMAIL`, and skips the deploy rather than
-publishing bad data — see "A note on error notifications" below), but
-it does mean the site won't update until it's fixed. **After pasting in
-a new block of dated rows, reselect the whole date column and reapply
-the `m/dd/yyyy` format before assuming the sheet is done** — don't rely
-on the cells still looking correct as proof the export will be too.
+**A date cell is a real Sheets Date object, not text — that's normal and
+fine.** Typing a date into a cell formatted this way makes Sheets store
+it as an actual Date value, displayed as `m/dd/yyyy`. That's expected
+and doesn't need to be avoided — see `formatCell()` in the Apps Script
+below for how it's read.
 
 ### Leave repeated cells blank
 
@@ -553,8 +544,19 @@ function readTab(ss, tabName) {
 }
 
 function formatCell(value) {
+  // A date column is a genuine Sheets Date-typed cell (normal — that's
+  // what lets it display as m/dd/yyyy in the grid), so getValues() hands
+  // back a real JS Date here, not the text you see on screen. Must
+  // format to M/d/yyyy, matching DATE_RE and src/data/schedule.ts's
+  // toISO() exactly — this used to format to yyyy-MM-dd, back when
+  // DATE_RE accepted ISO too (see the note above DATE_RE below); once
+  // DATE_RE went MM/DD/YYYY-only, this was left stringifying every real
+  // Date cell into a format the regex immediately rejects, regardless of
+  // whatever display format was set on the cell (this function never
+  // looks at display format — only at whether the value is a Date
+  // instance at all). Confirmed for real, 2026-09-01.
   if (value instanceof Date) {
-    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'M/d/yyyy');
   }
   return String(value === null || value === undefined ? '' : value).trim();
 }

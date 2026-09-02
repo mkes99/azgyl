@@ -7,6 +7,43 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.47] — 2026-09-01 — Fix: Apps Script `formatCell()` always ISO'd real Date cells
+
+### Fixed
+
+- **Correction to 3.46's diagnosis** — the "pasting resets the column's
+  format" theory below was wrong, and the fix it suggested (reapplying
+  `m/dd/yyyy` after a paste) never actually did anything, which is
+  exactly what was reported. The real bug: the Apps Script's
+  `formatCell()` (`GOOGLE_SHEETS_SETUP.md`) reads date cells via
+  `SpreadsheetApp`, which hands back a real JS `Date` object for any
+  genuine Date-typed cell — completely normal, and unrelated to
+  whatever format the cell displays as. `formatCell()` unconditionally
+  stringified any `Date` instance to `yyyy-MM-dd` before validating it
+  — a leftover from when `DATE_RE` accepted ISO too (3.43). When
+  `DATE_RE` went MM/DD/YYYY-only in 3.45, this line should have changed
+  with it and didn't, so it turned every real Date cell into a string
+  the new stricter regex immediately rejects, regardless of display
+  format — reformatting the column was never going to fix it, since
+  this function never looks at display format at all, only at whether
+  the value is a `Date` instance. Fixed: formats to `M/d/yyyy` instead,
+  matching `DATE_RE`. The published-CSV path (`src/data/schedule.ts`'s
+  `fetchCSV()`) was never affected — Google's CSV export already
+  emitted the cell's displayed `M/D/YYYY` text correctly the whole
+  time, which is why every direct check of the live CSV during
+  debugging looked fine while the Apps Script kept failing.
+- Removed the incorrect "reapply the format after pasting" guidance
+  from both `GOOGLE_SHEETS_SETUP.md` and `SHEET_ENTRY_GUIDE.md` —
+  there's no sheet-side workaround needed now that the actual bug is
+  fixed in the script.
+- **Manual follow-up required**: this fix lives in the Apps Script
+  source embedded in `GOOGLE_SHEETS_SETUP.md`, which isn't deployed by
+  `git push` — it has to be re-pasted into the live Apps Script editor
+  (Extensions → Apps Script → `Code.gs`) on the actual Develop AZGYL
+  Season Data spreadsheet for this fix to take effect there.
+
+---
+
 ## [3.46] — 2026-09-01 — Season switcher on /league; date-format gotcha documented
 
 ### Changed
