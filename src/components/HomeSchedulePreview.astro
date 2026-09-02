@@ -109,7 +109,11 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
             <h2 class="hsp-title">{fmtDate(nextDate!)}</h2>
             {primaryVenue && (
               <a class="hsp-venue" href={primaryVenue.mapUrl} target="_blank" rel="noreferrer">
-                📍 {primaryVenue.name} · {primaryVenue.city}
+                <svg class="hsp-venue-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M10 18s6-5.686 6-10a6 6 0 1 0-12 0c0 4.314 6 10 6 10Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                  <circle cx="10" cy="8" r="2.2" stroke="currentColor" stroke-width="1.4"/>
+                </svg>
+                {primaryVenue.name} · {primaryVenue.city}
               </a>
             )}
           </div>
@@ -174,8 +178,9 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
     flex-wrap: wrap; margin-bottom: 1.5rem;
   }
   .hsp-title  { margin: .2rem 0 .3rem; font-size: clamp(1.4rem, 3vw, 2rem); }
-  .hsp-venue  { font-size: .88rem; color: var(--rose-deep); text-decoration: none; font-weight: 600; }
+  .hsp-venue  { display: inline-flex; align-items: center; gap: .3rem; font-size: .88rem; color: var(--rose-deep); text-decoration: none; font-weight: 600; }
   .hsp-venue:hover { text-decoration: underline; }
+  .hsp-venue-icon { width: 13px; height: 13px; flex-shrink: 0; }
   .hsp-cta    { align-self: center; white-space: nowrap; }
 
   .hsp-grid {

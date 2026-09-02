@@ -125,7 +125,9 @@ const defaultEventId = defaultEvent?.id;
 
         {seasonOver && (
           <div class="season-complete-notice">
-            <span>✓</span>
+            <svg class="season-complete-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M4 10.5 8 14.5 16 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             <div>
               <strong>Season complete</strong>
               <span>All game days have passed. Browse past weeks using the Week filter.</span>
@@ -598,7 +600,7 @@ const defaultEventId = defaultEvent?.id;
     padding: .85rem 1.1rem; margin-bottom: 1.25rem;
     background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 14px; font-size: .9rem;
   }
-  .season-complete-notice > span { font-size: 1.1rem; flex-shrink: 0; }
+  .season-complete-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: .1rem; color: #15803d; }
   .season-complete-notice strong { display: block; color: #15803d; font-weight: 700; margin-bottom: .1rem; }
   .season-complete-notice span   { color: #166534; }
 
