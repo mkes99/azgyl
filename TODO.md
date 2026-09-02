@@ -85,6 +85,18 @@ fine while the live page still decapitates someone.
 
 ## Content and configuration
 
+- [x] **`schedule.ts`'s `DATE_RE` briefly accepted both `MM/DD/YYYY` and
+      `YYYY-MM-DD` as a stopgap**, back when `develop` and `main` shared
+      one Google Sheet with both branches' deploy hooks firing on every
+      edit — a validation change on one branch couldn't require a
+      format the other branch's code didn't accept yet without breaking
+      every edit until that branch caught up (this happened for real on
+      2026-09-01). Resolved differently than originally planned here:
+      instead of waiting for every branch to sync on one format, each
+      branch now has its own separate spreadsheet (see
+      GOOGLE_SHEETS_SETUP.md), which removes the coordination problem
+      outright. `DATE_RE` (in `schedule.ts` and the Apps Script) is back
+      down to `MM/DD/YYYY` only.
 - [ ] **Verify `EMAIL_TO` in the Cloudflare Pages environment.** 3.7 changed the
       contact form's fallback recipient to `azgirlsyouthlax@gmail.com`, but that
       fallback only applies when `EMAIL_TO` is unset. If it is already

@@ -12,13 +12,30 @@ ever change.
 
 The game schedule, the season/tournament shell it belongs to (name,
 dates, which one is currently live), *and* division standings are all
-managed from **one Google Sheet** — not from code, and not from separate
-spreadsheets. Update the sheet → the site validates it → if it's clean,
-the site rebuilds automatically within a couple of minutes. If it's not
-clean, nothing goes live and whoever made the edit gets an email
-explaining why.
+managed from a Google Sheet — not from code. Update the sheet → the
+site validates it → if it's clean, the site rebuilds automatically
+within a couple of minutes. If it's not clean, nothing goes live and
+whoever made the edit gets an email explaining why.
 
-One sheet, four tabs:
+**There are two separate spreadsheets, one per environment — not one
+sheet shared across branches.** "Develop AZGYL Season Data" feeds
+`develop` only; a separate production spreadsheet feeds `main` only.
+Each has its own Apps Script (Step 8) with its own single deploy hook
+(Step 7), pointed at exactly one branch. This is deliberate: `develop`
+existing separately from `main` is supposed to let a risky change (a
+new validation rule, a column format change) get tested in isolation
+before it can affect real production data — that isolation doesn't
+actually exist if both branches validate against the *same* live sheet,
+since any edit then has to satisfy both branches' code at once,
+regardless of which one is actually ready. (This happened for real:
+2026-09-01's date-format change broke `main`'s build the moment the
+shared sheet was updated for `develop`, and had to be walked back.)
+Whichever spreadsheet you're setting up, every step below is identical
+— tabs, columns, validation rules, Apps Script. Only `DEPLOY_HOOK_URL`
+and `VALID_VALUES_URL` in Step 8 differ, since each sheet's script only
+ever talks to its own one branch.
+
+One spreadsheet, four tabs:
 
 - **`Seasons`** — one row per season/tournament.
 - **`Schedule`** — one row per game.
@@ -66,7 +83,10 @@ between the two data files.
 ## Step 1 — Create the sheet
 
 1. Go to sheets.google.com, create a new spreadsheet.
-2. Name it **AZGYL Season Data**.
+2. Name it **Develop AZGYL Season Data** if this is the develop-branch
+   sheet, or **AZGYL Season Data** (no prefix) if this is the real
+   production sheet feeding `main` — the name is just a label so two
+   spreadsheets aren't confused for each other; the site never reads it.
 3. Rename the first tab to `Seasons`. Add tabs named `Schedule` and
    `Standings`. Add an `Archive` tab too if you want one now — it can
    also wait until you actually have a season to archive.
@@ -85,7 +105,7 @@ season_id | name | type | active | startDate | endDate
 | `name` | Display name shown on the site, e.g. `Spring 2026`. |
 | `type` | `season` or `tournament` — exactly, lowercase. |
 | `active` | `TRUE` or `FALSE` — checkbox column recommended. `TRUE` = shown on the homepage and `/league`. More than one row can be `TRUE` at once (e.g. a season plus a tournament running alongside it). |
-| `startDate` / `endDate` | `MM/DD/YYYY`. |
+| `startDate` / `endDate` | `MM/DD/YYYY` only — single or double-digit month/day both fine (`9/19/2026` and `09/19/2026` both work). |
 
 Example row:
 ```
@@ -110,7 +130,7 @@ identically in any column order — this one's just easier to scan.
 | Column | Notes |
 |---|---|
 | `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. Can be left blank — see "Leave repeated cells blank" below. |
-| `date` | `MM/DD/YYYY`. Can be left blank. |
+| `date` | `MM/DD/YYYY` only — single or double-digit month/day both fine. Can be left blank. |
 | `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
 | `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. Overrides whatever's hardcoded for that venue in `venues.ts`, if anything. See "Adding a field-map picture" below. |
 | `venueNotes` | Optional — a note about the *venue* (e.g. "No dogs allowed"), not about one specific game. Can be left blank. See "Overriding a venue's notes" below — don't confuse this with `gameNotes`, further down, which is about one game. |
@@ -125,6 +145,21 @@ Example row:
 ```
 spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
 ```
+
+### Formatting the date columns
+
+`startDate`/`endDate` (Seasons) and `date` (Schedule) all need their
+column set to a real Date format, displayed as `m/dd/yyyy` specifically
+— select the column → **Format → Number → Custom date and time** →
+type `m/dd/yyyy`. Don't use the plain **Format → Number → Date**
+preset — it applies whatever Sheets' locale default is, which isn't
+guaranteed to be `m/dd/yyyy`.
+
+**A date cell is a real Sheets Date object, not text — that's normal and
+fine.** Typing a date into a cell formatted this way makes Sheets store
+it as an actual Date value, displayed as `m/dd/yyyy`. That's expected
+and doesn't need to be avoided — see `formatCell()` in the Apps Script
+below for how it's read.
 
 ### Leave repeated cells blank
 
@@ -177,9 +212,12 @@ validation. `field` never fails validation — it's just descriptive text.
 ### Team name matching
 
 Team and venue names must match **exactly** what's on the site. Check
-`https://azgyl.com/valid-values.json` any time — it lists every currently
-valid team name, division, and venue id. This is the same list the
-validator checks against, so if a name isn't in that file, the sheet will
+`/valid-values.json` on whichever deployment this sheet feeds
+(`develop.azgyl.pages.dev/valid-values.json` for the develop sheet;
+the real production domain once it's live, for the production sheet)
+any time — it lists every currently valid team name, division, and
+venue id. This is the same list the validator checks against, so if a
+name isn't in that file, the sheet will
 reject it.
 
 ### Overriding a venue's notes
@@ -326,43 +364,75 @@ you'd rather keep editing standings straight in `standings.ts` — see Step
 
 ## Step 6 — Add the CSV URLs to the codebase
 
-Open `src/data/schedule.ts` and fill in:
+`schedule.ts`/`standings.ts` pick their CSV URLs based on `DEPLOY_ENV`
+(a Cloudflare Pages build-time environment variable — `'production'`
+on `main`, `'preview'` everywhere else), via `pickCsvUrl()` in
+`src/lib/csv.ts`. This means **the exact same committed code runs on
+every branch** — no hardcoding one branch's sheet URLs directly and
+hoping every other branch stays in sync by hand (that went wrong for
+real once already — see CHANGELOG 3.42–3.44).
+
+Open `src/data/schedule.ts` and fill in the pair that matches which
+spreadsheet you're setting up — the *production* argument if this is
+the real production sheet feeding `main`, the *preview* argument if
+this is "Develop AZGYL Season Data" feeding `develop`:
 
 ```ts
-const SEASONS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
-const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
+const SEASONS_CSV_URL = pickCsvUrl(
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // production
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // preview
+);
+const SCHEDULE_CSV_URL = pickCsvUrl(
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // production
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // preview
+);
 ```
+
+Leave the *other* environment's argument as `''` if that sheet doesn't
+exist yet — the site runs with zero events (its normal "no active
+events" state) for whichever environment has an empty URL, rather than
+throwing. Don't fill in a URL for an environment you're not actually
+setting up right now.
 
 If you're using the `Standings` tab, also open `src/data/standings.ts`
-and fill in:
+and fill in the same pair:
 
 ```ts
-export const STANDINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
+export const STANDINGS_CSV_URL = pickCsvUrl(
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // production
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // preview
+);
 ```
 
-Leave it as `''` to keep editing `localStandings` in that file directly
+Leave both empty to keep editing `localStandings` in that file directly
 instead — same optional, code-only fallback pattern as everything else
 here.
 
-Commit and push. This is a one-time step — after this, the sheet is the only
-thing that needs updating.
+Commit and push. This is a one-time step per environment — after both
+production and preview URLs are filled in, the sheets are the only
+thing that needs updating, and the same commit keeps working correctly
+on both branches regardless of which one is ahead.
 
 ---
 
-## Step 7 — Set up the Cloudflare deploy hook(s)
+## Step 7 — Set up the Cloudflare deploy hook
 
-A deploy hook only rebuilds the one branch it's created for — both
-`develop` and `main` carry the Sheets integration now, so both need a
-hook to respond to sheet edits. Repeat this per branch:
+A deploy hook only rebuilds the one branch it's created for. This
+sheet ("Develop AZGYL Season Data") only ever talks to `develop` — one
+hook, one branch, on purpose (see the note above `DEPLOY_HOOK_URL`
+below for why: two branches sharing one sheet meant a schema change
+couldn't be tested in isolation, which was the whole point of having a
+separate branch). The real production sheet (feeding `main`) is a
+separate spreadsheet with its own copy of this entire setup, including
+its own single hook pointed at `main`.
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
-2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-develop`,
-   `sheets-sync-main`) — names the trigger (this Sheet's Apps Script)
-   and the target together, so the purpose is obvious from the name
-   alone later, not just which branch it points at
-3. Point it at that specific branch
-4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URLS` in the Apps
-   Script below, one entry per hook
+2. Name it `sheets-sync-develop` — names the trigger (this Sheet's
+   Apps Script) and the target together, so the purpose is obvious
+   from the name alone later
+3. Point it at the `develop` branch
+4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URL` in the Apps
+   Script below
 
 ---
 
@@ -388,28 +458,25 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 
 ```javascript
 // ── CONFIG — fill these in ────────────────────────────────────────────────
-// One entry per branch that should rebuild when this sheet changes — each
-// Cloudflare Pages branch needs its own deploy hook (a hook only rebuilds
-// the one branch it was created for). Name each hook sheets-sync-<branch>
-// in the Cloudflare dashboard — names the trigger (this Sheet) and the
-// target together, so what each hook is for is obvious from the name
-// alone, not just which branch it points at. google-sheets-schedule was
-// merged into `develop`, `develop` was merged into `main`, and the
-// feature branch was deleted (as planned) — both develop and main carry
-// the Sheets integration now, so both get a hook.
-const DEPLOY_HOOK_URLS  = [
-  'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop
-  'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main
-];
-// Unlike DEPLOY_HOOK_URLS (fan out to every active branch), this stays a
-// SINGLE url — it's the one source of truth for which team/division/
-// venue names are currently valid. Use the bare <project>.pages.dev
-// domain (no branch prefix) — Cloudflare always points that at whichever
-// branch is set as the project's Production branch (main), so this
-// value doesn't need to change again even at real launch: azgyl.com
-// just becomes a second custom domain pointed at that same production
-// branch, not a replacement for pages.dev. Confirmed live.
-const VALID_VALUES_URL  = 'https://azgyl.pages.dev/valid-values.json';
+// This spreadsheet ("Develop AZGYL Season Data") is the TESTING sheet —
+// it only ever talks to `develop`, on purpose, so a schema/format
+// change can actually be isolated there instead of also hitting
+// whatever real production data `main` is serving. There's a separate
+// production sheet feeding `main`'s own Apps Script + deploy hook (not
+// this one) — don't add a second hook here to "cover" main; that's
+// exactly the coupling this split was meant to remove. Each sheet talks
+// to exactly one branch, so this is a single url, same as
+// VALID_VALUES_URL below. Name the hook sheets-sync-<branch> in the
+// Cloudflare dashboard — names the trigger (this Sheet) and the target
+// together.
+const DEPLOY_HOOK_URL   = 'YOUR_DEVELOP_DEPLOY_HOOK_URL'; // sheets-sync-develop
+// This is the one source of truth for which team/division/venue names
+// are currently valid, and has to match whichever deployment THIS sheet
+// actually feeds. Since this sheet only talks to develop, that's
+// develop's own Cloudflare Pages URL — NOT the bare <project>.pages.dev
+// domain, which tracks the Production branch (main) and reflects the
+// OTHER sheet's data, not this one's.
+const VALID_VALUES_URL  = 'https://develop.azgyl.pages.dev/valid-values.json';
 const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
 
@@ -455,12 +522,44 @@ function validateAndDeploy(editorEmail) {
     notifyError(editorEmail, errors);
     return;
   }
-  // Fire every configured hook — one deploy per branch. muteHttpExceptions
-  // so one hook failing (a stale/deleted one, say) doesn't stop the rest
-  // from firing.
-  DEPLOY_HOOK_URLS.forEach(function (url) {
-    UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true });
-  });
+  fireDeployHook();
+}
+
+// muteHttpExceptions only covers HTTP-level error RESPONSES (4xx/5xx) —
+// it does NOT stop a network-level failure (DNS, "Address unavailable",
+// connection refused) from throwing, so this still needs its own
+// try/catch, or a deploy-hook problem crashes processPendingEdit()
+// silently: nothing goes live, nothing gets logged anywhere a human
+// would see it, and the sheet itself already validated clean, so
+// there's no error email either — the whole thing just quietly does
+// nothing. Confirmed for real, 2026-09-01 (Executions log showed
+// "Exception: Address unavailable: <hook url>" thrown straight out of
+// this line). Data already validated at this point, so this is never
+// the editor's fault — only ADMIN_EMAIL is notified, not editorEmail.
+function fireDeployHook() {
+  try {
+    const res = UrlFetchApp.fetch(DEPLOY_HOOK_URL, { method: 'post', muteHttpExceptions: true });
+    const code = res.getResponseCode();
+    if (code < 200 || code >= 300) {
+      notifyDeployHookFailure('HTTP ' + code + ': ' + res.getContentText());
+    }
+  } catch (err) {
+    notifyDeployHookFailure(err.message || String(err));
+  }
+}
+
+function notifyDeployHookFailure(detail) {
+  MailApp.sendEmail(
+    ADMIN_EMAIL,
+    'AZGYL sheet: data is valid, but the deploy hook failed to fire',
+    'The sheet validated cleanly, but the Cloudflare deploy hook call itself failed, ' +
+    'so the site was NOT rebuilt:\n\n' + detail +
+    '\n\nCheck that DEPLOY_HOOK_URL in this script still matches a real, ' +
+    'non-deleted deploy hook in Cloudflare Pages (Settings → Builds & ' +
+    'deployments → Deploy hooks). If the hook itself looks fine, this may ' +
+    'just be a transient network issue — any new edit to the sheet will ' +
+    'retry automatically.'
+  );
 }
 
 function readTab(ss, tabName) {
@@ -479,8 +578,19 @@ function readTab(ss, tabName) {
 }
 
 function formatCell(value) {
+  // A date column is a genuine Sheets Date-typed cell (normal — that's
+  // what lets it display as m/dd/yyyy in the grid), so getValues() hands
+  // back a real JS Date here, not the text you see on screen. Must
+  // format to M/d/yyyy, matching DATE_RE and src/data/schedule.ts's
+  // toISO() exactly — this used to format to yyyy-MM-dd, back when
+  // DATE_RE accepted ISO too (see the note above DATE_RE below); once
+  // DATE_RE went MM/DD/YYYY-only, this was left stringifying every real
+  // Date cell into a format the regex immediately rejects, regardless of
+  // whatever display format was set on the cell (this function never
+  // looks at display format — only at whether the value is a Date
+  // instance at all). Confirmed for real, 2026-09-01.
   if (value instanceof Date) {
-    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'M/d/yyyy');
   }
   return String(value === null || value === undefined ? '' : value).trim();
 }
@@ -493,7 +603,14 @@ function fetchValidValues() {
   return JSON.parse(res.getContentText());
 }
 
-const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/; // MM/DD/YYYY, single or double digit month/day both fine
+// MM/DD/YYYY only — must match src/data/schedule.ts's DATE_RE exactly.
+// (An earlier version of this also accepted ISO YYYY-MM-DD, as a
+// stopgap for when one sheet fed both develop's and main's deploy
+// hooks and a format change on one branch could break the other before
+// it caught up. Now that each branch has its own separate spreadsheet
+// — see the note at the top of this doc — that coordination problem
+// doesn't exist, so back to one format.)
+const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
 
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — must match src/data/schedule.ts's fillDown()
@@ -656,6 +773,15 @@ is shared and Google's own privacy rules, it can come back empty, in
 which case only `ADMIN_EMAIL` gets notified. If the editor's own
 notification seems to be missing sometimes, that's why — it's a known
 limitation of Apps Script's editor detection, not a bug in this script.
+
+**A second, separate kind of failure notification**: if the sheet
+validates *cleanly* but the actual Cloudflare deploy hook call fails
+(a network hiccup, or the hook itself was deleted/regenerated in
+Cloudflare without updating `DEPLOY_HOOK_URL` here), that's not a
+validation error — it's caught in `fireDeployHook()` and emailed to
+`ADMIN_EMAIL` only, with a distinct subject line ("data is valid, but
+the deploy hook failed to fire"), never to the editor, since it's never
+their mistake.
 
 ---
 

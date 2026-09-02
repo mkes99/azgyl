@@ -7,6 +7,202 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.48] — 2026-09-01 — Fix: deploy-hook network failure crashed silently
+
+### Fixed
+
+- **Real incident, 2026-09-01**: `processPendingEdit` crashed with
+  `Exception: Address unavailable: <deploy hook URL>` thrown straight
+  out of the `UrlFetchApp.fetch()` call in `validateAndDeploy()`.
+  `muteHttpExceptions: true` only suppresses HTTP-level error
+  *responses* (4xx/5xx) — it does nothing for a network-level failure
+  like this one (DNS, "Address unavailable," connection refused), so
+  the exception propagated uncaught. The sheet had already validated
+  cleanly at that point, so there was no error email either — the
+  failure was completely invisible outside the Apps Script Executions
+  log. Extracted the deploy call into `fireDeployHook()`, wrapped in a
+  real try/catch, and added `notifyDeployHookFailure()` — emails
+  `ADMIN_EMAIL` only (never the editor, since valid data isn't their
+  mistake) with a distinct subject line whenever the deploy hook itself
+  fails, whether from a thrown exception or a muted-but-bad HTTP status.
+  Documented in "A note on error notifications."
+
+---
+
+## [3.47] — 2026-09-01 — Fix: Apps Script `formatCell()` always ISO'd real Date cells
+
+### Fixed
+
+- **Correction to 3.46's diagnosis** — the "pasting resets the column's
+  format" theory below was wrong, and the fix it suggested (reapplying
+  `m/dd/yyyy` after a paste) never actually did anything, which is
+  exactly what was reported. The real bug: the Apps Script's
+  `formatCell()` (`GOOGLE_SHEETS_SETUP.md`) reads date cells via
+  `SpreadsheetApp`, which hands back a real JS `Date` object for any
+  genuine Date-typed cell — completely normal, and unrelated to
+  whatever format the cell displays as. `formatCell()` unconditionally
+  stringified any `Date` instance to `yyyy-MM-dd` before validating it
+  — a leftover from when `DATE_RE` accepted ISO too (3.43). When
+  `DATE_RE` went MM/DD/YYYY-only in 3.45, this line should have changed
+  with it and didn't, so it turned every real Date cell into a string
+  the new stricter regex immediately rejects, regardless of display
+  format — reformatting the column was never going to fix it, since
+  this function never looks at display format at all, only at whether
+  the value is a `Date` instance. Fixed: formats to `M/d/yyyy` instead,
+  matching `DATE_RE`. The published-CSV path (`src/data/schedule.ts`'s
+  `fetchCSV()`) was never affected — Google's CSV export already
+  emitted the cell's displayed `M/D/YYYY` text correctly the whole
+  time, which is why every direct check of the live CSV during
+  debugging looked fine while the Apps Script kept failing.
+- Removed the incorrect "reapply the format after pasting" guidance
+  from both `GOOGLE_SHEETS_SETUP.md` and `SHEET_ENTRY_GUIDE.md` —
+  there's no sheet-side workaround needed now that the actual bug is
+  fixed in the script.
+- **Manual follow-up required**: this fix lives in the Apps Script
+  source embedded in `GOOGLE_SHEETS_SETUP.md`, which isn't deployed by
+  `git push` — it has to be re-pasted into the live Apps Script editor
+  (Extensions → Apps Script → `Code.gs`) on the actual Develop AZGYL
+  Season Data spreadsheet for this fix to take effect there.
+
+---
+
+## [3.46] — 2026-09-01 — Season switcher on /league; date-format gotcha documented
+
+### Changed
+
+- **`/league`'s Schedule and Standings both switch to a per-season
+  selector instead of stacking every active season's content one after
+  another.** With two active seasons (Spring 2026 + Fall 2026 test
+  data), Schedule was rendering two complete, *unlabeled* Division/
+  Week/Team filter bars back to back — no heading distinguished them.
+  Standings had the opposite problem: each season already had its own
+  label, but stacking full sections (heading, intro copy, legend, and
+  tables, repeated per season) produced a large dead gap and duplicated
+  copy. Both are now: one shared heading/intro/legend, a season
+  switcher when there's a real choice to make (no switcher, just a
+  plain label, when only one season is active), and exactly one
+  season's content visible at a time.
+- **Season is a switcher, not a filter** — deliberately never gets an
+  "All" option, unlike Division/Week/Team. Division/Week/Team subtract
+  from one shared list of games; a season *is* the list, so "All"
+  would mean showing multiple unrelated datasets in the same space at
+  once — the exact stacking problem this replaces. Default selection
+  uses the same "soonest upcoming game wins" rule as
+  `HomeSchedulePreview.astro`, computed independently in Schedule and
+  Standings (Standings only offers seasons that actually have data,
+  which can differ from Schedule's own selection).
+- `StandingsTable.astro` no longer renders its own W/L/T/Pts/GF/GA
+  legend — moved up to `LeagueStandings.astro` so it renders once per
+  page, not once per season.
+- Fixed a stray `.sched-day` divider line — a leftover from an earlier
+  fix that let all weeks show at once under Week: All. It sat in the
+  middle of a large empty gap between weeks, not attached to either
+  panel; removed in favor of whitespace only, since each week already
+  has its own heading rule.
+
+### Documented
+
+- **Real incident, 2026-09-01**: pasting a new block of dated rows into
+  the live sheet made Google Sheets silently re-apply its own default
+  date format to the whole column, overriding the `m/dd/yyyy` format
+  already set — even though the cells still looked correct in the
+  Sheets UI. The published CSV then emitted ISO `YYYY-MM-DD`, which
+  failed validation for every row in the column, old ones included (52
+  errors). The pipeline caught it correctly (error email, deploy
+  skipped, nothing bad went live) — the only real gap was that this
+  wasn't a known, documented risk. Added a "Formatting the date
+  columns" section to `GOOGLE_SHEETS_SETUP.md` and a plain-language
+  version to `SHEET_ENTRY_GUIDE.md`: use **Format → Number → Custom
+  date and time** → `m/dd/yyyy` specifically (not the plain **Date**
+  preset, which follows Sheets' locale default instead), and reapply it
+  after pasting in a new season's worth of rows.
+- Fixed a dead link: `SHEET_ENTRY_GUIDE.md`'s "Getting names right"
+  pointed at `https://azgyl.com/valid-values.json`, a domain that isn't
+  live yet — switched to a relative `/valid-values.json` link, which
+  resolves correctly on whichever deployment is actually showing the
+  page. Same fix applied to the equivalent reference in
+  `GOOGLE_SHEETS_SETUP.md`.
+
+---
+
+## [3.45] — 2026-09-01 — Date validation back to MM/DD/YYYY only; single deploy hook, not an array
+
+### Changed
+
+- **`DATE_RE` (in `schedule.ts`, `standings.ts`'s error messages stay
+  shared, and the Apps Script's copy in `GOOGLE_SHEETS_SETUP.md`) is
+  back to `MM/DD/YYYY`-only**, reverting the dual-format tolerance added
+  in 3.43. That tolerance was a stopgap for when one shared sheet fed
+  both `develop`'s and `main`'s deploy hooks (3.42's incident); 3.44's
+  two-sheet-per-environment split already removed that coordination
+  problem, so the extra format made the validation looser than it needs
+  to be going forward. Verified against the live "Develop AZGYL Season
+  Data" sheet (already fully MM/DD/YYYY) — clean build, no data changes
+  needed.
+- **`standings.ts` now uses `pickCsvUrl()`**, same `DEPLOY_ENV`
+  selection as `schedule.ts` — it had been overlooked when `pickCsvUrl`
+  was introduced in 3.44 and was still hardcoded permanently to the
+  Develop sheet, which would have silently served develop's standings
+  data on `main` in production.
+- **`DEPLOY_HOOK_URLS` (an array) simplified to `DEPLOY_HOOK_URL` (a
+  single string)** in the Apps Script — it was an array from an earlier
+  design where one sheet could feed multiple branches at once; since
+  the two-sheet split means a sheet only ever talks to exactly one
+  branch, the array was dead flexibility. Matches `VALID_VALUES_URL`,
+  which was already a single value.
+- `GOOGLE_SHEETS_SETUP.md` Step 1 now says to name the sheet "Develop
+  AZGYL Season Data" (vs. plain "AZGYL Season Data" for the eventual
+  production sheet) instead of one generic name for both.
+
+---
+
+## [3.44] — 2026-09-01 — Documented: separate develop/main sheets, not one shared sheet
+
+### Changed
+
+- **`GOOGLE_SHEETS_SETUP.md` updated for a real architecture change**:
+  a single sheet feeding both `develop` and `main`'s deploy hooks
+  removed the isolation `develop` existing separately from `main` is
+  supposed to provide — any sheet edit had to satisfy both branches'
+  code simultaneously, which is exactly what broke on 2026-09-01 (see
+  3.42/3.43). Going forward: two separate spreadsheets, one per
+  environment — "Develop AZGYL Season Data" feeds `develop` only; a
+  separate production sheet feeds `main` only. Corrected a now-false
+  claim in the doc's own intro ("managed from one Google Sheet... not
+  from separate spreadsheets") and added an explicit explanation up
+  top plus updated Step 7/8's config example to a single deploy hook
+  (`DEPLOY_HOOK_URLS` down to one entry) and `VALID_VALUES_URL` pointed
+  at `develop.azgyl.pages.dev` specifically, not the bare
+  `azgyl.pages.dev` production domain. The backward-compatible date
+  validation from 3.43 stays regardless — cheap insurance, and it means
+  a future schema change doesn't force coordinating a sheet-format
+  update with whoever's editing it.
+
+---
+
+## [3.43] — 2026-09-01 — Date validation accepts both formats (multi-branch deploy hooks need it)
+
+### Fixed
+
+- **3.42's switch to requiring `MM/DD/YYYY` broke `main`'s build for
+  real** — `develop` and `main` both have a live deploy hook (see
+  `GOOGLE_SHEETS_SETUP.md`, Step 7/8), and there's only one sheet, so
+  the moment the sheet was converted to the new format, `main`'s
+  still-ISO-only code failed validation on every edit until it was
+  manually merged to catch up. That defeats having two branches at all
+  — the whole point of `develop` is testing changes in isolation before
+  they can affect `main`, but a sheet-schema change can't be isolated
+  when both branches validate the same live sheet simultaneously.
+  `DATE_RE` (both `schedule.ts` and the Apps Script) now accepts EITHER
+  `MM/DD/YYYY` or `YYYY-MM-DD` — doesn't matter which branch is ahead,
+  since both formats validate against either branch's code. Tracked in
+  `TODO.md` to simplify back to one format once every hooked branch is
+  confirmed on the same code. Verified: a build with both an
+  ISO-dated and an MM/DD/YYYY-dated season active simultaneously
+  renders both correctly.
+
+---
+
 ## [3.42] — 2026-09-01 — Sheet dates switched from YYYY-MM-DD to MM/DD/YYYY
 
 ### Changed

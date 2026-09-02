@@ -47,6 +47,31 @@ function buildEventData(event: typeof scheduleEvents[0]) {
 }
 
 const activeEvents = scheduleEvents.filter(e => e.active);
+
+// More than one season/tournament can be active at once (see
+// GOOGLE_SHEETS_SETUP.md) — a season plus a tournament running
+// alongside it, or a real overlap while one season's winding down and
+// the next hasn't started. When that happens, only one is shown at a
+// time (a season switcher below lets a visitor pick another), and the
+// default has to be a real decision, not just whichever sheet row
+// happens to be listed first. Same "soonest upcoming game wins" rule
+// HomeSchedulePreview.astro uses for its single-event pick, so the
+// homepage and /league never disagree about which season is "current"
+// for the same visitor on the same day. Falls back to the first active
+// event if none of them have an upcoming game (everything active is
+// finished or empty).
+function soonestUpcoming(evt: typeof scheduleEvents[0]) {
+  const dates = [...new Set(evt.games.map(g => g.date))].sort();
+  const todayISO = new Date().toLocaleDateString('en-CA');
+  return dates.find(d => d >= todayISO) ?? null;
+}
+const defaultEvent = activeEvents.reduce((best, evt) => {
+  const nextForEvt = soonestUpcoming(evt);
+  if (!nextForEvt) return best;
+  const nextForBest = best ? soonestUpcoming(best) : null;
+  return (!best || !nextForBest || nextForEvt < nextForBest) ? evt : best;
+}, null as typeof scheduleEvents[0] | null) ?? activeEvents[0];
+const defaultEventId = defaultEvent?.id;
 ---
 
 {activeEvents.length === 0 && (
@@ -61,16 +86,48 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   </section>
 )}
 
-{activeEvents.map(event => {
-  const { games, dates, divisions, teamNames, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO } = buildEventData(event);
+{activeEvents.length > 0 && (
+  <section class="league-sched-section">
+    <div class="container">
 
-  return (
-    <section class="league-sched-section">
-      <div class="container">
+      {/* ── Season switcher ───────────────────────
+          Only shown when there's actually a choice to make. Doubles as
+          the "which season am I looking at" label — Season isn't a
+          filter like Division/Week/Team below (those subtract from one
+          shared list of games; a season IS the list), so unlike those
+          three, this never gets an "All" option — it always resolves to
+          exactly one selected season. See sheets-branch-merge-plan
+          memory / this session's design discussion for why. */}
+      {activeEvents.length > 1 ? (
+        <div class="season-switcher" role="tablist" aria-label="Select season">
+          {activeEvents.map(event => (
+            <button
+              type="button"
+              class={`season-tab${event.id === defaultEventId ? ' season-tab--active' : ''}`}
+              data-season-tab={event.id}
+              role="tab"
+              aria-selected={event.id === defaultEventId ? 'true' : 'false'}
+            >
+              {event.name}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <h2 class="season-name">{activeEvents[0].name}</h2>
+      )}
+
+      {activeEvents.map(event => {
+        const { games, dates, divisions, teamNames, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO } = buildEventData(event);
+        const isDefaultSeason = event.id === defaultEventId;
+
+        return (
+        <div class="season-block" data-season-block={event.id} hidden={!isDefaultSeason}>
 
         {seasonOver && (
           <div class="season-complete-notice">
-            <span>✓</span>
+            <svg class="season-complete-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M4 10.5 8 14.5 16 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             <div>
               <strong>Season complete</strong>
               <span>All game days have passed. Browse past weeks using the Week filter.</span>
@@ -81,10 +138,11 @@ const activeEvents = scheduleEvents.filter(e => e.active);
         {/* An active event with zero games — a season row exists in the
             sheet but the Schedule tab has no game rows for it yet (or
             none parsed) — gets its own notice instead of an empty filter
-            bar with nothing beneath it. */}
+            bar with nothing beneath it. Season name already shown above
+            (switcher tab or the plain heading), so no need to repeat it
+            here. */}
         {dates.length === 0 && (
           <div class="info-panel">
-            <div class="section-kicker">{event.name}</div>
             <h3>No games scheduled yet</h3>
             <p>This season is active but the Schedule tab doesn't have any games for it yet.</p>
           </div>
@@ -258,10 +316,13 @@ const activeEvents = scheduleEvents.filter(e => e.active);
         })}
         </>)}
 
-      </div>
-    </section>
-  );
-})}
+        </div>
+        );
+      })}
+
+    </div>
+  </section>
+)}
 
 {/* Single reusable lightbox for every "Field map" link on the page —
     populated with whichever image was clicked (see the script below). */}
@@ -282,8 +343,29 @@ const activeEvents = scheduleEvents.filter(e => e.active);
 
 <script is:inline>
 (function () {
+  // Season switcher — shows exactly one .season-block at a time. Only
+  // rendered as clickable tabs when there's more than one active
+  // season; with just one, the block is already the default and
+  // there's nothing to wire up here.
+  document.querySelectorAll('[data-season-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var id = tab.dataset.seasonTab;
+      document.querySelectorAll('[data-season-tab]').forEach(function (t) {
+        t.classList.toggle('season-tab--active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+      document.querySelectorAll('[data-season-block]').forEach(function (block) {
+        block.hidden = block.dataset.seasonBlock !== id;
+      });
+    });
+  });
+
   document.querySelectorAll('[data-sched-filters]').forEach(function (filterRoot) {
-    var section = filterRoot.closest('.league-sched-section');
+    // Scoped to .season-block, not .league-sched-section — there's now
+    // one .league-sched-section wrapping every active season's block,
+    // so .league-sched-section would match every season's games at
+    // once instead of just this filter bar's own season.
+    var section = filterRoot.closest('.season-block');
     if (!section) return;
 
     var activeDiv  = 'all';
@@ -467,12 +549,58 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   code { background: var(--surface-soft); padding: .15rem .4rem; border-radius: 6px; font-size: .85em; }
   .league-sched-section { padding: clamp(48px, 6vw, 80px) 0; }
 
+  /* ── Season identity ─────────────────────────── */
+  /* The single-season case: a plain heading, not a pill — there's
+     nothing to choose between, and this is the primary heading for
+     everything below it (the page hero above only says "Schedule and
+     standings" generically), so it needs more visual weight than a
+     label sitting next to a bigger heading would. */
+  .season-name {
+    font-size: clamp(1.3rem, 3vw, 1.7rem);
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -.01em;
+    margin: 0 0 1.75rem;
+  }
+  /* The multi-season case: underline tabs. Same treatment on
+     LeagueStandings.astro's own copy of this switcher — deliberately
+     not styled like the Division/Week/Team pill filters below
+     (.sched-tab, a different class; this rule is scoped to
+     .season-switcher .season-tab specifically) so it still reads as a
+     different tier of control than they do, picking which games/
+     standings exist to filter in the first place rather than filtering
+     within one shared set. */
+  .season-switcher {
+    display: flex; flex-wrap: wrap;
+    gap: .5rem 1.75rem;
+    margin-bottom: 1.75rem;
+    border-bottom: 2px solid var(--line);
+  }
+  .season-switcher .season-tab {
+    position: relative;
+    padding: 0 0 .85rem;
+    background: none; border: none;
+    font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+    font-weight: 800;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color .15s;
+  }
+  .season-switcher .season-tab:hover { color: var(--text); }
+  .season-switcher .season-tab--active { color: var(--rose-deep); }
+  .season-switcher .season-tab--active::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: -2px;
+    height: 3px; border-radius: 3px 3px 0 0;
+    background: var(--rose-deep);
+  }
+
   .season-complete-notice {
     display: flex; align-items: flex-start; gap: .85rem;
     padding: .85rem 1.1rem; margin-bottom: 1.25rem;
     background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 14px; font-size: .9rem;
   }
-  .season-complete-notice > span { font-size: 1.1rem; flex-shrink: 0; }
+  .season-complete-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: .1rem; color: #15803d; }
   .season-complete-notice strong { display: block; color: #15803d; font-weight: 700; margin-bottom: .1rem; }
   .season-complete-notice span   { color: #166534; }
 
@@ -517,10 +645,13 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   /* Only one panel used to ever be visible at a time, so there was never
      a need for space between them — now that the Week filter's "All"
      option shows every week stacked, consecutive panels need real
-     separation. Doesn't affect the single-panel view beyond a little
-     trailing space before whatever section comes next. */
-  .sched-day { margin-bottom: 3rem; padding-bottom: 3rem; border-bottom: 1px solid var(--line); }
-  .sched-day:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+     separation. Whitespace only, no rule — a border here sat in the
+     middle of a large empty gap, not attached to either panel, and read
+     as a stray floating line rather than an intentional divider. Each
+     week already gets its own rule right under its own heading
+     (.sched-day-hdr, below) — that's the section-start cue. */
+  .sched-day { margin-bottom: 3rem; }
+  .sched-day:last-of-type { margin-bottom: 0; }
   .sched-day--hidden { display: none; }
   .sched-day-hdr { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 2px solid var(--line); }
   .sched-day-week { display: block; font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--rose-deep); margin-bottom: .2rem; }

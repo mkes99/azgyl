@@ -82,20 +82,31 @@ a backstop — if the sheet's own check somehow lets something bad through,
 the build fails loudly rather than publishing it, and Cloudflare keeps
 serving the last good deploy.
 
-**Switching to a different Google Sheet later is a small, isolated
-change** — it doesn't touch the data model or any of the display logic.
-Publish the new sheet's tabs to web as CSV (same as initial setup), swap
-in the new URLs in `src/data/schedule.ts`, commit, push. The one thing
-that **doesn't** carry over automatically: the Apps Script validator
-lives inside the
-specific spreadsheet it was added to (Extensions → Apps Script), so a new
-sheet needs that script pasted in and its triggers re-added — a few
-minutes, but it's manual every time. Everything else (the Cloudflare
-deploy hook, `/valid-values.json`, the site's own build-time validation)
-is sheet-agnostic and needs no changes. If you expect to swap sheets
-often rather than as a one-off, it'd be worth moving those CSV URLs into
-Cloudflare Pages environment variables instead of hardcoded constants —
-ask whoever maintains the codebase if that becomes worth doing.
+**There are two separate spreadsheets, one per environment** — a
+"Develop AZGYL Season Data" sheet feeding `develop` only, and a
+separate production sheet feeding `main` only (see
+`GOOGLE_SHEETS_SETUP.md` for why: a single sheet feeding both branches
+meant a schema change on one branch could break the other's build the
+moment the shared sheet was updated — happened for real once). Which
+CSV URL a build actually fetches is picked by `pickCsvUrl()`
+(`src/lib/csv.ts`), keyed off `DEPLOY_ENV` (a Cloudflare Pages
+build-time environment variable — `'production'` on `main`, `'preview'`
+everywhere else) — so `schedule.ts`/`standings.ts` are the exact same
+committed file on both branches, just resolving to a different URL
+depending which one is building.
+
+**Switching either environment to a different Google Sheet later is a
+small, isolated change** — it doesn't touch the data model or any of
+the display logic. Publish the new sheet's tabs to web as CSV (same as
+initial setup), swap in the new URL for that environment's argument in
+`pickCsvUrl(...)`, commit, push — the other environment's argument (and
+its sheet) is untouched. The one thing that **doesn't** carry over
+automatically: the Apps Script validator lives inside the specific
+spreadsheet it was added to (Extensions → Apps Script), so a new sheet
+needs that script pasted in and its triggers re-added — a few minutes,
+but it's manual every time. Everything else (the Cloudflare deploy
+hook, `/valid-values.json`, the site's own build-time validation) is
+sheet-agnostic and needs no changes.
 
 **`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`, and
 `division` don't need to be retyped on every `Schedule` row** — leave any

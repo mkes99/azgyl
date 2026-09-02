@@ -45,6 +45,22 @@ export function parseCSV(text: string): Record<string, string>[] {
   });
 }
 
+// Cloudflare Pages exposes which branch is building as a build-time
+// environment variable — DEPLOY_ENV, set in the Pages dashboard
+// (Settings → Environment variables) to 'production' for `main` and
+// 'preview' for every other branch (develop, PR previews). Picking the
+// CSV URL off that, instead of hardcoding one branch's sheet URLs
+// directly in schedule.ts/standings.ts, means the exact same committed
+// code and the exact same file work correctly on every branch — no
+// branch-specific values to keep in sync by hand. That was a real
+// problem once already: a single sheet + two branches with independent
+// hardcoded URLs meant `develop` and `main` could (and did) drift out
+// of sync with each other. See GOOGLE_SHEETS_SETUP.md for the two-sheet
+// (develop/main) setup this pairs with.
+export function pickCsvUrl(production: string, preview: string): string {
+  return process.env.DEPLOY_ENV === 'production' ? production : preview;
+}
+
 // Shared by every Sheet-driven data file (schedule.ts, standings.ts) so
 // the fetch-and-fail-loud behavior — and its error messages — stay
 // identical across all of them rather than drifting per-file copies.

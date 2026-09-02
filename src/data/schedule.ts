@@ -74,16 +74,27 @@
 // (src/pages/valid-values.json.ts) so there's one source of truth.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { fetchCSV } from '@/lib/csv';
+import { fetchCSV, pickCsvUrl } from '@/lib/csv';
 import { normalizeFieldMapUrl } from '@/lib/driveLink';
 import { teams } from './teams';
 import { venues } from './venues';
 
-const SEASONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=0&single=true&output=csv';
-const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=899852134&single=true&output=csv';
-// Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Seasons'
-// Leave both empty to run with zero events (site shows its normal
-// "no active events" state) — useful before the sheet is set up.
+// pickCsvUrl() selects by DEPLOY_ENV (Cloudflare Pages build-time env
+// var — 'production' on main, 'preview' everywhere else) — see the
+// comment on pickCsvUrl() in src/lib/csv.ts for why this isn't just
+// hardcoded per-branch. Production URLs are empty until the real
+// production sheet is set up (Step 1, a separate spreadsheet from the
+// develop one) — leaving them empty runs the site with zero events
+// (its normal "no active events" state) rather than throwing, so main
+// isn't broken in the meantime.
+const SEASONS_CSV_URL = pickCsvUrl(
+  '', // production — set once the real production sheet exists
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=0&single=true&output=csv', // preview — Develop AZGYL Season Data
+);
+const SCHEDULE_CSV_URL = pickCsvUrl(
+  '', // production
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=899852134&single=true&output=csv', // preview
+);
 
 export interface Game {
   id:       string;   // derived — season_id + row number, not sheet input
@@ -112,19 +123,26 @@ export interface ScheduleEvent {
 
 // Sheet dates are typed as MM/DD/YYYY (the natural format for a US
 // audience) — accepts single or double-digit month/day (9/19/2026 and
-// 09/19/2026 both fine). Every date-driven comparison elsewhere in the
-// site (fillDown below, "is this game in the past," week/day sorting in
-// LeagueSchedule.astro and HomeSchedulePreview.astro) depends on
-// ISO-format strings sorting correctly as plain strings — plain
-// MM/DD/YYYY strings do NOT sort chronologically ("12/01/2026" would
-// sort before "02/07/2026"). So toISO() converts right after
-// validating; nothing downstream of this file ever sees MM/DD/YYYY.
-// Format-only check, same as the ISO version this replaced — doesn't
+// 09/19/2026 both fine). ISO YYYY-MM-DD is deliberately NOT accepted —
+// MM/DD/YYYY only, one format. (An earlier version of this file
+// accepted both, as a stopgap for when a single sheet fed both
+// `develop` and `main`'s deploy hooks simultaneously — see CHANGELOG
+// 3.43. Now that each branch has its own separate spreadsheet
+// (GOOGLE_SHEETS_SETUP.md), that coordination problem doesn't exist
+// anymore, so back to one format.)
+//
+// Every date-driven comparison elsewhere in the site (fillDown below,
+// "is this game in the past," week/day sorting in LeagueSchedule.astro
+// and HomeSchedulePreview.astro) depends on ISO-format strings sorting
+// correctly as plain strings — plain MM/DD/YYYY strings do NOT sort
+// chronologically ("12/01/2026" would sort before "02/07/2026"). So
+// toISO() converts right after validating; nothing downstream of this
+// file ever sees the raw MM/DD/YYYY string. Format-only check — doesn't
 // catch a nonsense calendar date like 13/45/2026.
 const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
 
-function toISO(mmddyyyy: string): string {
-  const [month, day, year] = mmddyyyy.split('/');
+function toISO(dateStr: string): string {
+  const [month, day, year] = dateStr.split('/');
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
 
