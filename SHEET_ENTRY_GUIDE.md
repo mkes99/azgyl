@@ -110,6 +110,17 @@ way is fine.
 The only row that needs every column filled in is the very first row of
 the whole tab — there's nothing above that one to copy from.
 
+One thing to watch for: `division`, `fieldMapUrl`, and `venueNotes`
+follow the venue and date, not just "whatever's above." The moment a
+row types its own `venue` or `date` instead of leaving them blank —
+starting a new block — those three reset too, even if you meant to
+carry the same division forward. So if a new week's first row gives its
+own `date` but leaves `division` blank expecting it to carry over from
+last week's last game, it won't — that row needs its own `division`
+too. Give a new block's first row a `division` (and, if it applies, a
+`fieldMapUrl`/`venueNotes`) any time it also gives its own `venue` or
+`date`.
+
 ---
 
 ## How games show up on the website
@@ -136,7 +147,7 @@ Team names and venue names have to match **exactly** what's already on
 the website, or that row won't go through.
 
 If you're ever unsure of the exact spelling, check
-**`https://azgyl.com/valid-values.json`** — it's a plain list of every
+**[/valid-values.json](/valid-values.json)** — it's a plain list of every
 team name, division, and venue currently recognized by the site. Copy
 the spelling straight from there if you're not sure.
 
@@ -271,3 +282,13 @@ Give it a couple of minutes. If everything you typed checks out, the
 website updates on its own — no further action needed. If something's
 off, you'll get an email listing exactly what to fix and where. Fix it,
 save again, and it'll automatically try once more.
+
+---
+
+## Questions, or something looks wrong that isn't covered here
+
+Reach out to whoever manages the site (the site's admin — the email
+that any error notification comes from). This guide covers the normal
+week-to-week workflow; anything that looks like it needs a real change
+to the sheet's setup (a new column, a new venue, a new tab) is a
+question for them, not something to work around here.

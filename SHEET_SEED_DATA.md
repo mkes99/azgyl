@@ -1,12 +1,15 @@
 # Seed data — Schedule & Standings tabs
 
-Copy-paste-ready sample data for populating the sheet's tabs by hand (no
-automation required — see `GOOGLE_SHEETS_SETUP.md` for that later). One
-Google Sheet, several tabs — not two separate spreadsheets. Every team
-name, division, and venue id below is checked against what's actually
-valid on the site today (`/valid-values.json`), so it'll pass validation
-once the automation is wired up too. `field` is plain descriptive text
-(not validated) — see "How games get grouped by venue on the site" in
+Copy-paste-ready sample data for populating a sheet's tabs by hand (no
+automation required — see `GOOGLE_SHEETS_SETUP.md` for that later).
+There are two separate spreadsheets, one per environment (`develop` and
+`main`) — see the note at the top of `GOOGLE_SHEETS_SETUP.md`. This data
+is meant for the `develop` sheet ("Develop AZGYL Season Data"); paste it
+there, not into the production sheet. Every team name, division, and
+venue id below is checked against what's actually valid on the site
+today (`/valid-values.json`), so it'll pass validation once the
+automation is wired up too. `field` is plain descriptive text (not
+validated) — see "How games get grouped by venue on the site" in
 `GOOGLE_SHEETS_SETUP.md` for how `venue`/`field` work.
 
 **`season_id`, `date`, `venue`, `fieldMapUrl`, `venueNotes`, and
@@ -159,13 +162,16 @@ the schedule.
 
 ## Testing the deploy pipeline — a second active season
 
-Purpose-built for testing the Apps Script + deploy hook end to end
-(see "A note on error notifications" and Step 7/8 in
-`GOOGLE_SHEETS_SETUP.md`) — dated far enough out that it won't
-complete during testing, and won't collide with the Spring 2026 data
-above. **Append these at the bottom of each tab** — don't insert them
-above the existing rows. `HomeSchedulePreview.astro` (the homepage
-widget) picks whichever active season has the soonest upcoming game,
+**For the `develop` sheet only** ("Develop AZGYL Season Data") — this is
+test data, and `develop` is the sheet meant to carry it. Don't paste
+this into the production sheet feeding `main`. Purpose-built for
+testing the Apps Script + deploy hook end to end (see "A note on error
+notifications" and Step 7/8 in `GOOGLE_SHEETS_SETUP.md`) — dated far
+enough out that it won't complete during testing, and won't collide
+with the Spring 2026 data above. **Append these at the bottom of each
+tab** — don't insert them above the existing rows.
+`HomeSchedulePreview.astro` (the homepage widget) picks whichever
+active season has the soonest upcoming game,
 not whichever is listed first, so row order here doesn't matter; Spring
 2026 can stay active and untouched.
 
