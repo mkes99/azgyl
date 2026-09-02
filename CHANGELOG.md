@@ -7,6 +7,29 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.42] — 2026-09-01 — Sheet dates switched from YYYY-MM-DD to MM/DD/YYYY
+
+### Changed
+
+- **`Seasons`/`Schedule` date columns now expect `MM/DD/YYYY`** (single
+  or double-digit month/day both fine — `9/19/2026` and `09/19/2026`
+  both work), not ISO `YYYY-MM-DD` — more natural for a US audience
+  typing dates by hand. `DATE_RE` updated in both `schedule.ts` and the
+  Apps Script; a new `toISO()` converts right after validating, so
+  every date-driven comparison elsewhere in the site (fillDown, "is this
+  game in the past," week/day sorting) still operates on ISO strings
+  internally and never sees the new format — those all depend on
+  ISO-format strings sorting correctly as plain strings, which
+  MM/DD/YYYY strings don't. All four docs' examples updated to match.
+  **Breaking for the real sheet**: every existing date cell (Seasons
+  `startDate`/`endDate`, every non-blank `Schedule` `date` cell) needs
+  converting by hand before the next successful deploy — the old format
+  now fails validation (intentionally, as a live test of the fail-loud
+  pipeline: a bad sheet state should never publish, and this proves it
+  doesn't).
+
+---
+
 ## [3.41] — 2026-09-01 — Homepage picks the active season by date, not sheet row order
 
 ### Fixed

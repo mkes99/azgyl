@@ -85,11 +85,11 @@ season_id | name | type | active | startDate | endDate
 | `name` | Display name shown on the site, e.g. `Spring 2026`. |
 | `type` | `season` or `tournament` — exactly, lowercase. |
 | `active` | `TRUE` or `FALSE` — checkbox column recommended. `TRUE` = shown on the homepage and `/league`. More than one row can be `TRUE` at once (e.g. a season plus a tournament running alongside it). |
-| `startDate` / `endDate` | `YYYY-MM-DD`. |
+| `startDate` / `endDate` | `MM/DD/YYYY`. |
 
 Example row:
 ```
-spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
+spring-2026 | Spring 2026 | season | TRUE | 02/07/2026 | 04/11/2026
 ```
 
 ---
@@ -110,7 +110,7 @@ identically in any column order — this one's just easier to scan.
 | Column | Notes |
 |---|---|
 | `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. Can be left blank — see "Leave repeated cells blank" below. |
-| `date` | `YYYY-MM-DD`. Can be left blank. |
+| `date` | `MM/DD/YYYY`. Can be left blank. |
 | `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
 | `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. Overrides whatever's hardcoded for that venue in `venues.ts`, if anything. See "Adding a field-map picture" below. |
 | `venueNotes` | Optional — a note about the *venue* (e.g. "No dogs allowed"), not about one specific game. Can be left blank. See "Overriding a venue's notes" below — don't confuse this with `gameNotes`, further down, which is about one game. |
@@ -123,7 +123,7 @@ identically in any column order — this one's just easier to scan.
 
 Example row:
 ```
-spring-2026 | 2026-02-07 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
+spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
 ```
 
 ### Leave repeated cells blank
@@ -136,7 +136,7 @@ field-map link, and venue notes) typed once, at the top of the block:
 
 ```
 season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field    | gameNotes
-spring-2026 | 2026-02-07 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
+spring-2026 | 02/07/2026 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
             |            |          |                                       |                  |          | 8:45 AM  | Hawks           | Hotshots     | Field 2  |
             |            |          |                                       |                  | 10U      | 9:30 AM  | Sol Sisters     | Oro Valley   | Field 1  |
             |            |          |                                       |                  |          | 10:15 AM | Tukee Lightning | Chandler Lax | Field 1  |
@@ -493,7 +493,7 @@ function fetchValidValues() {
   return JSON.parse(res.getContentText());
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/; // MM/DD/YYYY, single or double digit month/day both fine
 
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — must match src/data/schedule.ts's fillDown()
@@ -561,15 +561,15 @@ function validateData(seasonRows, gameRows, standingsRows, valid) {
     if (row.type !== 'season' && row.type !== 'tournament') {
       errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): type must be "season" or "tournament", got "' + row.type + '"');
     }
-    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): startDate "' + row.startDate + '" is not YYYY-MM-DD');
-    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): endDate "' + row.endDate + '" is not YYYY-MM-DD');
+    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): startDate "' + row.startDate + '" is not MM/DD/YYYY');
+    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): endDate "' + row.endDate + '" is not MM/DD/YYYY');
   });
 
   gameRows.forEach(row => {
     const seasonId = row.season_id;
     if (!seasonId) { errors.push('Schedule row ' + row.__row + ': missing season_id'); return; }
     if (!seasonIds.has(seasonId)) { errors.push('Schedule row ' + row.__row + ': season_id "' + seasonId + '" doesn\'t match any Seasons row'); return; }
-    if (!DATE_RE.test(row.date)) errors.push('Schedule row ' + row.__row + ': date "' + row.date + '" is not YYYY-MM-DD');
+    if (!DATE_RE.test(row.date)) errors.push('Schedule row ' + row.__row + ': date "' + row.date + '" is not MM/DD/YYYY');
     if (!row.time) errors.push('Schedule row ' + row.__row + ': missing time');
     if (!row.home) errors.push('Schedule row ' + row.__row + ': missing home team');
     if (!row.away) errors.push('Schedule row ' + row.__row + ': missing away team');

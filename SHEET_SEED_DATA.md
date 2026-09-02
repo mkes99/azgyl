@@ -35,7 +35,7 @@ rendered preview that might collapse the tabs into spaces).
 
 ```
 season_id	name	type	active	startDate	endDate
-spring-2026	Spring 2026	season	TRUE	2026-02-07	2026-04-11
+spring-2026	Spring 2026	season	TRUE	02/07/2026	04/11/2026
 ```
 
 ---
@@ -44,7 +44,7 @@ spring-2026	Spring 2026	season	TRUE	2026-02-07	2026-04-11
 
 ```
 season_id	date	venue	fieldMapUrl	venueNotes	division	time	arrival	home	away	field	gameNotes
-spring-2026	2026-02-07	mesquite		No dogs allowed. Field 3 has a busted pipe near the edge — wet area, avoid that section (field shifted to compensate).	8U	9:00 AM	8:30 AM	Diamonds	Vipers	Field 1	Opening day
+spring-2026	02/07/2026	mesquite		No dogs allowed. Field 3 has a busted pipe near the edge — wet area, avoid that section (field shifted to compensate).	8U	9:00 AM	8:30 AM	Diamonds	Vipers	Field 1	Opening day
 						9:00 AM	8:30 AM	Hawks	Hotshots	Field 1	
 					10U	9:45 AM	9:15 AM	Sol Sisters	Oro Valley	Field 1	
 						9:45 AM	9:15 AM	Tukee Lightning	Chandler Lax	Field 1	
@@ -52,7 +52,7 @@ spring-2026	2026-02-07	mesquite		No dogs allowed. Field 3 has a busted pipe near
 						10:30 AM	10:00 AM	East Valley Bullets	Vipers	Field 1	
 					14U	11:15 AM	10:45 AM	Hotshots	Tukee Lightning	Field 1	
 						11:15 AM	10:45 AM	Chandler Lax	Sol Sisters	Field 1	
-	2026-02-14	naranja-park		Field 4 for 10U–14U. Chuparosa Park used for 8U.	8U	9:00 AM	8:30 AM	Hawks	Diamonds	Field 4	
+	02/14/2026	naranja-park		Field 4 for 10U–14U. Chuparosa Park used for 8U.	8U	9:00 AM	8:30 AM	Hawks	Diamonds	Field 4	
 						9:00 AM	8:30 AM	Hotshots	Vipers	Field 4	
 					10U	9:45 AM	9:15 AM	Oro Valley	Tukee Lightning	Field 4	
 						9:45 AM	9:15 AM	Chandler Lax	Sol Sisters	Field 4	
@@ -60,7 +60,7 @@ spring-2026	2026-02-07	mesquite		No dogs allowed. Field 3 has a busted pipe near
 						10:30 AM	10:00 AM	Vipers	Diamonds	Field 4	
 					14U	11:15 AM	10:45 AM	Tukee Lightning	Chandler Lax	Field 4	
 						11:15 AM	10:45 AM	Sol Sisters	Hotshots	Field 4	
-	2026-02-21	mesquite		No dogs allowed. Field 3 has a busted pipe near the edge — wet area, avoid that section (field shifted to compensate).	8U	9:00 AM	8:30 AM	Vipers	Hawks	Field 3	
+	02/21/2026	mesquite		No dogs allowed. Field 3 has a busted pipe near the edge — wet area, avoid that section (field shifted to compensate).	8U	9:00 AM	8:30 AM	Vipers	Hawks	Field 3	
 						9:00 AM	8:30 AM	Diamonds	Hotshots	Field 3	
 					10U	9:45 AM	9:15 AM	Sol Sisters	Tukee Lightning	Field 3	
 						9:45 AM	9:15 AM	Oro Valley	Chandler Lax	Field 3	
@@ -68,7 +68,7 @@ spring-2026	2026-02-07	mesquite		No dogs allowed. Field 3 has a busted pipe near
 						10:30 AM	10:00 AM	Hawks	Vipers	Field 3	Rescheduled from 2/14
 					14U	11:15 AM	10:45 AM	Hotshots	Chandler Lax	Field 3	Picture day — arrive 30 min early
 						11:15 AM	10:45 AM	Tukee Lightning	Sol Sisters	Field 3	
-	2026-02-28	chuparosa		Used for 8U games on Oro Valley host weekends.	8U	9:00 AM	8:30 AM	Hawks	Vipers	Chuparosa Field	
+	02/28/2026	chuparosa		Used for 8U games on Oro Valley host weekends.	8U	9:00 AM	8:30 AM	Hawks	Vipers	Chuparosa Field	
 						9:00 AM	8:30 AM	Hotshots	Diamonds	Chuparosa Field	
 					10U	9:45 AM	9:15 AM	Chandler Lax	Oro Valley	Chuparosa Field	
 						9:45 AM	9:15 AM	Tukee Lightning	Sol Sisters	Chuparosa Field	Makeup game
@@ -76,7 +76,7 @@ spring-2026	2026-02-07	mesquite		No dogs allowed. Field 3 has a busted pipe near
 						10:30 AM	10:00 AM	Vipers	Diamonds	Chuparosa Field	
 					14U	11:15 AM	10:45 AM	Sol Sisters	Tukee Lightning	Chuparosa Field	
 						11:15 AM	10:45 AM	Chandler Lax	Hotshots	Chuparosa Field	Senior night
-	2026-03-07	mohave		3–4 fields. AZGL-hosted games.	8U	9:00 AM	8:30 AM	Diamonds	Hawks	Mohave	
+	03/07/2026	mohave		3–4 fields. AZGL-hosted games.	8U	9:00 AM	8:30 AM	Diamonds	Hawks	Mohave	
 						9:00 AM	8:30 AM	Vipers	Hotshots	Mohave	Bring extra water — high heat forecast
 					10U	9:45 AM	9:15 AM	Oro Valley	Sol Sisters	Mohave	
 						9:45 AM	9:15 AM	Chandler Lax	Tukee Lightning	Mohave	
@@ -154,3 +154,42 @@ if someone cross-checks. If you'd rather skip the Sheet for standings
 entirely: leave `STANDINGS_CSV_URL` empty in `standings.ts` and edit the
 `localStandings` array there directly instead — same optional pattern as
 the schedule.
+
+---
+
+## Testing the deploy pipeline — a second active season
+
+Purpose-built for testing the Apps Script + deploy hook end to end
+(see "A note on error notifications" and Step 7/8 in
+`GOOGLE_SHEETS_SETUP.md`) — dated far enough out that it won't
+complete during testing, and won't collide with the Spring 2026 data
+above. **Append these at the bottom of each tab** — don't insert them
+above the existing rows. `HomeSchedulePreview.astro` (the homepage
+widget) picks whichever active season has the soonest upcoming game,
+not whichever is listed first, so row order here doesn't matter; Spring
+2026 can stay active and untouched.
+
+### Seasons tab — append this row
+
+```
+fall-2026	Fall 2026	season	TRUE	09/19/2026	10/24/2026
+```
+
+### Schedule tab — append these rows
+
+```
+season_id	date	venue	fieldMapUrl	venueNotes	division	time	arrival	home	away	field	gameNotes
+fall-2026	09/19/2026	mesquite			8U	9:00 AM	8:30 AM	Diamonds	Vipers	Field 1	Season opener
+					10U	9:45 AM	9:15 AM	Sol Sisters	Oro Valley	Field 1	
+					12U	10:30 AM	10:00 AM	Hawks	Diamonds	Field 2	
+					14U	11:15 AM	10:45 AM	Hotshots	Chandler Lax	Field 2	
+	09/26/2026	mesquite			8U	9:00 AM	8:30 AM	Hawks	Hotshots	Field 1	
+					10U	9:45 AM	9:15 AM	Tukee Lightning	Sol Sisters	Field 1	
+					12U	10:30 AM	10:00 AM	Vipers	East Valley Bullets	Field 2	
+					14U	11:15 AM	10:45 AM	Diamonds	Hawks	Field 2	
+```
+
+Once both are pasted in and saved: wait ~2 minutes, check the Apps
+Script Executions log, then check the deployed site — the homepage
+should pick up Fall 2026 automatically (soonest upcoming game wins,
+regardless of the fact that Spring 2026's row comes first).
