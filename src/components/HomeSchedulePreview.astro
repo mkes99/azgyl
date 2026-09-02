@@ -2,16 +2,51 @@
 import { scheduleEvents } from '@/data/schedule';
 import { getVenueById }   from '@/data/venues';
 
-const event = scheduleEvents.find(e => e.active);
-if (!event) return;
+const todayISO = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 
-const games    = event.games;
+// More than one season/tournament can be active at once (see
+// GOOGLE_SHEETS_SETUP.md), and new seasons get added as new rows at the
+// bottom of the Seasons tab — same as any spreadsheet, nobody's going
+// to insert new rows above older ones. So picking "the first active
+// event" would keep showing an old season forever once a newer one's
+// added below it. Instead, pick whichever active event actually has an
+// upcoming game — whichever's soonest, if more than one qualifies —
+// since that's what a homepage visitor actually wants to see,
+// independent of row order. Falls back to the first active event if
+// none of them have an upcoming game (everything active is finished or
+// empty) — same as the old behavior for that edge case.
+const activeEvents = scheduleEvents.filter(e => e.active);
+function soonestUpcoming(evt: typeof scheduleEvents[0]) {
+  const dates = [...new Set(evt.games.map(g => g.date))].sort();
+  return dates.find(d => d >= todayISO) ?? null;
+}
+const event = activeEvents.reduce((best, evt) => {
+  const nextForEvt = soonestUpcoming(evt);
+  if (!nextForEvt) return best;
+  const nextForBest = best ? soonestUpcoming(best) : null;
+  return (!best || !nextForBest || nextForEvt < nextForBest) ? evt : best;
+}, null as typeof scheduleEvents[0] | null) ?? activeEvents[0];
+
+// No active season at all is a distinct state from an active season
+// with zero games — same distinction /league's LeagueSchedule.astro
+// makes ("Schedule coming soon" vs. "No games scheduled yet"). Without
+// this, `games`/`allDates` below would just be empty arrays and this
+// component would render the "No games scheduled yet" message even
+// when there's no season to speak of in the first place.
+const noActiveSeason = !event;
+
+const games    = event?.games ?? [];
 const allDates = [...new Set(games.map(g => g.date))].sort();
 
 // Current week = first game date on or after today — purely date-driven.
-const todayISO     = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 const nextDate     = allDates.find(d => d >= todayISO) ?? null;
-const seasonComplete = !nextDate;
+// `!nextDate` alone is vacuously true for an active season with zero
+// Schedule rows too (allDates.length === 0), not just a genuinely
+// finished one — same bug LeagueSchedule.astro's seasonOver had before
+// it required dates.length > 0. noGamesYet is checked separately so the
+// two states don't share a banner.
+const noGamesYet      = !noActiveSeason && allDates.length === 0;
+const seasonComplete  = !noActiveSeason && !noGamesYet && !nextDate;
 
 const dayGames     = nextDate ? games.filter(g => g.date === nextDate) : [];
 const weekNum      = nextDate ? allDates.indexOf(nextDate) + 1 : 0;
@@ -35,6 +70,24 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
 <section>
   <div class="container">
 
+    {/* ── No active season at all ───────────────── */}
+    {noActiveSeason && (
+      <div class="hsp-complete">
+        <div class="section-kicker">League</div>
+        <h2 class="hsp-title">Schedule coming soon</h2>
+        <p>Check back soon for the next season's game schedule.</p>
+      </div>
+    )}
+
+    {/* ── No games scheduled yet ────────────────── */}
+    {noGamesYet && (
+      <div class="hsp-complete">
+        <div class="section-kicker">{event.name}</div>
+        <h2 class="hsp-title">No games scheduled yet</h2>
+        <p>This season is active but games haven't been added yet — check back soon.</p>
+      </div>
+    )}
+
     {/* ── Season complete state ─────────────────── */}
     {seasonComplete && (
       <div class="hsp-complete">
@@ -48,7 +101,7 @@ const activeDivs = DIV_ORDER.filter(d => dayGames.some(g => g.division === d));
     )}
 
     {/* ── Active schedule ───────────────────────── */}
-    {!seasonComplete && (
+    {!noActiveSeason && !noGamesYet && !seasonComplete && (
       <Fragment>
         <div class="hsp-head">
           <div>

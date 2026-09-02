@@ -85,11 +85,11 @@ season_id | name | type | active | startDate | endDate
 | `name` | Display name shown on the site, e.g. `Spring 2026`. |
 | `type` | `season` or `tournament` — exactly, lowercase. |
 | `active` | `TRUE` or `FALSE` — checkbox column recommended. `TRUE` = shown on the homepage and `/league`. More than one row can be `TRUE` at once (e.g. a season plus a tournament running alongside it). |
-| `startDate` / `endDate` | `YYYY-MM-DD`. |
+| `startDate` / `endDate` | `MM/DD/YYYY`. |
 
 Example row:
 ```
-spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
+spring-2026 | Spring 2026 | season | TRUE | 02/07/2026 | 04/11/2026
 ```
 
 ---
@@ -110,7 +110,7 @@ identically in any column order — this one's just easier to scan.
 | Column | Notes |
 |---|---|
 | `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. Can be left blank — see "Leave repeated cells blank" below. |
-| `date` | `YYYY-MM-DD`. Can be left blank. |
+| `date` | `MM/DD/YYYY`. Can be left blank. |
 | `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
 | `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. Overrides whatever's hardcoded for that venue in `venues.ts`, if anything. See "Adding a field-map picture" below. |
 | `venueNotes` | Optional — a note about the *venue* (e.g. "No dogs allowed"), not about one specific game. Can be left blank. See "Overriding a venue's notes" below — don't confuse this with `gameNotes`, further down, which is about one game. |
@@ -123,7 +123,7 @@ identically in any column order — this one's just easier to scan.
 
 Example row:
 ```
-spring-2026 | 2026-02-07 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
+spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
 ```
 
 ### Leave repeated cells blank
@@ -136,7 +136,7 @@ field-map link, and venue notes) typed once, at the top of the block:
 
 ```
 season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field    | gameNotes
-spring-2026 | 2026-02-07 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
+spring-2026 | 02/07/2026 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
             |            |          |                                       |                  |          | 8:45 AM  | Hawks           | Hotshots     | Field 2  |
             |            |          |                                       |                  | 10U      | 9:30 AM  | Sol Sisters     | Oro Valley   | Field 1  |
             |            |          |                                       |                  |          | 10:15 AM | Tukee Lightning | Chandler Lax | Field 1  |
@@ -351,16 +351,15 @@ thing that needs updating.
 
 ## Step 7 — Set up the Cloudflare deploy hook(s)
 
-A deploy hook only rebuilds the one branch it's created for — if more
-than one branch should respond to sheet edits (a feature branch while
-this is still being tested, then `develop` and `main` once it's merged),
-each one needs its own hook. Repeat this per branch:
+A deploy hook only rebuilds the one branch it's created for — both
+`develop` and `main` carry the Sheets integration now, so both need a
+hook to respond to sheet edits. Repeat this per branch:
 
 1. Cloudflare Pages → your project → Settings → Builds & deployments → Deploy hooks → Add deploy hook
-2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-google-sheets-schedule`,
-   `sheets-sync-develop`, `sheets-sync-main`) — names the trigger
-   (this Sheet's Apps Script) and the target together, so the purpose is
-   obvious from the name alone later, not just which branch it points at
+2. Name it `sheets-sync-<branch>` (e.g. `sheets-sync-develop`,
+   `sheets-sync-main`) — names the trigger (this Sheet's Apps Script)
+   and the target together, so the purpose is obvious from the name
+   alone later, not just which branch it points at
 3. Point it at that specific branch
 4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URLS` in the Apps
    Script below, one entry per hook
@@ -394,37 +393,23 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 // the one branch it was created for). Name each hook sheets-sync-<branch>
 // in the Cloudflare dashboard — names the trigger (this Sheet) and the
 // target together, so what each hook is for is obvious from the name
-// alone, not just which branch it points at. Only google-sheets-schedule
-// is wired up so far; the other two are commented out below as a
-// placeholder — uncomment and fill in once develop/main get their own
-// hook (Step 7), no other code changes needed.
+// alone, not just which branch it points at. google-sheets-schedule was
+// merged into `develop`, `develop` was merged into `main`, and the
+// feature branch was deleted (as planned) — both develop and main carry
+// the Sheets integration now, so both get a hook.
 const DEPLOY_HOOK_URLS  = [
-  'YOUR_CLOUDFLARE_DEPLOY_HOOK_URL', // sheets-sync-google-sheets-schedule
-  // 'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop — uncomment once develop has its own hook
-  // 'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main — uncomment once main has its own hook
+  'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop
+  'YOUR_MAIN_DEPLOY_HOOK_URL',    // sheets-sync-main
 ];
 // Unlike DEPLOY_HOOK_URLS (fan out to every active branch), this stays a
 // SINGLE url — it's the one source of truth for which team/division/
-// venue names are currently valid, so it has to point at whichever
-// deployment currently represents "live" for this repo, not several
-// possibly-disagreeing ones at once. There's no way to make this
-// permanently stable until the azgyl.com custom domain is actually
-// attached in Cloudflare Pages — which happens at real launch, a
-// separate, later, deliberate step, NOT automatically at "merged to
-// main." Until launch, azgyl.com resolves nowhere, so this has to
-// track whichever Cloudflare Pages deployment is currently relevant by
-// hand, checked fresh every time that changes — a branch merge, a
-// branch deletion, or launch itself:
-//   - NOW: google-sheets-schedule's Cloudflare Pages preview URL
-//   - The moment it's merged into `develop`: that branch is deleted
-//     immediately (as planned) — swap to develop's preview URL right
-//     then, there's no overlap window
-//   - Once merged into `main`, before launch: main's own Cloudflare
-//     Pages URL (still not azgyl.com — that's not attached yet)
-//   - At actual launch (azgyl.com attached as the custom domain):
-//     https://azgyl.com/valid-values.json, permanently — the value
-//     below is what it'll end up as, not what it should be right now
-const VALID_VALUES_URL  = 'https://azgyl.com/valid-values.json'; // WRONG until launch — see note above; use the current Cloudflare Pages deployment URL for whichever branch is live right now
+// venue names are currently valid. Use the bare <project>.pages.dev
+// domain (no branch prefix) — Cloudflare always points that at whichever
+// branch is set as the project's Production branch (main), so this
+// value doesn't need to change again even at real launch: azgyl.com
+// just becomes a second custom domain pointed at that same production
+// branch, not a replacement for pages.dev. Confirmed live.
+const VALID_VALUES_URL  = 'https://azgyl.pages.dev/valid-values.json';
 const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
 
@@ -508,7 +493,7 @@ function fetchValidValues() {
   return JSON.parse(res.getContentText());
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/; // MM/DD/YYYY, single or double digit month/day both fine
 
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — must match src/data/schedule.ts's fillDown()
@@ -576,15 +561,15 @@ function validateData(seasonRows, gameRows, standingsRows, valid) {
     if (row.type !== 'season' && row.type !== 'tournament') {
       errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): type must be "season" or "tournament", got "' + row.type + '"');
     }
-    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): startDate "' + row.startDate + '" is not YYYY-MM-DD');
-    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): endDate "' + row.endDate + '" is not YYYY-MM-DD');
+    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): startDate "' + row.startDate + '" is not MM/DD/YYYY');
+    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): endDate "' + row.endDate + '" is not MM/DD/YYYY');
   });
 
   gameRows.forEach(row => {
     const seasonId = row.season_id;
     if (!seasonId) { errors.push('Schedule row ' + row.__row + ': missing season_id'); return; }
     if (!seasonIds.has(seasonId)) { errors.push('Schedule row ' + row.__row + ': season_id "' + seasonId + '" doesn\'t match any Seasons row'); return; }
-    if (!DATE_RE.test(row.date)) errors.push('Schedule row ' + row.__row + ': date "' + row.date + '" is not YYYY-MM-DD');
+    if (!DATE_RE.test(row.date)) errors.push('Schedule row ' + row.__row + ': date "' + row.date + '" is not MM/DD/YYYY');
     if (!row.time) errors.push('Schedule row ' + row.__row + ': missing time');
     if (!row.home) errors.push('Schedule row ' + row.__row + ': missing home team');
     if (!row.away) errors.push('Schedule row ' + row.__row + ': missing away team');

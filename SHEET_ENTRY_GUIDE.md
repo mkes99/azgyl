@@ -41,11 +41,11 @@ season_id | name | type | active | startDate | endDate
 | `name` | The name shown on the website — e.g. `Spring 2026`. |
 | `type` | Either `season` or `tournament` — lowercase, exactly. |
 | `active` | `TRUE` or `FALSE`. `TRUE` means it shows up on the website. You can have more than one row marked `TRUE` at once (e.g. a season and a tournament running at the same time). |
-| `startDate` / `endDate` | The season's start and end date, written as `2026-02-07` (year-month-day). |
+| `startDate` / `endDate` | The season's start and end date, written as `02/07/2026` (month/day/year). |
 
 Example:
 ```
-spring-2026 | Spring 2026 | season | TRUE | 2026-02-07 | 2026-04-11
+spring-2026 | Spring 2026 | season | TRUE | 02/07/2026 | 04/11/2026
 ```
 
 ---
@@ -68,7 +68,7 @@ easier to fill in.
 | Column | What to put there |
 |---|---|
 | `season_id` | Which season this game belongs to — must match a `season_id` from the Seasons tab exactly (e.g. `spring-2026`). |
-| `date` | The game date, written as `2026-02-07` (year-month-day). |
+| `date` | The game date, written as `02/07/2026` (month/day/year). |
 | `venue` | Which park/school this game is at — see "Getting names right," below, for the exact names to use. |
 | `fieldMapUrl` | Optional — a link to a picture of where the fields are at that venue. Leave empty if there's nothing to add. If that venue already has a field-map picture built into the site, this **replaces** it for games in this block — see "Adding a field-layout picture," below. |
 | `venueNotes` | Optional — a note about the *park itself*, like "No dogs allowed" — not about one particular game. Leave empty if there's nothing to add. See "Adding a venue note," below. |
@@ -81,7 +81,7 @@ easier to fill in.
 
 Example:
 ```
-spring-2026 | 2026-02-07 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
+spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
 ```
 
 ---
@@ -96,7 +96,7 @@ link, and note) typed once, at the very top:
 
 ```
 season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field   | gameNotes
-spring-2026 | 2026-02-07 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2 | Opening day
+spring-2026 | 02/07/2026 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2 | Opening day
             |            |          |                                       |                  |          | 8:45 AM  | Hawks           | Hotshots     | Field 2 |
             |            |          |                                       |                  | 10U      | 9:30 AM  | Sol Sisters     | Oro Valley   | Field 1 |
             |            |          |                                       |                  |          | 10:15 AM | Tukee Lightning | Chandler Lax | Field 1 |

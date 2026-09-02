@@ -7,6 +7,141 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.42] — 2026-09-01 — Sheet dates switched from YYYY-MM-DD to MM/DD/YYYY
+
+### Changed
+
+- **`Seasons`/`Schedule` date columns now expect `MM/DD/YYYY`** (single
+  or double-digit month/day both fine — `9/19/2026` and `09/19/2026`
+  both work), not ISO `YYYY-MM-DD` — more natural for a US audience
+  typing dates by hand. `DATE_RE` updated in both `schedule.ts` and the
+  Apps Script; a new `toISO()` converts right after validating, so
+  every date-driven comparison elsewhere in the site (fillDown, "is this
+  game in the past," week/day sorting) still operates on ISO strings
+  internally and never sees the new format — those all depend on
+  ISO-format strings sorting correctly as plain strings, which
+  MM/DD/YYYY strings don't. All four docs' examples updated to match.
+  **Breaking for the real sheet**: every existing date cell (Seasons
+  `startDate`/`endDate`, every non-blank `Schedule` `date` cell) needs
+  converting by hand before the next successful deploy — the old format
+  now fails validation (intentionally, as a live test of the fail-loud
+  pipeline: a bad sheet state should never publish, and this proves it
+  doesn't).
+
+---
+
+## [3.41] — 2026-09-01 — Homepage picks the active season by date, not sheet row order
+
+### Fixed
+
+- **`HomeSchedulePreview.astro` used `scheduleEvents.find(e => e.active)`
+  — whichever active season happened to be listed first in the sheet.**
+  More than one season/tournament can be active at once, and new
+  seasons get added as new rows at the *bottom* of the `Seasons` tab —
+  same as any spreadsheet, nobody's inserting rows above older ones. So
+  once a second season went active, the homepage would keep showing the
+  older one forever unless someone remembered to reorder sheet rows (or
+  deactivate the old season, losing its "active" status/visibility on
+  `/league` for no real reason). Replaced with the same principle
+  `/league`'s week filter already uses: let the date decide. The
+  homepage now picks whichever active season has the soonest upcoming
+  game, independent of row order; falls back to the first active event
+  only if none of them have an upcoming game at all (the old behavior,
+  for that edge case). Verified: real data (Spring 2026 complete) still
+  shows correctly, and a mock with Spring 2026 (complete, listed first)
+  plus Fall 2026 (upcoming, listed second) correctly shows Fall 2026.
+
+---
+
+## [3.40] — 2026-09-01 — Homepage widget: "Schedule coming soon" state added
+
+### Added
+
+- **`HomeSchedulePreview.astro` had no state at all for "no active
+  season"** — it just rendered nothing (a bare `if (!event) return;`),
+  unlike `/league`'s explicit "Schedule coming soon" panel for the same
+  scenario. Added a matching `noActiveSeason` state with plain,
+  visitor-facing copy (not `/league`'s current dev-facing "see
+  GOOGLE_SHEETS_SETUP.md" text). All three states (`noActiveSeason`,
+  `noGamesYet`, `seasonComplete`) are now mutually exclusive and
+  verified against mocks for each scenario, plus the real season data
+  unaffected.
+
+### Fixed
+
+- **Introducing `noActiveSeason` initially left `seasonComplete`
+  computed wrong** — it excluded `noGamesYet` but not `noActiveSeason`,
+  so with no active season at all `seasonComplete` would still evaluate
+  `true` (both states rendering at once, and `event.name` throwing since
+  `event` is undefined in that branch). Caught during testing, before
+  committing.
+
+---
+
+## [3.39] — 2026-09-01 — Notes popover rebuilt on manual JS toggle, not native `<details>`
+
+### Fixed
+
+- **3.38's `[open]`-driven CSS fix wasn't enough — confirmed live on a
+  real iPhone that the popover still wouldn't close.** The CSS was
+  correctly deployed (verified in the live bundle), so the actual
+  problem wasn't the display rule at all — it's that `<summary>` tap-to-
+  toggle itself is unreliable in this context on iOS Safari, not just
+  the rendering of its content. Converted `.sched-venue-notes` from a
+  native `<details>`/`<summary>` disclosure to a plain
+  `<div>`/`<button>` with the `<p>` shown/hidden via the `hidden`
+  attribute, toggled entirely in JS on click — the same pattern already
+  used successfully for the field-map lightbox elsewhere in this file.
+  No native disclosure behavior involved at all now, so there's nothing
+  for a browser-specific `<details>` quirk to break. Also: opening one
+  venue's Notes now closes any other one already open, so a day with
+  several venue groups can't show two overlapping popovers. Verified
+  through a full open→close cycle via real `.click()` calls (aria-
+  expanded, `hidden`, and rendered height all correct at each step).
+
+---
+
+## [3.38] — 2026-09-01 — Fix mobile: Team filter matched nothing, Notes popover wouldn't close
+
+### Fixed
+
+- **Team filter matched zero games on mobile, regardless of which team
+  was selected** — the mobile card layout (`.sched-card`) never got the
+  `data-home`/`data-away` attributes the Team filter's `rowMatches()`
+  reads; the desktop table row (`.sched-row`) had them, mobile's
+  parallel markup was missed when the filter was added. Both now carry
+  identical `data-division`/`data-home`/`data-away`.
+- **Venue "Notes" popover's chevron flipped closed but the content
+  stayed visually painted** — confirmed via testing that the native
+  `<details>` closed-state hiding works correctly in Chrome (even for a
+  fresh, unstyled `<details>`), so this is specifically a WebKit/Safari
+  gap: a known class of bug where an absolutely-positioned child of a
+  closed `<details>` can stay rendered even though the browser correctly
+  considers it closed/not-visible. Fixed by no longer relying on native
+  `<details>` hiding for this element at all — `.sched-venue-notes p`
+  now gets explicit `display: none` / `.sched-venue-notes[open] p {
+  display: block }`, driven off the `[open]` attribute directly. Works
+  identically on every browser, sidesteps the WebKit-specific gap
+  entirely. Verified via real clicks (not just programmatic `.open`
+  toggling) through a full open→close cycle.
+
+---
+
+## [3.37] — 2026-09-01 — Fix homepage's vacuous-truth "Season Complete" gap
+
+### Fixed
+
+- **`HomeSchedulePreview.astro`'s `seasonComplete = !nextDate` was
+  vacuously true for an active season with zero `Schedule` rows too**,
+  not just a genuinely finished one — the same class of bug
+  `LeagueSchedule.astro`'s `seasonOver` had before it was fixed. Added a
+  separate `noGamesYet` check (`allDates.length === 0`) with its own "No
+  games scheduled yet" state; `seasonComplete` now requires
+  `!noGamesYet && !nextDate`. Verified against a mock active-season-
+  zero-rows sheet before and after the fix.
+
+---
+
 ## [3.36] — 2026-09-01 — Correction: VALID_VALUES_URL doesn't settle at merge-to-main
 
 ### Fixed

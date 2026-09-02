@@ -87,7 +87,7 @@ const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb
 
 export interface Game {
   id:       string;   // derived — season_id + row number, not sheet input
-  date:     string;   // 'YYYY-MM-DD'
+  date:     string;   // 'YYYY-MM-DD' — always ISO internally, even though the sheet is typed as MM/DD/YYYY; see toISO() below
   time:     string;   // '9:30 AM'
   arrival?: string;   // '9:00 AM' — arrival/warmup time
   home:     string;   // team name (must match teams.ts)
@@ -105,12 +105,28 @@ export interface ScheduleEvent {
   name:      string;
   type:      'season' | 'tournament';
   active:    boolean;
-  startDate: string;
-  endDate:   string;
+  startDate: string;   // 'YYYY-MM-DD' — always ISO internally, even though the sheet is typed as MM/DD/YYYY
+  endDate:   string;   // same
   games:     Game[];
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+// Sheet dates are typed as MM/DD/YYYY (the natural format for a US
+// audience) — accepts single or double-digit month/day (9/19/2026 and
+// 09/19/2026 both fine). Every date-driven comparison elsewhere in the
+// site (fillDown below, "is this game in the past," week/day sorting in
+// LeagueSchedule.astro and HomeSchedulePreview.astro) depends on
+// ISO-format strings sorting correctly as plain strings — plain
+// MM/DD/YYYY strings do NOT sort chronologically ("12/01/2026" would
+// sort before "02/07/2026"). So toISO() converts right after
+// validating; nothing downstream of this file ever sees MM/DD/YYYY.
+// Format-only check, same as the ISO version this replaced — doesn't
+// catch a nonsense calendar date like 13/45/2026.
+const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+
+function toISO(mmddyyyy: string): string {
+  const [month, day, year] = mmddyyyy.split('/');
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
 
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — lets a block of games at the same venue/date/
@@ -164,16 +180,16 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     if (row.type !== 'season' && row.type !== 'tournament') {
       errors.push(`Seasons row ${rowNum} (${seasonId}): type must be "season" or "tournament", got "${row.type}"`);
     }
-    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not YYYY-MM-DD`);
-    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not YYYY-MM-DD`);
+    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not MM/DD/YYYY`);
+    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not MM/DD/YYYY`);
 
     events.set(seasonId, {
       id: seasonId,
       name: row.name,
       type: (row.type === 'tournament' ? 'tournament' : 'season'),
       active: /^true$/i.test(row.active),
-      startDate: row.startDate,
-      endDate: row.endDate,
+      startDate: DATE_RE.test(row.startDate) ? toISO(row.startDate) : row.startDate,
+      endDate: DATE_RE.test(row.endDate) ? toISO(row.endDate) : row.endDate,
       games: [],
     });
   });
@@ -185,7 +201,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     const target = events.get(seasonId);
     if (!target) { errors.push(`Schedule row ${rowNum}: season_id "${seasonId}" doesn't match any Seasons row`); return; }
 
-    if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not YYYY-MM-DD`);
+    if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not MM/DD/YYYY`);
     if (!row.time) errors.push(`Schedule row ${rowNum}: missing time`);
     if (!row.home) errors.push(`Schedule row ${rowNum}: missing home team`);
     if (!row.away) errors.push(`Schedule row ${rowNum}: missing away team`);
@@ -198,7 +214,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
 
     target.games.push({
       id: `${seasonId}-${rowNum}`,
-      date: row.date,
+      date: DATE_RE.test(row.date) ? toISO(row.date) : row.date,
       time: row.time,
       arrival: row.arrival || undefined,
       home: row.home,

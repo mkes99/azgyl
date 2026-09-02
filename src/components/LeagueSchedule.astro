@@ -192,10 +192,10 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                         </a>
                       )}
                       {venueNote(group.venue, group.games[0]?.venueNotes) && (
-                        <details class="sched-venue-notes">
-                          <summary>Notes</summary>
-                          <p>{venueNote(group.venue, group.games[0]?.venueNotes)}</p>
-                        </details>
+                        <div class="sched-venue-notes">
+                          <button type="button" class="sched-venue-notes-toggle" aria-expanded="false">Notes</button>
+                          <p hidden>{venueNote(group.venue, group.games[0]?.venueNotes)}</p>
+                        </div>
                       )}
                     </div>
                   )}
@@ -232,7 +232,7 @@ const activeEvents = scheduleEvents.filter(e => e.active);
                   {/* Mobile cards */}
                   <div class="sched-cards">
                     {group.games.map(g => (
-                      <div class="sched-card" data-division={g.division}>
+                      <div class="sched-card" data-division={g.division} data-home={g.home} data-away={g.away}>
                         <div class="scard-top">
                           <div class="scard-meta">
                             <span class="div-chip">{g.division}</span>
@@ -364,12 +364,12 @@ const activeEvents = scheduleEvents.filter(e => e.active);
   // Recomputed on open AND on window resize — a box left open while the
   // window is dragged narrower (or the device rotates) would otherwise
   // keep whatever shift (or none) was correct for the old width.
-  function applyNotesOverflowShift(details) {
-    var p = details.querySelector('p');
+  function applyNotesOverflowShift(wrap) {
+    var p = wrap.querySelector('p');
     if (!p) return;
     p.style.transform = '';
     p.style.removeProperty('--caret-shift');
-    if (!details.open) return;
+    if (p.hidden) return;
     var overflow = p.getBoundingClientRect().right - window.innerWidth + 8;
     if (overflow > 0) {
       p.style.transform = 'translateX(-' + overflow + 'px)';
@@ -377,15 +377,36 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     }
   }
   var allNotes = document.querySelectorAll('.sched-venue-notes');
-  allNotes.forEach(function (details) {
-    details.addEventListener('toggle', function () { applyNotesOverflowShift(details); });
+  allNotes.forEach(function (wrap) {
+    var toggle = wrap.querySelector('.sched-venue-notes-toggle');
+    var p      = wrap.querySelector('p');
+    if (!toggle || !p) return;
+    toggle.addEventListener('click', function () {
+      var opening = p.hidden;
+      // Only one open at a time — closing any other open popover avoids
+      // two overlapping boxes on a day with several venue groups.
+      allNotes.forEach(function (other) {
+        if (other === wrap) return;
+        var otherP = other.querySelector('p');
+        var otherToggle = other.querySelector('.sched-venue-notes-toggle');
+        if (otherP && !otherP.hidden) {
+          otherP.hidden = true;
+          otherToggle.setAttribute('aria-expanded', 'false');
+          applyNotesOverflowShift(other);
+        }
+      });
+      p.hidden = !opening;
+      toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      applyNotesOverflowShift(wrap);
+    });
   });
   var resizeTimer;
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
-      allNotes.forEach(function (details) {
-        if (details.open) applyNotesOverflowShift(details);
+      allNotes.forEach(function (wrap) {
+        var p = wrap.querySelector('p');
+        if (p && !p.hidden) applyNotesOverflowShift(wrap);
       });
     }, 100);
   });
@@ -550,22 +571,22 @@ const activeEvents = scheduleEvents.filter(e => e.active);
      flex flow — the button's own position never changes between closed
      and open, only a small card appears near it. */
   .sched-venue-notes { position: relative; }
-  .sched-venue-notes summary {
+  .sched-venue-notes-toggle {
     cursor: pointer;
-    list-style: none;
     display: inline-flex;
     align-items: center;
     gap: .3rem;
+    font: inherit;
     font-size: .78rem;
     font-weight: 600;
     color: var(--muted);
+    background: none;
     border: 1px solid var(--line-strong);
     border-radius: 999px;
     padding: .15rem .6rem .15rem .7rem;
     transition: color .15s, border-color .15s, background .15s;
   }
-  .sched-venue-notes summary::-webkit-details-marker { display: none; }
-  .sched-venue-notes summary::after {
+  .sched-venue-notes-toggle::after {
     content: '';
     width: 5px; height: 5px;
     border-right: 1.5px solid currentColor;
@@ -573,13 +594,24 @@ const activeEvents = scheduleEvents.filter(e => e.active);
     transform: rotate(45deg) translateY(-1px);
     transition: transform .15s;
   }
-  .sched-venue-notes[open] summary::after { transform: rotate(-135deg) translateY(1px); }
-  .sched-venue-notes summary:hover,
-  .sched-venue-notes[open] summary {
+  .sched-venue-notes-toggle[aria-expanded="true"]::after { transform: rotate(-135deg) translateY(1px); }
+  .sched-venue-notes-toggle:hover,
+  .sched-venue-notes-toggle[aria-expanded="true"] {
     color: var(--rose-deep);
     border-color: var(--rose-deep);
     background: var(--rose-bg);
   }
+  /* Plain click-driven show/hide via the `hidden` attribute (toggled in
+     JS below), not a native <details>/<summary> disclosure — WebKit has
+     a known bug where an absolutely-positioned child of a closed
+     <details> can stay visually painted even though the browser
+     correctly considers it closed. Confirmed the native mechanism works
+     fine in Chrome (even a fresh, unstyled <details>), so this is
+     specifically an iOS Safari gap; sidestepping native <details>
+     behavior entirely avoids it on every browser, and matches the same
+     `hidden`-attribute pattern already used for the field-map lightbox
+     below. */
+  .sched-venue-notes p:not([hidden]) { display: block; }
   .sched-venue-notes p {
     position: absolute;
     top: calc(100% + .65rem);
