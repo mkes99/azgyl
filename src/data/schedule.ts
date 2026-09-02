@@ -112,19 +112,32 @@ export interface ScheduleEvent {
 
 // Sheet dates are typed as MM/DD/YYYY (the natural format for a US
 // audience) — accepts single or double-digit month/day (9/19/2026 and
-// 09/19/2026 both fine). Every date-driven comparison elsewhere in the
-// site (fillDown below, "is this game in the past," week/day sorting in
-// LeagueSchedule.astro and HomeSchedulePreview.astro) depends on
-// ISO-format strings sorting correctly as plain strings — plain
-// MM/DD/YYYY strings do NOT sort chronologically ("12/01/2026" would
-// sort before "02/07/2026"). So toISO() converts right after
-// validating; nothing downstream of this file ever sees MM/DD/YYYY.
-// Format-only check, same as the ISO version this replaced — doesn't
-// catch a nonsense calendar date like 13/45/2026.
-const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+// 09/19/2026 both fine). ISO YYYY-MM-DD is ALSO still accepted,
+// deliberately — this sheet has both a `develop` and a `main` deploy
+// hook firing on every edit (see GOOGLE_SHEETS_SETUP.md), and there's
+// only one sheet, so a validation change on one branch can't require
+// something the other branch's code doesn't accept yet, or every edit
+// breaks whichever branch hasn't caught up. Accepting both formats
+// means it doesn't matter which branch is ahead. Once every branch is
+// confirmed to only ever emit MM/DD/YYYY (i.e. this comment and the
+// ISO branch below are safe to delete), simplify back down to one
+// format — but don't do that reactively; only once you're sure.
+//
+// Every date-driven comparison elsewhere in the site (fillDown below,
+// "is this game in the past," week/day sorting in LeagueSchedule.astro
+// and HomeSchedulePreview.astro) depends on ISO-format strings sorting
+// correctly as plain strings — plain MM/DD/YYYY strings do NOT sort
+// chronologically ("12/01/2026" would sort before "02/07/2026"). So
+// toISO() converts right after validating; nothing downstream of this
+// file ever sees either raw format. Format-only check either way —
+// doesn't catch a nonsense calendar date like 13/45/2026.
+const DATE_RE_MMDDYYYY = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+const DATE_RE_ISO      = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_RE          = new RegExp(`(?:${DATE_RE_MMDDYYYY.source})|(?:${DATE_RE_ISO.source})`);
 
-function toISO(mmddyyyy: string): string {
-  const [month, day, year] = mmddyyyy.split('/');
+function toISO(dateStr: string): string {
+  if (DATE_RE_ISO.test(dateStr)) return dateStr;
+  const [month, day, year] = dateStr.split('/');
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
 
@@ -180,8 +193,8 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     if (row.type !== 'season' && row.type !== 'tournament') {
       errors.push(`Seasons row ${rowNum} (${seasonId}): type must be "season" or "tournament", got "${row.type}"`);
     }
-    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not MM/DD/YYYY`);
-    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not MM/DD/YYYY`);
+    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)`);
+    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)`);
 
     events.set(seasonId, {
       id: seasonId,
@@ -201,7 +214,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     const target = events.get(seasonId);
     if (!target) { errors.push(`Schedule row ${rowNum}: season_id "${seasonId}" doesn't match any Seasons row`); return; }
 
-    if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not MM/DD/YYYY`);
+    if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)`);
     if (!row.time) errors.push(`Schedule row ${rowNum}: missing time`);
     if (!row.home) errors.push(`Schedule row ${rowNum}: missing home team`);
     if (!row.away) errors.push(`Schedule row ${rowNum}: missing away team`);

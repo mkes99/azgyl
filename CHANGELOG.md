@@ -7,6 +7,29 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.43] — 2026-09-01 — Date validation accepts both formats (multi-branch deploy hooks need it)
+
+### Fixed
+
+- **3.42's switch to requiring `MM/DD/YYYY` broke `main`'s build for
+  real** — `develop` and `main` both have a live deploy hook (see
+  `GOOGLE_SHEETS_SETUP.md`, Step 7/8), and there's only one sheet, so
+  the moment the sheet was converted to the new format, `main`'s
+  still-ISO-only code failed validation on every edit until it was
+  manually merged to catch up. That defeats having two branches at all
+  — the whole point of `develop` is testing changes in isolation before
+  they can affect `main`, but a sheet-schema change can't be isolated
+  when both branches validate the same live sheet simultaneously.
+  `DATE_RE` (both `schedule.ts` and the Apps Script) now accepts EITHER
+  `MM/DD/YYYY` or `YYYY-MM-DD` — doesn't matter which branch is ahead,
+  since both formats validate against either branch's code. Tracked in
+  `TODO.md` to simplify back to one format once every hooked branch is
+  confirmed on the same code. Verified: a build with both an
+  ISO-dated and an MM/DD/YYYY-dated season active simultaneously
+  renders both correctly.
+
+---
+
 ## [3.42] — 2026-09-01 — Sheet dates switched from YYYY-MM-DD to MM/DD/YYYY
 
 ### Changed
