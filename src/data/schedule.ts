@@ -74,16 +74,27 @@
 // (src/pages/valid-values.json.ts) so there's one source of truth.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { fetchCSV } from '@/lib/csv';
+import { fetchCSV, pickCsvUrl } from '@/lib/csv';
 import { normalizeFieldMapUrl } from '@/lib/driveLink';
 import { teams } from './teams';
 import { venues } from './venues';
 
-const SEASONS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=0&single=true&output=csv';
-const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=899852134&single=true&output=csv';
-// Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Seasons'
-// Leave both empty to run with zero events (site shows its normal
-// "no active events" state) — useful before the sheet is set up.
+// pickCsvUrl() selects by DEPLOY_ENV (Cloudflare Pages build-time env
+// var — 'production' on main, 'preview' everywhere else) — see the
+// comment on pickCsvUrl() in src/lib/csv.ts for why this isn't just
+// hardcoded per-branch. Production URLs are empty until the real
+// production sheet is set up (Step 1, a separate spreadsheet from the
+// develop one) — leaving them empty runs the site with zero events
+// (its normal "no active events" state) rather than throwing, so main
+// isn't broken in the meantime.
+const SEASONS_CSV_URL = pickCsvUrl(
+  '', // production — set once the real production sheet exists
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=0&single=true&output=csv', // preview — Develop AZGYL Season Data
+);
+const SCHEDULE_CSV_URL = pickCsvUrl(
+  '', // production
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=899852134&single=true&output=csv', // preview
+);
 
 export interface Game {
   id:       string;   // derived — season_id + row number, not sheet input
@@ -112,16 +123,13 @@ export interface ScheduleEvent {
 
 // Sheet dates are typed as MM/DD/YYYY (the natural format for a US
 // audience) — accepts single or double-digit month/day (9/19/2026 and
-// 09/19/2026 both fine). ISO YYYY-MM-DD is ALSO still accepted,
-// deliberately — this sheet has both a `develop` and a `main` deploy
-// hook firing on every edit (see GOOGLE_SHEETS_SETUP.md), and there's
-// only one sheet, so a validation change on one branch can't require
-// something the other branch's code doesn't accept yet, or every edit
-// breaks whichever branch hasn't caught up. Accepting both formats
-// means it doesn't matter which branch is ahead. Once every branch is
-// confirmed to only ever emit MM/DD/YYYY (i.e. this comment and the
-// ISO branch below are safe to delete), simplify back down to one
-// format — but don't do that reactively; only once you're sure.
+// 09/19/2026 both fine). ISO YYYY-MM-DD is deliberately NOT accepted —
+// MM/DD/YYYY only, one format. (An earlier version of this file
+// accepted both, as a stopgap for when a single sheet fed both
+// `develop` and `main`'s deploy hooks simultaneously — see CHANGELOG
+// 3.43. Now that each branch has its own separate spreadsheet
+// (GOOGLE_SHEETS_SETUP.md), that coordination problem doesn't exist
+// anymore, so back to one format.)
 //
 // Every date-driven comparison elsewhere in the site (fillDown below,
 // "is this game in the past," week/day sorting in LeagueSchedule.astro
@@ -129,14 +137,11 @@ export interface ScheduleEvent {
 // correctly as plain strings — plain MM/DD/YYYY strings do NOT sort
 // chronologically ("12/01/2026" would sort before "02/07/2026"). So
 // toISO() converts right after validating; nothing downstream of this
-// file ever sees either raw format. Format-only check either way —
-// doesn't catch a nonsense calendar date like 13/45/2026.
-const DATE_RE_MMDDYYYY = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-const DATE_RE_ISO      = /^\d{4}-\d{2}-\d{2}$/;
-const DATE_RE          = new RegExp(`(?:${DATE_RE_MMDDYYYY.source})|(?:${DATE_RE_ISO.source})`);
+// file ever sees the raw MM/DD/YYYY string. Format-only check — doesn't
+// catch a nonsense calendar date like 13/45/2026.
+const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
 
 function toISO(dateStr: string): string {
-  if (DATE_RE_ISO.test(dateStr)) return dateStr;
   const [month, day, year] = dateStr.split('/');
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
@@ -193,8 +198,8 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     if (row.type !== 'season' && row.type !== 'tournament') {
       errors.push(`Seasons row ${rowNum} (${seasonId}): type must be "season" or "tournament", got "${row.type}"`);
     }
-    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)`);
-    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)`);
+    if (!DATE_RE.test(row.startDate)) errors.push(`Seasons row ${rowNum} (${seasonId}): startDate "${row.startDate}" is not MM/DD/YYYY`);
+    if (!DATE_RE.test(row.endDate))   errors.push(`Seasons row ${rowNum} (${seasonId}): endDate "${row.endDate}" is not MM/DD/YYYY`);
 
     events.set(seasonId, {
       id: seasonId,
@@ -214,7 +219,7 @@ function buildEvents(seasonRows: Record<string, string>[], gameRows: Record<stri
     const target = events.get(seasonId);
     if (!target) { errors.push(`Schedule row ${rowNum}: season_id "${seasonId}" doesn't match any Seasons row`); return; }
 
-    if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)`);
+    if (!DATE_RE.test(row.date)) errors.push(`Schedule row ${rowNum}: date "${row.date}" is not MM/DD/YYYY`);
     if (!row.time) errors.push(`Schedule row ${rowNum}: missing time`);
     if (!row.home) errors.push(`Schedule row ${rowNum}: missing home team`);
     if (!row.away) errors.push(`Schedule row ${rowNum}: missing away team`);

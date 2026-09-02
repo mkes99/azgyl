@@ -7,6 +7,37 @@ Open work is tracked in [TODO.md](TODO.md).
 
 ---
 
+## [3.45] — 2026-09-01 — Date validation back to MM/DD/YYYY only; single deploy hook, not an array
+
+### Changed
+
+- **`DATE_RE` (in `schedule.ts`, `standings.ts`'s error messages stay
+  shared, and the Apps Script's copy in `GOOGLE_SHEETS_SETUP.md`) is
+  back to `MM/DD/YYYY`-only**, reverting the dual-format tolerance added
+  in 3.43. That tolerance was a stopgap for when one shared sheet fed
+  both `develop`'s and `main`'s deploy hooks (3.42's incident); 3.44's
+  two-sheet-per-environment split already removed that coordination
+  problem, so the extra format made the validation looser than it needs
+  to be going forward. Verified against the live "Develop AZGYL Season
+  Data" sheet (already fully MM/DD/YYYY) — clean build, no data changes
+  needed.
+- **`standings.ts` now uses `pickCsvUrl()`**, same `DEPLOY_ENV`
+  selection as `schedule.ts` — it had been overlooked when `pickCsvUrl`
+  was introduced in 3.44 and was still hardcoded permanently to the
+  Develop sheet, which would have silently served develop's standings
+  data on `main` in production.
+- **`DEPLOY_HOOK_URLS` (an array) simplified to `DEPLOY_HOOK_URL` (a
+  single string)** in the Apps Script — it was an array from an earlier
+  design where one sheet could feed multiple branches at once; since
+  the two-sheet split means a sheet only ever talks to exactly one
+  branch, the array was dead flexibility. Matches `VALID_VALUES_URL`,
+  which was already a single value.
+- `GOOGLE_SHEETS_SETUP.md` Step 1 now says to name the sheet "Develop
+  AZGYL Season Data" (vs. plain "AZGYL Season Data" for the eventual
+  production sheet) instead of one generic name for both.
+
+---
+
 ## [3.44] — 2026-09-01 — Documented: separate develop/main sheets, not one shared sheet
 
 ### Changed

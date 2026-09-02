@@ -33,12 +33,16 @@
 // than publishing bad data.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { fetchCSV } from '@/lib/csv';
+import { fetchCSV, pickCsvUrl } from '@/lib/csv';
 import { teams } from './teams';
 import { scheduleEvents } from './schedule';
 
-export const STANDINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=616344644&single=true&output=csv';
-// Example: 'https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Standings'
+// See the comment on SEASONS_CSV_URL in schedule.ts — same DEPLOY_ENV
+// selection, same reason.
+export const STANDINGS_CSV_URL = pickCsvUrl(
+  '', // production — set once the real production sheet exists
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRlfvb_sVH8F0Uu0QgD5u19TSi5PAhid4y_TQzPY0qbV58CitwRfj4vzrBwBSOZUFO4TqJW9zc5CDV_/pub?gid=616344644&single=true&output=csv', // preview
+);
 
 export interface StandingRow {
   team:         string;

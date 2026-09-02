@@ -31,7 +31,7 @@ regardless of which one is actually ready. (This happened for real:
 2026-09-01's date-format change broke `main`'s build the moment the
 shared sheet was updated for `develop`, and had to be walked back.)
 Whichever spreadsheet you're setting up, every step below is identical
-— tabs, columns, validation rules, Apps Script. Only `DEPLOY_HOOK_URLS`
+— tabs, columns, validation rules, Apps Script. Only `DEPLOY_HOOK_URL`
 and `VALID_VALUES_URL` in Step 8 differ, since each sheet's script only
 ever talks to its own one branch.
 
@@ -83,7 +83,10 @@ between the two data files.
 ## Step 1 — Create the sheet
 
 1. Go to sheets.google.com, create a new spreadsheet.
-2. Name it **AZGYL Season Data**.
+2. Name it **Develop AZGYL Season Data** if this is the develop-branch
+   sheet, or **AZGYL Season Data** (no prefix) if this is the real
+   production sheet feeding `main` — the name is just a label so two
+   spreadsheets aren't confused for each other; the site never reads it.
 3. Rename the first tab to `Seasons`. Add tabs named `Schedule` and
    `Standings`. Add an `Archive` tab too if you want one now — it can
    also wait until you actually have a season to archive.
@@ -102,7 +105,7 @@ season_id | name | type | active | startDate | endDate
 | `name` | Display name shown on the site, e.g. `Spring 2026`. |
 | `type` | `season` or `tournament` — exactly, lowercase. |
 | `active` | `TRUE` or `FALSE` — checkbox column recommended. `TRUE` = shown on the homepage and `/league`. More than one row can be `TRUE` at once (e.g. a season plus a tournament running alongside it). |
-| `startDate` / `endDate` | `MM/DD/YYYY` (`YYYY-MM-DD` also still accepted — see the comment above `DATE_RE` in `schedule.ts` for why). |
+| `startDate` / `endDate` | `MM/DD/YYYY` only — single or double-digit month/day both fine (`9/19/2026` and `09/19/2026` both work). |
 
 Example row:
 ```
@@ -127,7 +130,7 @@ identically in any column order — this one's just easier to scan.
 | Column | Notes |
 |---|---|
 | `season_id` | Must exactly match a `season_id` from the `Seasons` tab. This is how a game gets grouped into a season — one row here is one game, fully described by its own columns. Can be left blank — see "Leave repeated cells blank" below. |
-| `date` | `MM/DD/YYYY` (`YYYY-MM-DD` also still accepted — see the comment above `DATE_RE` in `schedule.ts` for why). Can be left blank. |
+| `date` | `MM/DD/YYYY` only — single or double-digit month/day both fine. Can be left blank. |
 | `venue` | Must match a venue id from `src/data/venues.ts` (e.g. `mesquite`, `naranja-park`) — ask whoever manages the site for the current list if you're not sure. This is what the site uses to group games together, show the venue name/address/map link/notes, and so on (see below). Can be left blank. |
 | `fieldMapUrl` | Optional — a link to a field-layout picture for this venue. Can be left blank. Overrides whatever's hardcoded for that venue in `venues.ts`, if anything. See "Adding a field-map picture" below. |
 | `venueNotes` | Optional — a note about the *venue* (e.g. "No dogs allowed"), not about one specific game. Can be left blank. See "Overriding a venue's notes" below — don't confuse this with `gameNotes`, further down, which is about one game. |
@@ -343,26 +346,54 @@ you'd rather keep editing standings straight in `standings.ts` — see Step
 
 ## Step 6 — Add the CSV URLs to the codebase
 
-Open `src/data/schedule.ts` and fill in:
+`schedule.ts`/`standings.ts` pick their CSV URLs based on `DEPLOY_ENV`
+(a Cloudflare Pages build-time environment variable — `'production'`
+on `main`, `'preview'` everywhere else), via `pickCsvUrl()` in
+`src/lib/csv.ts`. This means **the exact same committed code runs on
+every branch** — no hardcoding one branch's sheet URLs directly and
+hoping every other branch stays in sync by hand (that went wrong for
+real once already — see CHANGELOG 3.42–3.44).
+
+Open `src/data/schedule.ts` and fill in the pair that matches which
+spreadsheet you're setting up — the *production* argument if this is
+the real production sheet feeding `main`, the *preview* argument if
+this is "Develop AZGYL Season Data" feeding `develop`:
 
 ```ts
-const SEASONS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
-const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
+const SEASONS_CSV_URL = pickCsvUrl(
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // production
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // preview
+);
+const SCHEDULE_CSV_URL = pickCsvUrl(
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // production
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // preview
+);
 ```
+
+Leave the *other* environment's argument as `''` if that sheet doesn't
+exist yet — the site runs with zero events (its normal "no active
+events" state) for whichever environment has an empty URL, rather than
+throwing. Don't fill in a URL for an environment you're not actually
+setting up right now.
 
 If you're using the `Standings` tab, also open `src/data/standings.ts`
-and fill in:
+and fill in the same pair:
 
 ```ts
-export const STANDINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv';
+export const STANDINGS_CSV_URL = pickCsvUrl(
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // production
+  'https://docs.google.com/spreadsheets/d/.../pub?gid=...&single=true&output=csv', // preview
+);
 ```
 
-Leave it as `''` to keep editing `localStandings` in that file directly
+Leave both empty to keep editing `localStandings` in that file directly
 instead — same optional, code-only fallback pattern as everything else
 here.
 
-Commit and push. This is a one-time step — after this, the sheet is the only
-thing that needs updating.
+Commit and push. This is a one-time step per environment — after both
+production and preview URLs are filled in, the sheets are the only
+thing that needs updating, and the same commit keeps working correctly
+on both branches regardless of which one is ahead.
 
 ---
 
@@ -370,7 +401,7 @@ thing that needs updating.
 
 A deploy hook only rebuilds the one branch it's created for. This
 sheet ("Develop AZGYL Season Data") only ever talks to `develop` — one
-hook, one branch, on purpose (see the note above `DEPLOY_HOOK_URLS`
+hook, one branch, on purpose (see the note above `DEPLOY_HOOK_URL`
 below for why: two branches sharing one sheet meant a schema change
 couldn't be tested in isolation, which was the whole point of having a
 separate branch). The real production sheet (feeding `main`) is a
@@ -382,7 +413,7 @@ its own single hook pointed at `main`.
    Apps Script) and the target together, so the purpose is obvious
    from the name alone later
 3. Point it at the `develop` branch
-4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URLS` in the Apps
+4. Copy the webhook URL — it goes in `DEPLOY_HOOK_URL` in the Apps
    Script below
 
 ---
@@ -414,20 +445,19 @@ In that editor, delete whatever's in `Code.gs` and paste this in full:
 // change can actually be isolated there instead of also hitting
 // whatever real production data `main` is serving. There's a separate
 // production sheet feeding `main`'s own Apps Script + deploy hook (not
-// this one) — don't add a second entry here to "cover" main; that's
-// exactly the coupling this split was meant to remove. Name the hook
-// sheets-sync-<branch> in the Cloudflare dashboard either way — names
-// the trigger (this Sheet) and the target together.
-const DEPLOY_HOOK_URLS  = [
-  'YOUR_DEVELOP_DEPLOY_HOOK_URL', // sheets-sync-develop
-];
-// Unlike DEPLOY_HOOK_URLS, this stays a SINGLE url — it's the one
-// source of truth for which team/division/venue names are currently
-// valid, and has to match whichever deployment THIS sheet actually
-// feeds. Since this sheet only talks to develop now, that's develop's
-// own Cloudflare Pages URL — NOT the bare <project>.pages.dev domain,
-// which tracks the Production branch (main) and reflects the OTHER
-// sheet's data, not this one's.
+// this one) — don't add a second hook here to "cover" main; that's
+// exactly the coupling this split was meant to remove. Each sheet talks
+// to exactly one branch, so this is a single url, same as
+// VALID_VALUES_URL below. Name the hook sheets-sync-<branch> in the
+// Cloudflare dashboard — names the trigger (this Sheet) and the target
+// together.
+const DEPLOY_HOOK_URL   = 'YOUR_DEVELOP_DEPLOY_HOOK_URL'; // sheets-sync-develop
+// This is the one source of truth for which team/division/venue names
+// are currently valid, and has to match whichever deployment THIS sheet
+// actually feeds. Since this sheet only talks to develop, that's
+// develop's own Cloudflare Pages URL — NOT the bare <project>.pages.dev
+// domain, which tracks the Production branch (main) and reflects the
+// OTHER sheet's data, not this one's.
 const VALID_VALUES_URL  = 'https://develop.azgyl.pages.dev/valid-values.json';
 const ADMIN_EMAIL       = 'mike@formativewebsolutions.com'; // always notified on any validation error, regardless of who made the edit
 const DEBOUNCE_MINUTES  = 2; // wait this long after the last edit before validating + deploying
@@ -474,12 +504,10 @@ function validateAndDeploy(editorEmail) {
     notifyError(editorEmail, errors);
     return;
   }
-  // Fire every configured hook — one deploy per branch. muteHttpExceptions
-  // so one hook failing (a stale/deleted one, say) doesn't stop the rest
-  // from firing.
-  DEPLOY_HOOK_URLS.forEach(function (url) {
-    UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true });
-  });
+  // muteHttpExceptions so a stale/deleted hook fails quietly instead of
+  // throwing out of validateAndDeploy — a broken deploy hook isn't a
+  // validation error, and shouldn't be reported to the editor as one.
+  UrlFetchApp.fetch(DEPLOY_HOOK_URL, { method: 'post', muteHttpExceptions: true });
 }
 
 function readTab(ss, tabName) {
@@ -512,13 +540,14 @@ function fetchValidValues() {
   return JSON.parse(res.getContentText());
 }
 
-// Accepts MM/DD/YYYY (the sheet's normal format) AND ISO YYYY-MM-DD —
-// must match src/data/schedule.ts's DATE_RE exactly. Both stay accepted
-// deliberately: this sheet has a deploy hook on more than one branch
-// (see Step 7/8), and there's only one sheet, so a validation change on
-// one branch can't require a format the other branch's code doesn't
-// accept yet without breaking every edit until that branch catches up.
-const DATE_RE = /^(?:\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})$/;
+// MM/DD/YYYY only — must match src/data/schedule.ts's DATE_RE exactly.
+// (An earlier version of this also accepted ISO YYYY-MM-DD, as a
+// stopgap for when one sheet fed both develop's and main's deploy
+// hooks and a format change on one branch could break the other before
+// it caught up. Now that each branch has its own separate spreadsheet
+// — see the note at the top of this doc — that coordination problem
+// doesn't exist, so back to one format.)
+const DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
 
 // A blank cell in any of `columns` inherits whatever was in the row above
 // it for that column — must match src/data/schedule.ts's fillDown()
@@ -586,15 +615,15 @@ function validateData(seasonRows, gameRows, standingsRows, valid) {
     if (row.type !== 'season' && row.type !== 'tournament') {
       errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): type must be "season" or "tournament", got "' + row.type + '"');
     }
-    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): startDate "' + row.startDate + '" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)');
-    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): endDate "' + row.endDate + '" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)');
+    if (!DATE_RE.test(row.startDate)) errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): startDate "' + row.startDate + '" is not MM/DD/YYYY');
+    if (!DATE_RE.test(row.endDate))   errors.push('Seasons row ' + row.__row + ' (' + seasonId + '): endDate "' + row.endDate + '" is not MM/DD/YYYY');
   });
 
   gameRows.forEach(row => {
     const seasonId = row.season_id;
     if (!seasonId) { errors.push('Schedule row ' + row.__row + ': missing season_id'); return; }
     if (!seasonIds.has(seasonId)) { errors.push('Schedule row ' + row.__row + ': season_id "' + seasonId + '" doesn\'t match any Seasons row'); return; }
-    if (!DATE_RE.test(row.date)) errors.push('Schedule row ' + row.__row + ': date "' + row.date + '" is not a valid date (MM/DD/YYYY or YYYY-MM-DD)');
+    if (!DATE_RE.test(row.date)) errors.push('Schedule row ' + row.__row + ': date "' + row.date + '" is not MM/DD/YYYY');
     if (!row.time) errors.push('Schedule row ' + row.__row + ': missing time');
     if (!row.home) errors.push('Schedule row ' + row.__row + ': missing home team');
     if (!row.away) errors.push('Schedule row ' + row.__row + ': missing away team');
