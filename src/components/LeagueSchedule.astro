@@ -560,21 +560,14 @@ const defaultEventId = defaultEvent?.id;
     letter-spacing: -.01em;
     margin: 0 0 1.75rem;
   }
-  /* The multi-season case: underline tabs — this switcher sits directly
-     under the page hero as the top-level way to pick which season's
-     entire view (filter bar + every game) is showing, the same role
-     section-level tab bars play elsewhere (GitHub's Code/Issues/PRs,
-     a profile's Posts/Replies/Media): a full view swap, not a
-     refinement. Deliberately NOT styled like the Division/Week/Team
-     pill filters below (.sched-tab) — different class entirely, and
-     this rule is scoped to .season-switcher .season-tab specifically —
-     so it reads as a different tier of control than they do. Standings
-     uses pills instead for the same
-     switcher pattern (LeagueStandings.astro) — it sits under its own
-     "Division Standings" heading as an in-section selector next to a
-     data table, the role pill/chip selectors play in stats-heavy UIs
-     (ESPN standings, Google Flights filters, a stock app's 1D/1W/1M
-     range picker) rather than section-level navigation. */
+  /* The multi-season case: underline tabs. Same treatment on
+     LeagueStandings.astro's own copy of this switcher — deliberately
+     not styled like the Division/Week/Team pill filters below
+     (.sched-tab, a different class; this rule is scoped to
+     .season-switcher .season-tab specifically) so it still reads as a
+     different tier of control than they do, picking which games/
+     standings exist to filter in the first place rather than filtering
+     within one shared set. */
   .season-switcher {
     display: flex; flex-wrap: wrap;
     gap: .5rem 1.75rem;
