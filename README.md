@@ -235,7 +235,7 @@ incomplete.
 
 **Don't add a `slug` field.** It's derived automatically from `name` —
 lowercased, with anything that isn't `a-z`/`0-9` collapsed into a hyphen
-(e.g. `'Ahwatukee Lightning'` → `'sol-sisters'`). See `slugify()` at the bottom of
+(e.g. `'Ahwatukee Lightning'` → `'ahwatukee-lightning'`). See `slugify()` at the bottom of
 `teams.ts`. It isn't currently read anywhere else in the code (no team
 detail pages, no list keys) — same as `contact` below, reserved for future
 use — but since it's computed for free, every team gets one automatically
