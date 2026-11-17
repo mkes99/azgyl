@@ -102,11 +102,11 @@ const teamsRaw = [
     district: '',
     divisions: ['8U','10U','12U','14U'],
     zipcode: ['85202','85204','85206','85209','85210','85212','85224','85225','85226','85233','85234','85249','85283','85284','85286','85295','85296','85297','85298'],
-    contact: ['info@azgl.com','jessica@azgl.com'],
-    href: 'https://desertstix.com',
+    contact: ['info@azgl.com','info@desertstix.com'],
+    href: 'https://dstix.leagueapps.com/?mngr=true',
     notes: 'Desert Stix south group serving Gilbert, South Mesa, South Tempe, and Northeast Chandler.',
     logo: '/assets/team-logos/south-hotshots.png',
-    color: '#1E9E4A'
+    color: '#00B0AD'
   },
 ];
 
