@@ -7,6 +7,7 @@ interface Team {
   area?: string;
   divisions: string[];
   zipcode?: string[];
+  contact?: string;
   href: string;
 }
 interface Props {
@@ -32,6 +33,14 @@ const {
   collapsible = false,
 } = Astro.props;
 const teamData = JSON.stringify(teams);
+// Division dropdown and example placeholders come from teams.ts only, so the
+// finder never offers a division/city/zip that no current team supports.
+const divisionOrder = ['8U', '10U', '12U', '14U'];
+const divisionOptions = [...new Set(teams.flatMap(team => team.divisions))]
+  .sort((first, second) => divisionOrder.indexOf(first) - divisionOrder.indexOf(second));
+const exampleCities = [...new Set(teams.map(team => team.city))].slice(0, 3).join(', ');
+const queryPlaceholder = exampleCities ? `${exampleCities}...` : 'City, area, or district';
+const zipPlaceholder = teams.find(team => team.zipcode?.length)?.zipcode?.[0] ?? '85001';
 const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
 ---
 
@@ -53,21 +62,18 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
         <div class="form-grid">
           <label>
             City / area / district
-            <input type="text" name="query" placeholder="Phoenix, Chandler, Oro Valley..." />
+            <input type="text" name="query" placeholder={queryPlaceholder} />
           </label>
           <label>
             Zip code
-            <input type="text" name="zip" placeholder="85048" />
+            <input type="text" name="zip" placeholder={zipPlaceholder} />
           </label>
         </div>
         <label>
           Division
           <select name="division">
             <option value="">Any division</option>
-            <option value="8U">8U</option>
-            <option value="10U">10U</option>
-            <option value="12U">12U</option>
-            <option value="14U">14U</option>
+            {divisionOptions.map(division => <option value={division}>{division}</option>)}
           </select>
         </label>
         <div class="actions team-finder-actions">
@@ -81,21 +87,18 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
       <div class="form-grid">
         <label>
           City / area / district
-          <input type="text" name="query" placeholder="Phoenix, Chandler, Oro Valley..." />
+          <input type="text" name="query" placeholder={queryPlaceholder} />
         </label>
         <label>
           Zip code
-          <input type="text" name="zip" placeholder="85048" />
+          <input type="text" name="zip" placeholder={zipPlaceholder} />
         </label>
       </div>
       <label>
         Division
         <select name="division">
           <option value="">Any division</option>
-          <option value="8U">8U</option>
-          <option value="10U">10U</option>
-          <option value="12U">12U</option>
-          <option value="14U">14U</option>
+          {divisionOptions.map(division => <option value={division}>{division}</option>)}
         </select>
       </label>
       <div class="actions team-finder-actions">
@@ -145,6 +148,7 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
           <strong>${team.name}</strong>
           <div class="team-meta">${team.district ? `${team.city} · ${team.district}` : team.city}</div>
           ${team.notes ? `<p>${team.notes}</p>` : ''}
+          ${team.contact ? `<p class="team-contact"><a href="mailto:${team.contact}">${team.contact}</a></p>` : ''}
         </article>`).join('');
     };
 
@@ -155,7 +159,7 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
       const zip = String(data.get('zip') || '').trim();
       const division = String(data.get('division') || '');
       const matches = teams.filter((team) => {
-        const haystack = [team.name, team.area, team.city, team.district].join(' ').toLowerCase();
+        const haystack = [team.name, team.area, team.city, team.district, (team.zipcode || []).join(' ')].join(' ').toLowerCase();
         const queryOk = !query || haystack.includes(query);
         const zipOk = !zip || (team.zipcode || []).some((code) => code.startsWith(zip) || zip.startsWith(code));
         const divisionOk = !division || team.divisions.includes(division);

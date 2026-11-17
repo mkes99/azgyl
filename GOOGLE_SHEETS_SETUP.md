@@ -143,7 +143,7 @@ identically in any column order — this one's just easier to scan.
 
 Example row:
 ```
-spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Diamonds | Vipers | Field 2 | Opening day
+spring-2026 | 02/07/2026 | mesquite | | | 8U | 8:00 AM | 7:30 AM | Central Diamonds | North Vipers | Field 2 | Opening day
 ```
 
 ### Formatting the date columns
@@ -171,10 +171,10 @@ field-map link, and venue notes) typed once, at the top of the block:
 
 ```
 season_id   | date       | venue    | fieldMapUrl                          | venueNotes       | division | time     | home            | away         | field    | gameNotes
-spring-2026 | 02/07/2026 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Diamonds        | Vipers       | Field 2  | Opening day
-            |            |          |                                       |                  |          | 8:45 AM  | Hawks           | Hotshots     | Field 2  |
-            |            |          |                                       |                  | 10U      | 9:30 AM  | Sol Sisters     | Oro Valley   | Field 1  |
-            |            |          |                                       |                  |          | 10:15 AM | Tukee Lightning | Chandler Lax | Field 1  |
+spring-2026 | 02/07/2026 | mesquite | https://drive.google.com/file/d/.../view?usp=sharing | No dogs allowed. | 8U       | 8:00 AM  | Central Diamonds        | North Vipers       | Field 2  | Opening day
+            |            |          |                                       |                  |          | 8:45 AM  | Oro Valley Lacrosse           | South Hotshots     | Field 2  |
+            |            |          |                                       |                  | 10U      | 9:30 AM  | Ahwatukee Lightning     | Oro Valley Lacrosse   | Field 1  |
+            |            |          |                                       |                  |          | 10:15 AM | Arrowhead Lady Warriors | Ahwatukee Lightning | Field 1  |
 ```
 
 That's 4 games with the venue, date, season, field-map link, and venue
@@ -289,7 +289,7 @@ season_id | division | team | wins | losses | ties | goalsFor | goalsAgainst
 
 Example row:
 ```
-spring-2026 | 8U | Diamonds | 3 | 1 | 0 | 20 | 10
+spring-2026 | 8U | Central Diamonds | 3 | 1 | 0 | 20 | 10
 ```
 
 One row per team per division per season — there's no `game_id` or
@@ -307,10 +307,10 @@ once, at the top:
 
 ```
 season_id   | division | team              | wins | losses | ties | goalsFor | goalsAgainst
-spring-2026 | 8U       | Diamonds          | 3    | 1      | 0    | 20       | 10
-            |          | Vipers            | 2    | 1      | 1    | 18       | 12
-            | 10U      | Sol Sisters       | 4    | 0      | 0    | 22       | 6
-            |          | Oro Valley        | 1    | 3      | 0    | 9        | 20
+spring-2026 | 8U       | Central Diamonds          | 3    | 1      | 0    | 20       | 10
+            |          | North Vipers            | 2    | 1      | 1    | 18       | 12
+            | 10U      | Ahwatukee Lightning       | 4    | 0      | 0    | 22       | 6
+            |          | Oro Valley Lacrosse        | 1    | 3      | 0    | 9        | 20
 ```
 
 `division` is scoped to the `season_id` block — the moment a row gives

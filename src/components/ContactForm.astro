@@ -3,6 +3,8 @@
 // HTML5 native validation is ON (no novalidate).
 // Required fields marked with * — standard, universally understood.
 // Optional fields have no marker — absence of * means optional.
+import { teams } from '@/data/teams';
+
 const departments = [
   'General Questions',
   'Registration & Team Signup',
@@ -52,9 +54,13 @@ const departments = [
       <input
         name="team"
         type="text"
-        placeholder="e.g. Diamonds, Tucson area"
+        placeholder={`e.g. ${teams[0]?.name ?? 'your team'}, your area`}
+        list="contact-team-options"
         autocomplete="off"
       />
+      <datalist id="contact-team-options">
+        {teams.map(team => <option value={team.name} />)}
+      </datalist>
     </label>
   </div>
 

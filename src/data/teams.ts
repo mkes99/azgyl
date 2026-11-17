@@ -1,185 +1,116 @@
 // ─────────────────────────────────────────────────────────────────────────
 // TEAMS
 //
-// Three clubs are commented out below rather than deleted, so they can be
-// restored by removing the comment markers:
-//   Marana Reapers · Cave Creek · Vail
-// Commented out 2026-08-09.
+// Replaced in full on 2026-11-16 with the six clubs from the team
+// registration form responses. Previous clubs (Sol Sisters, Tukee Lightning,
+// Oro Valley, Diamonds, Vipers, Hotshots, Hawks, Chandler Lax, East Valley
+// Bullets, plus the already-hidden Marana Reapers / Cave Creek / Vail) were
+// removed — see git history to restore them.
 //
-// Note: the schedule and standings still contain historical Marana Reapers
-// games (src/data/schedule.ts, src/data/standings.ts). Those are past results
-// and were left intact — see CHANGELOG.
+// Note: the schedule and standings still contain historical games under the
+// old team names (src/data/schedule.ts, src/data/standings.ts). Those are
+// past results and were left intact — see CHANGELOG.
 //
 // `slug` is NOT a field you set here — it's derived automatically from
 // `name` below (lowercased, spaces/punctuation collapsed to hyphens), so
 // don't add a `slug:` line to a new team entry. See `slugify()` and the
 // `export const teams` line at the bottom of this file. Changed 2026-08-31 —
 // see CHANGELOG for why.
+//
+// `zipcode` is left empty for clubs that didn't supply service-area zips.
+// Oro Valley Lacrosse's zips (Oro Valley, Marana, Greater Tucson) were filled
+// in by us — it's the only club serving that region right now.
 // ─────────────────────────────────────────────────────────────────────────
 
 const teamsRaw = [
-  // {
-  //   slug: 'marana-reapers',
-  //   name: 'Marana Reapers',
-  //   area: 'Marana',
-  //   city: 'Marana',
-  //   district: 'Marana USD',
-  //   divisions: ['8U','10U','12U','14U'],
-  //   zipcode: ['85653','85658'],
-  //   contact: 'marana@azgyl.com',
-  //   href: 'https://www.reaperslc.com/',
-  //   notes: 'Northwest Tucson-area rec entry point with room for younger and returning players.',
-  //   logo: '/assets/team-logos/marana-reapers.png',
-  //   color: '#8B5CF6'
-  // },
   {
-    name: 'Sol Sisters',
-    area: 'Tucson',
-    city: 'Tucson',
-    district: 'Tucson USD',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85710','85711','85712','85730','85749'],
-    contact: 'solsisters@azgyl.com',
-    href: 'https://www.aztecgirlslacrosse.com/sol-sisters',
-    notes: 'East and central Tucson program with a strong beginner-friendly lane.',
-    logo: '/assets/team-logos/sol-sisters.png',
-    color: '#F59E0B'
-  },
-  {
-    name: 'Tukee Lightning',
-    area: 'Ahwatukee / South Phoenix',
+    name: 'Ahwatukee Lightning',
+    area: 'Phoenix / Ahwatukee',
     city: 'Phoenix',
-    district: 'Kyrene / Tempe Union',
+    district: '',
     divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85044','85045','85048'],
-    contact: 'tukee@azgyl.com',
+    zipcode: [] as string[],
+    contact: 'razcon3@msn.com',
     href: 'https://www.ahwatukeelightningladieslacrosse.com/',
-    notes: 'South Valley option serving Ahwatukee-area players and nearby schools.',
-    logo: '/assets/team-logos/tukee-lightning.png',
-    color: '#38BDF8'
+    notes: 'Ahwatukee-based program serving Phoenix and Ahwatukee players across all four divisions.',
+    logo: '/assets/team-logos/ahwatukee-lightning.png',
+    color: '#E4679A'
   },
   {
-    name: 'Oro Valley',
-    area: 'Oro Valley / Catalina Foothills',
+    name: 'Arrowhead Lady Warriors',
+    area: 'Glendale / Peoria / North Phoenix / West Valley',
+    city: 'Glendale',
+    district: 'Deer Valley / Peoria USD',
+    divisions: ['8U','10U'],
+    zipcode: [] as string[],
+    contact: 'girlslax@arrowheadlacrosse.com',
+    href: 'https://arrowheadlacrosse.com/girls/',
+    notes: 'Northwest Valley program serving Arrowhead (Glendale), parts of North Phoenix, and the West Valley.',
+    logo: '/assets/team-logos/arrowhead-lady-warriors.png',
+    color: '#E3006E'
+  },
+  {
+    name: 'Oro Valley Lacrosse',
+    area: 'Oro Valley / Marana / Greater Tucson',
     city: 'Oro Valley',
-    district: 'Amphitheater / Catalina Foothills',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85737','85742','85755'],
-    contact: 'orovalley@azgyl.com',
-    href: 'https://www.orovalleylacrosse.org/',
-    notes: 'North Tucson program with established game-day operations and family support.',
-    logo: '/assets/team-logos/oro-valley.png',
-    color: '#F59E0B'
+    district: '',
+    divisions: ['10U','12U','14U'],
+    zipcode: [
+      // Oro Valley
+      '85704','85737','85738','85742','85755',
+      // Marana
+      '85653','85658','85741','85743',
+      // Greater Tucson
+      '85701','85705','85706','85710','85711','85712','85713','85714','85715','85716','85718','85719','85730','85745','85746','85747','85748','85749','85750',
+    ],
+    contact: 'orovalleylax@gmail.com',
+    href: 'https://orovalleylacrosse.org/',
+    notes: 'Tucson-area program serving Oro Valley, Marana, and the greater Tucson community.',
+    logo: '/assets/team-logos/oro-valley-lacrosse.png',
+    color: '#00225B'
   },
   {
-    name: 'Diamonds',
-    area: 'Central Phoenix / Scottsdale',
+    name: 'Central Diamonds',
+    area: 'South Scottsdale / Old Town / Arcadia / Central Phoenix / Paradise Valley',
     city: 'Phoenix',
-    district: 'Phoenix Union / Scottsdale USD',
+    district: 'Paradise Valley / Phoenix / Scottsdale',
     divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85016','85018','85251','85254'],
-    contact: 'diamonds@azgyl.com',
-    href: 'https://dstix.leagueapps.com/',
-    notes: 'Central Desert Stix group serving Arcadia, Biltmore, and South Scottsdale families.',
-    logo: '/assets/team-logos/desert-stix-diamonds.png',
-    color: '#60A5FA'
+    zipcode: ['85012','85013','85014','85015','85016','85018','85250','85251','85253','85257'],
+    contact: 'info@azgl.com',
+    href: 'https://dstix.leagueapps.com/?mngr=true',
+    notes: 'Desert Stix central group serving South Scottsdale, Old Town, Arcadia, Central Phoenix, and Paradise Valley.',
+    logo: '/assets/team-logos/central-diamonds.png',
+    color: '#282F7F'
   },
   {
-    name: 'Vipers',
-    area: 'North Phoenix',
-    city: 'Phoenix',
-    district: 'Paradise Valley USD',
+    name: 'North Vipers',
+    area: 'North Scottsdale / North Phoenix / Carefree / Fountain Hills / Cave Creek',
+    city: 'Scottsdale',
+    district: 'North Central / North East Valley',
     divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85022','85024','85028','85032','85050'],
-    contact: 'vipers@azgyl.com',
-    href: 'https://dstix.leagueapps.com/',
-    notes: 'North Desert Stix group for North Valley families.',
-    logo: '/assets/team-logos/desert-stix-vipers.png',
-    color: '#22D3EE'
+    zipcode: ['85022','85024','85028','85032','85050','85054','85254','85255','85260','85262','85266','85268','85331','85377'],
+    contact: 'info@azgl.com',
+    href: 'https://dstix.leagueapps.com/?mngr=true',
+    notes: 'Desert Stix north group serving North Scottsdale, North Phoenix, Carefree, Fountain Hills, and Cave Creek.',
+    logo: '/assets/team-logos/north-vipers.png',
+    color: '#EE5196'
   },
   {
-    name: 'Hotshots',
-    area: 'South Valley / Southeast Phoenix',
-    city: 'Phoenix',
-    district: 'Tempe / South Mountain',
+    name: 'South Hotshots',
+    area: 'Gilbert / South Mesa / South Tempe / Northeast Chandler',
+    city: 'Gilbert',
+    district: '',
     divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85040','85041','85283','85284'],
-    contact: 'hotshots@azgyl.com',
-    href: 'https://dstix.leagueapps.com/',
-    notes: 'South Desert Stix group supporting new-player development and local placement.',
-    logo: '/assets/team-logos/desert-stix-hotshots.png',
-    color: '#F97316'
+    zipcode: ['85202','85204','85206','85209','85210','85212','85224','85225','85226','85233','85234','85249','85283','85284','85286','85295','85296','85297','85298'],
+    contact: 'info@azgl.com',
+    href: 'https://dstix.leagueapps.com/?mngr=true',
+    notes: 'Desert Stix south group serving Gilbert, South Mesa, South Tempe, and Northeast Chandler.',
+    logo: '/assets/team-logos/south-hotshots.png',
+    color: '#00B0AD'
   },
-  {
-    name: 'Hawks',
-    area: 'North Phoenix',
-    city: 'Phoenix',
-    district: 'Deer Valley USD',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85027','85029','85053','85085','85086'],
-    contact: 'hawks@azgyl.com',
-    href: 'https://www.northphoenixlacrosse.org/',
-    notes: 'North Phoenix option with beginner and returning-player pathways.',
-    logo: '/assets/team-logos/hawks.png',
-    color: '#14B8A6'
-  },
-  // {
-  //   slug: 'cave-creek',
-  //   name: 'Cave Creek',
-  //   area: 'Cave Creek / Carefree / North Scottsdale',
-  //   city: 'Cave Creek',
-  //   district: 'Cave Creek USD',
-  //   divisions: ['8U','10U','12U','14U'],
-  //   zipcode: ['85331','85262','85266'],
-  //   contact: 'cavecreek@azgyl.com',
-  //   href: 'https://tshq.bluesombrero.com/Default.aspx?tabid=2666156',
-  //   notes: 'Foothills option for families north of Scottsdale and east of North Phoenix.',
-  //   logo: '/assets/team-logos/cave-creek.png',
-  //   color: '#EC4899'
-  // },
-  {
-    name: 'Chandler Lax',
-    area: 'Chandler / Gilbert / South East Valley',
-    city: 'Chandler',
-    district: 'Chandler Unified',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85224','85225','85226','85248','85249'],
-    contact: 'chandler@azgyl.com',
-    href: 'https://chandlerlacrosse.org/',
-    notes: 'Strong East Valley anchor for families in Chandler, Gilbert, and nearby school communities.',
-    logo: '/assets/team-logos/chandler-lax.png',
-    color: '#EF4444'
-  },
-  {
-    name: 'East Valley Bullets',
-    area: 'Mesa / Queen Creek / East Valley',
-    city: 'Mesa',
-    district: 'Mesa Public Schools',
-    divisions: ['8U','10U','12U','14U'],
-    zipcode: ['85201','85203','85204','85206','85142'],
-    contact: 'eastvalley@azgyl.com',
-    href: 'https://www.eastvalleybulls.com/',
-    notes: 'East Valley lane for Mesa, Queen Creek, and nearby growth areas.',
-    logo: '/assets/team-logos/east-valley-bullets.png',
-    color: '#F97316'
-  },
-  // {
-  //   slug: 'vail',
-  //   name: 'Vail',
-  //   area: 'Vail / Southeast Tucson',
-  //   city: 'Vail',
-  //   district: 'Vail Unified',
-  //   divisions: ['8U','10U','12U','14U'],
-  //   zipcode: ['85641','85747'],
-  //   contact: 'vail@azgyl.com',
-  //   href: '#',
-  //   notes: 'Southeast Tucson growth-area team listing awaiting finalized public club link and official assets.',
-  //   logo: '/assets/team-logos/vail-placeholder.png',
-  //   color: '#7C3AED'
-  // },
 ];
 
-// Derives a URL-safe slug from a team's name — e.g. 'Sol Sisters' -> 'sol-sisters'.
+// Derives a URL-safe slug from a team's name — e.g. 'Central Diamonds' -> 'central-diamonds'.
 // Lowercases, then collapses anything that isn't a-z/0-9 into a single hyphen
 // and trims leading/trailing hyphens.
 const slugify = (name: string) =>
