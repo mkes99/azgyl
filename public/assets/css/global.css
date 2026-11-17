@@ -925,7 +925,8 @@ select { cursor: pointer; }
 .team-card .button-outline { border: 0; padding: .78rem 1rem; }
 .team-logo {
   width: 64px; height: 64px; border-radius: 18px;
-  object-fit: cover; box-shadow: 0 8px 20px rgba(10,16,32,.12);
+  object-fit: contain; background: #fff; padding: 4px;
+  box-shadow: 0 8px 20px rgba(10,16,32,.12);
 }
 .team-brandline { display: grid; grid-template-columns: 64px 1fr; gap: 1rem; align-items: center; margin-bottom: 0; }
 .team-contact { align-items: center; }

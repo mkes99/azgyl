@@ -7,7 +7,7 @@ interface Team {
   area?: string;
   divisions: string[];
   zipcode?: string[];
-  contact?: string;
+  contact?: string[];
   href: string;
 }
 interface Props {
@@ -148,7 +148,7 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
           <strong>${team.name}</strong>
           <div class="team-meta">${team.district ? `${team.city} · ${team.district}` : team.city}</div>
           ${team.notes ? `<p>${team.notes}</p>` : ''}
-          ${team.contact ? `<p class="team-contact"><a href="mailto:${team.contact}">${team.contact}</a></p>` : ''}
+          ${(team.contact || []).length ? `<p class="team-contact">${team.contact.map((email) => `<a href="mailto:${email}">${email}</a>`).join(' · ')}</p>` : ''}
         </article>`).join('');
     };
 
