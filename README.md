@@ -178,7 +178,7 @@ Leave `STANDINGS_CSV_URL` empty to skip the Sheet and edit
 code-only fallback pattern as the schedule:
 
 ```ts
-{ team:'Diamonds', wins:4, losses:1, ties:0, goalsFor:38, goalsAgainst:22 },
+{ team:'Central Diamonds', wins:4, losses:1, ties:0, goalsFor:38, goalsAgainst:22 },
 ```
 
 Standings are sorted automatically by points (win=3, tie=1), then goal
@@ -235,7 +235,7 @@ incomplete.
 
 **Don't add a `slug` field.** It's derived automatically from `name` —
 lowercased, with anything that isn't `a-z`/`0-9` collapsed into a hyphen
-(e.g. `'Sol Sisters'` → `'sol-sisters'`). See `slugify()` at the bottom of
+(e.g. `'Ahwatukee Lightning'` → `'ahwatukee-lightning'`). See `slugify()` at the bottom of
 `teams.ts`. It isn't currently read anywhere else in the code (no team
 detail pages, no list keys) — same as `contact` below, reserved for future
 use — but since it's computed for free, every team gets one automatically

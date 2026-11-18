@@ -1,6 +1,7 @@
 ---
 import { scheduleEvents } from '@/data/schedule';
 import { getVenueById }   from '@/data/venues';
+import { scheduleComingSoon } from '@/data/site-meta';
 
 const todayISO = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 
@@ -15,7 +16,7 @@ const todayISO = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
 // independent of row order. Falls back to the first active event if
 // none of them have an upcoming game (everything active is finished or
 // empty) — same as the old behavior for that edge case.
-const activeEvents = scheduleEvents.filter(e => e.active);
+const activeEvents = scheduleComingSoon ? [] : scheduleEvents.filter(e => e.active);
 function soonestUpcoming(evt: typeof scheduleEvents[0]) {
   const dates = [...new Set(evt.games.map(g => g.date))].sort();
   return dates.find(d => d >= todayISO) ?? null;

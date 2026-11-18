@@ -4,6 +4,7 @@
 // No results, no status tracking — the schedule just shows games.
 import { scheduleEvents } from '@/data/schedule';
 import { getVenueById }   from '@/data/venues';
+import { scheduleComingSoon } from '@/data/site-meta';
 
 const DIV_ORDER = ['8U', '10U', '12U', '14U'];
 
@@ -46,7 +47,7 @@ function buildEventData(event: typeof scheduleEvents[0]) {
   return { games, dates, divisions, teamNames, currentDate, seasonOver, fmtDate, venueName, venueAddress, mapUrl, venueNote, venueMapImg, todayISO };
 }
 
-const activeEvents = scheduleEvents.filter(e => e.active);
+const activeEvents = scheduleComingSoon ? [] : scheduleEvents.filter(e => e.active);
 
 // More than one season/tournament can be active at once (see
 // GOOGLE_SHEETS_SETUP.md) — a season plus a tournament running
@@ -78,9 +79,9 @@ const defaultEventId = defaultEvent?.id;
   <section>
     <div class="container">
       <div class="info-panel">
-        <div class="section-kicker">No active events</div>
+        <div class="section-kicker">Schedule</div>
         <h3>Schedule coming soon</h3>
-        <p>Add a season and its games in the Schedule Google Sheet and mark it <code>active</code> — see <code>GOOGLE_SHEETS_SETUP.md</code>.</p>
+        <p>Check back soon for the next season's game schedule.</p>
       </div>
     </div>
   </section>
