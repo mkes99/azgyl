@@ -1,0 +1,61 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import RuleSummary from '@/components/RuleSummary.astro';
+import BylawsList from '@/components/BylawsList.astro';
+import RuleFaq from '@/components/RuleFaq.astro';
+---
+
+<BaseLayout title="League Rules & Bylaws | AZGYL — Arizona Girls Youth Lacrosse" pathname="/rules">
+  <PageHero
+    eyebrow="Rules"
+    title="How the AZGYL league works."
+    intro="USA Lacrosse governs the sport itself. AZGYL adds the Arizona operating layer: eligibility, scheduling, conduct, and game-day responsibilities."
+    image="/assets/heroes/rules-hero.jpg"
+  />
+
+  <section>
+    <div class="container">
+      <div class="section-header-clean" style="margin-bottom:1.8rem">
+        <div>
+          <div class="section-kicker">Quick reference</div>
+          <h2>Key operating standards</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>The core rules every coach, player, and parent needs to know before the season starts.</p>
+          <div class="subpage-links" style="margin-top:.75rem">
+            <a href="https://www.usalacrosse.com/sites/default/files/documents/Rules/2026-Girls-Youth-Rule-Book.pdf" target="_blank" rel="noreferrer">2026 USA Lacrosse Rule Book (PDF)</a>
+            <a href="/resources#code-of-conduct">Code of Conduct</a>
+          </div>
+        </div>
+      </div>
+      <RuleSummary />
+    </div>
+  </section>
+
+  <section class="section-alt">
+    <div class="container">
+      <div class="section-header-clean" style="margin-bottom:1.8rem">
+        <div>
+          <div class="section-kicker">Official bylaws</div>
+          <h2>AZGYL Rules &amp; Regulations</h2>
+        </div>
+        <div class="section-header-copy">
+          <p>All member clubs, players, coaches, and officials must comply with these regulations.</p>
+        </div>
+      </div>
+      <BylawsList />
+    </div>
+  </section>
+
+  <section>
+    <div class="container two-col split-balanced">
+      <div class="copy">
+        <div class="section-kicker">FAQ</div>
+        <h2 class="section-heading">Rules questions answered.</h2>
+        <p>The questions teams and parents ask most often about eligibility, rosters, and game-day operations.</p>
+      </div>
+      <RuleFaq />
+    </div>
+  </section>
+</BaseLayout>
