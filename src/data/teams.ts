@@ -98,7 +98,7 @@ const teamsRaw = [
   {
     name: 'South Hotshots',
     area: 'Gilbert / South Mesa / South Tempe / Northeast Chandler',
-    city: 'Gilbert',
+    city: 'Gilbert, Mesa, Tempe, Chandler',
     district: '',
     divisions: ['8U','10U','12U','14U'],
     zipcode: ['85202','85204','85206','85209','85210','85212','85224','85225','85226','85233','85234','85249','85283','85284','85286','85295','85296','85297','85298'],
