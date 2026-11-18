@@ -4,6 +4,13 @@
 // Required fields marked with * — standard, universally understood.
 // Optional fields have no marker — absence of * means optional.
 import { teams } from '@/data/teams';
+import { leagueInbox } from '@/data/board';
+
+// Until a Google mailbox is set up for the Resend / Cloudflare function below,
+// the form opens the visitor's email app addressed to the league inbox.
+// Set to false to switch back to sending through /api/contact (the original
+// fetch + reCAPTCHA code below is untouched).
+const useMailto = true;
 
 const departments = [
   'General Questions',
@@ -64,6 +71,8 @@ const departments = [
     </label>
   </div>
 
+  <input type="hidden" name="subject" id="contact-subject" />
+
   <label>
     <span class="label-text">Message <span class="req" aria-hidden="true">*</span></span>
     <textarea name="message" placeholder="How can we help?" required></textarea>
@@ -75,22 +84,39 @@ const departments = [
 
   <div class="actions form-actions">
     <button class="button button-primary" type="submit" id="form-submit">
-      Send Message
+      {useMailto ? 'Email Us' : 'Send Message'}
     </button>
   </div>
 
-  <p class="note">
-    This form sends directly to the AZGYL board via Resend. Protected by reCAPTCHA v3.
-  </p>
+  {useMailto ? (
+    <p class="note">
+      This opens your email app with your message ready to send to <a href={`mailto:${leagueInbox}`}>{leagueInbox}</a>.
+    </p>
+  ) : (
+    <p class="note">
+      This form sends directly to the AZGYL board via Resend. Protected by reCAPTCHA v3.
+    </p>
+  )}
 </form>
 
-<script is:inline>
+<script is:inline define:vars={{ useMailto, inbox: leagueInbox }}>
 (function () {
   var form   = document.getElementById('contact-form');
   var status = document.getElementById('form-status');
   var submit = document.getElementById('form-submit');
 
   if (!form) return;
+
+  // Links elsewhere on the site can pre-set a topic: /contact?subject=Sponsorship
+  var subjectField = document.getElementById('contact-subject');
+  var presetSubject = new URLSearchParams(window.location.search).get('subject');
+  if (presetSubject && subjectField) {
+    subjectField.value = presetSubject;
+    var heading = document.createElement('p');
+    heading.className = 'form-required-note';
+    heading.textContent = 'Regarding: ' + presetSubject;
+    form.insertBefore(heading, form.firstChild);
+  }
 
   function showStatus(msg, type) {
     status.textContent = msg;
@@ -102,6 +128,25 @@ const departments = [
     e.preventDefault();
 
     // HTML5 validation ran already (no novalidate) — if we're here it passed.
+
+    // Mailto mode: hand the message to the visitor's email app instead of
+    // posting to /api/contact. See `useMailto` in the frontmatter.
+    if (useMailto) {
+      var mailData = new FormData(form);
+      var mailTeam = mailData.get('team');
+      var mailBody = [
+        mailData.get('message'),
+        '',
+        '— ' + mailData.get('name') + ' (' + mailData.get('email') + ')',
+        mailTeam ? 'Team or area: ' + mailTeam : '',
+      ].join('\n').trim();
+      window.location.href = 'mailto:' + inbox +
+        '?subject=' + encodeURIComponent(mailData.get('subject') || ('[' + mailData.get('department') + '] AZGYL website inquiry')) +
+        '&body=' + encodeURIComponent(mailBody);
+      showStatus('Opening your email app. If nothing opens, email us directly at ' + inbox + '.', 'success');
+      return;
+    }
+
     submit.disabled    = true;
     submit.textContent = 'Sending…';
     status.hidden      = true;
@@ -112,7 +157,7 @@ const departments = [
       email:      data.get('email'),
       department: data.get('department'),
       team:       data.get('team'),
-      message:    data.get('message'),
+      message:    (data.get('subject') ? 'Regarding: ' + data.get('subject') + '\n\n' : '') + data.get('message'),
       recaptchaToken: null,
     };
 

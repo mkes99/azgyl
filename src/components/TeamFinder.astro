@@ -119,7 +119,7 @@ const finderId = `finder-${Math.random().toString(36).slice(2, 8)}`;
   )}
 </div>
 
-<script is:inline>
+<script is:inline define:vars={{ finderId }}>
   (() => {
     const form = document.querySelector(`[data-team-finder="${finderId}"]`);
     const results = document.querySelector(`[data-team-results="${finderId}"]`);

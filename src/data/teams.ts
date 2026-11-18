@@ -3,7 +3,7 @@
 //
 // Replaced in full on 2026-11-16 with the six clubs from the team
 // registration form responses. Previous clubs (Sol Sisters, Tukee Lightning,
-// Oro Valley, Diamonds, Vipers, Hotshots, Hawks, Chandler Lax, East Valley
+// Oro Valley, Diamonds, Vipers, South Hotshots, Hawks, Chandler Lax, East Valley
 // Bullets, plus the already-hidden Marana Reapers / Cave Creek / Vail) were
 // removed — see git history to restore them.
 //

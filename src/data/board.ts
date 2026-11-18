@@ -1,4 +1,4 @@
-const leagueInbox = 'azgirlsyouthlax@gmail.com';
+export const leagueInbox = 'azgirlsyouthlax@gmail.com';
 
 export const board = [
   { name: 'Michelle Kay', role: 'President', email: leagueInbox, body: 'League direction, final decisions, and board leadership.' },

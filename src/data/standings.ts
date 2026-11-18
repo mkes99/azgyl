@@ -76,7 +76,7 @@ export const localStandings: EventStandings[] = [
         rows: [
           { team:'Vipers',                wins:1, losses:0, ties:0, goalsFor:8,  goalsAgainst:1  },
           { team:'Diamonds',              wins:1, losses:0, ties:0, goalsFor:6,  goalsAgainst:3  },
-          { team:'Hotshots/Chandler/Oro', wins:1, losses:0, ties:0, goalsFor:5,  goalsAgainst:2  },
+          { team:'South Hotshots/Chandler/Oro', wins:1, losses:0, ties:0, goalsFor:5,  goalsAgainst:2  },
           { team:'Tukee Lightning 2',     wins:0, losses:2, ties:0, goalsFor:5,  goalsAgainst:11 },
           { team:'Tukee Lightning 1',     wins:0, losses:1, ties:0, goalsFor:1,  goalsAgainst:8  },
         ],
@@ -89,7 +89,7 @@ export const localStandings: EventStandings[] = [
           { team:'Tukee Lightning 1',     wins:1, losses:1, ties:0, goalsFor:10, goalsAgainst:8  },
           { team:'Chandler/Sol Sisters',  wins:0, losses:1, ties:1, goalsFor:7,  goalsAgainst:10 },
           { team:'Tukee Lightning 2',     wins:0, losses:1, ties:1, goalsFor:6,  goalsAgainst:9  },
-          { team:'Hotshots',              wins:0, losses:2, ties:0, goalsFor:6,  goalsAgainst:16 },
+          { team:'South Hotshots',              wins:0, losses:2, ties:0, goalsFor:6,  goalsAgainst:16 },
         ],
       },
       {
@@ -108,7 +108,7 @@ export const localStandings: EventStandings[] = [
         rows: [
           { team:'Hawks',                 wins:2, losses:0, ties:0, goalsFor:11, goalsAgainst:7  },
           { team:'Vipers/Diamonds',       wins:1, losses:0, ties:1, goalsFor:6,  goalsAgainst:3  },
-          { team:'Hotshots',              wins:1, losses:1, ties:0, goalsFor:10, goalsAgainst:10 },
+          { team:'South Hotshots',              wins:1, losses:1, ties:0, goalsFor:10, goalsAgainst:10 },
           { team:'Tukee Lightning 1',     wins:1, losses:1, ties:0, goalsFor:9,  goalsAgainst:7  },
           { team:'Chandler Lax',          wins:1, losses:1, ties:0, goalsFor:7,  goalsAgainst:9  },
           { team:'Tukee Lightning 2',     wins:0, losses:1, ties:1, goalsFor:5,  goalsAgainst:7  },
